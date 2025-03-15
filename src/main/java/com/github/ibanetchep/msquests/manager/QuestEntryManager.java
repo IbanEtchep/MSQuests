@@ -1,20 +1,25 @@
 package com.github.ibanetchep.msquests.manager;
 
 import com.github.ibanetchep.msquests.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.database.repository.QuestEntryRepository;
+import com.github.ibanetchep.msquests.model.Quest;
 import com.github.ibanetchep.msquests.model.QuestEntry;
 import com.github.ibanetchep.msquests.model.actor.QuestActor;
-import com.github.ibanetchep.msquests.model.Quest;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class QuestEntryManager extends AbstractManager<QuestEntry> {
+public class QuestEntryManager extends AbstractManager<UUID, QuestEntry> {
 
-    private final Map<UUID, QuestEntry> quests = new ConcurrentHashMap<>();
+    private final QuestEntryRepository questEntryRepository;
 
-    public QuestEntryManager(MSQuestsPlugin plugin) {
+    public QuestEntryManager(MSQuestsPlugin plugin, QuestEntryRepository questEntryRepository) {
         super(plugin);
+        this.questEntryRepository = questEntryRepository;
+    }
+
+    public void loadQuests(QuestActor actor) {
+        Map<UUID, QuestEntry> questEntries = questEntryRepository.getAllByActor(actor.getUniqueId());
     }
 
     public void startQuest(QuestActor actor, Quest quest) {
@@ -23,10 +28,6 @@ public class QuestEntryManager extends AbstractManager<QuestEntry> {
     @Override
     public QuestEntry loadFromDatabase(UUID uniqueId) {
         return null;
-    }
-
-    public void loadQuests(QuestActor actor) {
-
     }
 
     @Override

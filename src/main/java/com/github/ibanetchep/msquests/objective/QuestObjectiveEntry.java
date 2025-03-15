@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.model.QuestEntry;
 import com.github.ibanetchep.msquests.model.QuestObjectiveStatus;
 import com.google.gson.Gson;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,11 @@ public abstract class QuestObjectiveEntry {
     protected QuestObjectiveStatus status = QuestObjectiveStatus.IN_PROGRESS;
     protected QuestEntry quest;
     protected final QuestContributionTracker contributionTracker = new QuestContributionTracker();
+
+    protected Date startedAt;
+    protected Date completedAt;
+    protected Date createdAt;
+    protected Date updatedAt;
 
     public QuestObjectiveEntry(UUID uniqueId, QuestEntry quest, int progress, Map<String, String> config) {
         this.uniqueId = uniqueId;

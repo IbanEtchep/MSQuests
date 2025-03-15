@@ -1,9 +1,8 @@
 package com.github.ibanetchep.msquests.model;
 
-import com.github.ibanetchep.msquests.model.actor.QuestActor;
+public class QuestReward {
 
-public interface QuestReward {
-
-    void giveReward(QuestActor actor);
+    private String name;
+    private String command;
 
 }

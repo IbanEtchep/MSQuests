@@ -1,5 +1,7 @@
 Idées
 
+Zmenu support, créer les boutons pour paginer les quetes d'un pool, quetes en cours...
+
 Quest pool:
 
 Catégorisation des quêtes: 

@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.database.repository.ActorRepository;
+import com.github.ibanetchep.msquests.database.repository.QuestEntryRepository;
 import com.github.ibanetchep.msquests.event.PlayerJoinListener;
 import com.github.ibanetchep.msquests.manager.QuestActorManager;
 import com.github.ibanetchep.msquests.manager.QuestEntryManager;
@@ -36,6 +37,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
     private QuestEntryManager questManager;
 
     private ActorRepository actorRepository;
+    private QuestEntryRepository questEntryRepository;
 
     private Executor singleThreadExecutor;
     private YamlDocument config;
@@ -54,9 +56,10 @@ public final class MSQuestsPlugin extends JavaPlugin {
         objectiveEntryTypeRegistry.registerObjectiveType(BlockBreakObjectiveEntry.class);
 
         actorRepository = new ActorRepository(dbAccess);
+        questEntryRepository = new QuestEntryRepository(dbAccess);
 
         questActorManager = new QuestActorManager(this, actorRepository);
-        questManager = new QuestEntryManager(this);
+        questManager = new QuestEntryManager(this, questEntryRepository);
 
 
         registerListeners();

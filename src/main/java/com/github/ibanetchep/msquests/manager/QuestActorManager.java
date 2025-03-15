@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-public class QuestActorManager extends AbstractManager<QuestActor> {
+public class QuestActorManager extends AbstractManager<UUID, QuestActor> {
 
     private final ActorRepository actorRepository;
     private final Map<String, Class<? extends QuestActor>> actorTypes = new ConcurrentHashMap<>();
@@ -31,7 +32,13 @@ public class QuestActorManager extends AbstractManager<QuestActor> {
 
     @Override
     public QuestActor loadFromDatabase(UUID uniqueId) {
-        return null;
+        QuestActorDTO actorDTO = actorRepository.get(uniqueId);
+
+        if(actorDTO == null) {
+            return null;
+        }
+
+        return plugin.getActorRegistry().createActor(actorDTO);
     }
 
 
@@ -40,15 +47,21 @@ public class QuestActorManager extends AbstractManager<QuestActor> {
 
         if (actorDTO == null) {
             actorDTO = new QuestActorDTO(type, UUID.randomUUID(), referenceId);
-            actorRepository.save(actorDTO);
+            actorRepository.add(actorDTO);
         }
 
-        return  plugin.getActorRegistry().createActor(actorDTO);
+        return plugin.getActorRegistry().createActor(actorDTO);
     }
 
     @Override
     public Map<UUID, QuestActor> loadAllFromDatabase() {
-        return Map.of();
+        Map<UUID, QuestActorDTO> actorDTOs = actorRepository.getAll();
+
+        return actorDTOs.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> plugin.getActorRegistry().createActor(entry.getValue())
+                ));
     }
 
     @Override
@@ -57,12 +70,12 @@ public class QuestActorManager extends AbstractManager<QuestActor> {
     }
 
     @Override
-    public void saveToDatabase(QuestActor object) {
+    public void saveToDatabase(QuestActor actor) {
 
     }
 
     @Override
-    public void sync(QuestActor object) {
+    public void sync(QuestActor actor) {
 
     }
 }

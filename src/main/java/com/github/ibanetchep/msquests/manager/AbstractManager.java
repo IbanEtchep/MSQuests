@@ -14,43 +14,43 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <T> the type of objects managed by this manager.
  */
-public abstract class AbstractManager<T> {
+public abstract class AbstractManager<K, T> {
 
     protected final MSQuestsPlugin plugin;
-    protected final Map<UUID, T> objects = new ConcurrentHashMap<>();
+    protected final Map<K, T> objects = new ConcurrentHashMap<>();
 
     public AbstractManager(MSQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Nullable
-    public T get(UUID uniqueId) {
-        return objects.get(uniqueId);
+    public T get(K id) {
+        return objects.get(id);
     }
 
-    public void put(UUID uniqueId, T object) {
-        objects.put(uniqueId, object);
+    public void put(K id, T object) {
+        objects.put(id, object);
     }
 
-    public void remove(UUID uniqueId) {
-        objects.remove(uniqueId);
+    public void remove(K id) {
+        objects.remove(id);
     }
 
-    public boolean contains(UUID uniqueId) {
-        return objects.containsKey(uniqueId);
+    public boolean contains(K id) {
+        return objects.containsKey(id);
     }
 
-    public Map<UUID, T> getAll() {
+    public Map<K, T> getAll() {
         return Collections.unmodifiableMap(objects);
     }
 
     public abstract Map<UUID, T> loadAllFromDatabase();
 
-    public abstract T loadFromDatabase(UUID uniqueId);
+    public abstract T loadFromDatabase(K id);
 
     public abstract void saveToDatabase(T object);
 
-    public abstract void deleteFromDatabase(UUID uniqueId);
+    public abstract void deleteFromDatabase(K id);
 
     public abstract void sync(T object);
 }

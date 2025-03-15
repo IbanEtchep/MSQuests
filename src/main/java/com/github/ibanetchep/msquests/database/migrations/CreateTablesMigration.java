@@ -26,8 +26,8 @@ public class CreateTablesMigration extends Migration {
                 unique_id UUID PRIMARY KEY,
                 name VARCHAR(255),
                 description VARCHAR(255),
-                category VARCHAR(255),
-                status VARCHAR(255),
+                tags JSON,
+                rewards JSON,
                 duration INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -37,7 +37,7 @@ public class CreateTablesMigration extends Migration {
             CREATE TABLE IF NOT EXISTS msquests_objectives (
                 unique_id UUID PRIMARY KEY,
                 objective_type VARCHAR(255),
-                config TEXT,
+                config JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 quest_id UUID REFERENCES msquests_quests(unique_id) ON DELETE CASCADE
@@ -46,10 +46,11 @@ public class CreateTablesMigration extends Migration {
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_quest_entries (
                 unique_id UUID PRIMARY KEY,
-                quest_type VARCHAR(255),
+                quest_id UUID REFERENCES msquests_quests(unique_id) ON DELETE CASCADE,
                 quest_status VARCHAR(255),
                 started_at TIMESTAMP,
                 expires_at TIMESTAMP,
+                completed_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 actor_id UUID REFERENCES msquests_actor(unique_id) ON DELETE CASCADE
@@ -60,6 +61,8 @@ public class CreateTablesMigration extends Migration {
                 unique_id UUID PRIMARY KEY,
                 objective_status VARCHAR(255),
                 progress INTEGER,
+                started_at TIMESTAMP,
+                completed_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 quest_entry_id UUID REFERENCES msquests_quest_entries(unique_id) ON DELETE CASCADE,

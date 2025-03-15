@@ -6,7 +6,7 @@ import com.github.ibanetchep.msquests.model.Quest;
 import java.util.Map;
 import java.util.UUID;
 
-public class QuestManager extends AbstractManager<Quest> {
+public class QuestManager extends AbstractManager<UUID, Quest> {
 
     public QuestManager(MSQuestsPlugin plugin) {
         super(plugin);

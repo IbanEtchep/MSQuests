@@ -16,6 +16,7 @@ public class QuestEntry {
     private Map<UUID, QuestObjectiveEntry> objectives;
     private Date startedAt;
     private Date expiresAt;
+    private Date completedAt;
     private Date createdAt;
     private Date updatedAt;
 

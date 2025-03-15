@@ -6,16 +6,11 @@ import java.util.UUID;
 public class QuestObjective {
 
     private UUID uniqueId;
-    private String group;
     private String type;
     private Map<String, String> config;
 
     public UUID getUniqueId() {
         return uniqueId;
-    }
-
-    public String getGroup() {
-        return group;
     }
 
     public String getType() {
@@ -26,13 +21,8 @@ public class QuestObjective {
         return config;
     }
 
-
     public void setUniqueId(UUID uniqueId) {
         this.uniqueId = uniqueId;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
     }
 
     public void setType(String type) {
