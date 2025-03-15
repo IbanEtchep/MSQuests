@@ -1,0 +1,4 @@
+name: MSQuests
+version: '1.0'
+main: com.github.ibanetchep.msquests.MSQuestsPlugin
+api-version: '1.21'
