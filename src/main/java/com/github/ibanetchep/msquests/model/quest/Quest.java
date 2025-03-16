@@ -102,4 +102,8 @@ public class Quest {
     public Map<UUID, QuestObjective<?>> getObjectives() {
         return objectives;
     }
+
+    public void setObjectives(Map<UUID, QuestObjective<?>> objectives) {
+        this.objectives = objectives;
+    }
 }

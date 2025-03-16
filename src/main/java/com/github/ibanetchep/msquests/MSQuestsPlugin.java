@@ -1,12 +1,12 @@
 package com.github.ibanetchep.msquests;
 
+import com.github.ibanetchep.msquests.command.QuestAdminCommand;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.event.PlayerJoinListener;
 import com.github.ibanetchep.msquests.manager.QuestManager;
 import com.github.ibanetchep.msquests.model.quest.type.BlockBreakObjective;
 import com.github.ibanetchep.msquests.registry.ActorRegistry;
-import com.github.ibanetchep.msquests.registry.ObjectiveEntryTypeRegistry;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
 import dev.dejvokep.boostedyaml.YamlDocument;
@@ -18,6 +18,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import revxrsal.commands.Lamp;
+import revxrsal.commands.bukkit.BukkitLamp;
+import revxrsal.commands.bukkit.BukkitLampConfig;
+import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +32,6 @@ import java.util.concurrent.Executors;
 public final class MSQuestsPlugin extends JavaPlugin {
 
     private ActorRegistry actorRegistry;
-    private ObjectiveEntryTypeRegistry objectiveEntryTypeRegistry;
 
     private QuestManager questManager;
 
@@ -45,12 +48,11 @@ public final class MSQuestsPlugin extends JavaPlugin {
         this.foliaLib = new FoliaLib(this);
 
         actorRegistry = new ActorRegistry();
-        objectiveEntryTypeRegistry = new ObjectiveEntryTypeRegistry();
-        objectiveEntryTypeRegistry.registerObjectiveType(BlockBreakObjective.class);
 
         questManager = new QuestManager(this);
 
         registerListeners();
+        registerCommands();
     }
 
     @Override
@@ -82,7 +84,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
                 config.getString("database.host"),
                 config.getString("database.user"),
                 config.getString("database.password"),
-                config.getString("database.dbname"),
+                config.getString("database.name"),
                 config.getInt("database.port")
         );
 
@@ -96,6 +98,14 @@ public final class MSQuestsPlugin extends JavaPlugin {
         }
     }
 
+    private void registerCommands() {
+        Lamp<BukkitCommandActor> lamp =  BukkitLamp.builder(this)
+                .build();
+
+        BukkitLampConfig.builder(this).disableBrigadier().build();
+
+        lamp.register(new QuestAdminCommand(this));
+    }
 
     public void registerListeners() {
         PluginManager pluginManager = getServer().getPluginManager();
@@ -114,10 +124,6 @@ public final class MSQuestsPlugin extends JavaPlugin {
         return actorRegistry;
     }
 
-    public ObjectiveEntryTypeRegistry getObjectiveTypeRegistry() {
-        return objectiveEntryTypeRegistry;
-    }
-
     public Executor getSingleThreadExecutor() {
         return singleThreadExecutor;
     }
@@ -129,5 +135,9 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     public PlatformScheduler getScheduler() {
         return foliaLib.getScheduler();
+    }
+
+    public void runAsyncQueued(Runnable task) {
+        singleThreadExecutor.execute(task);
     }
 }

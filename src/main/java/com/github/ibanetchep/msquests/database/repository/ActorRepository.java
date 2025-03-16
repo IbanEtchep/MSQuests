@@ -41,7 +41,7 @@ public class ActorRepository extends Repository {
 
         getJdbi().useHandle(handle -> handle.createUpdate(query)
                 .bind("actorType", actor.actorType())
-                .bind("uniqueId", actor.uniqueId())
+                .bind("uniqueId", actor.id())
                 .bind("actorReferenceId", actor.actorReferenceId())
                 .execute());
     }

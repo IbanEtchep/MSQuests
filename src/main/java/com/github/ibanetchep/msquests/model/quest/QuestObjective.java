@@ -42,6 +42,34 @@ public abstract class QuestObjective<T extends QuestObjectiveDefinition> {
         return quest;
     }
 
+    public QuestObjectiveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(QuestObjectiveStatus status) {
+        this.status = status;
+    }
+
+    public Date getStartedAt() {
+        return startedAt;
+    }
+
+    public Date getCompletedAt() {
+        return completedAt;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public T getObjectiveDefinition() {
+        return objectiveDefinition;
+    }
+
     public void callOnProgress() {
         //todo call custom bukkit event
     }

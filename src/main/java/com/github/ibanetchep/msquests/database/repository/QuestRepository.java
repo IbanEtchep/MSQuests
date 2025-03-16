@@ -55,7 +55,7 @@ public class QuestRepository extends Repository {
 
                             if (rowView.getColumn("qoe_unique_id", UUID.class) != null) {
                                 QuestObjectiveDTO objective = rowView.getRow(QuestObjectiveDTO.class);
-                                entry.objectives().put(objective.uniqueId(), objective);
+                                entry.objectives().put(objective.id(), objective);
                             }
 
                             return map;

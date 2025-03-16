@@ -6,23 +6,19 @@ import com.github.ibanetchep.msquests.database.dto.QuestObjectiveDefinitionDTO;
 import com.github.ibanetchep.msquests.model.quest.QuestDefinition;
 import com.github.ibanetchep.msquests.model.quest.QuestObjectiveDefinition;
 import com.github.ibanetchep.msquests.model.quest.QuestReward;
-import com.github.ibanetchep.msquests.registry.ObjectiveDefinitionTypeRegistry;
+import com.github.ibanetchep.msquests.registry.ObjectiveTypeRegistry;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class QuestDefinitionMapper {
 
     private final Gson gson = new Gson();
-    private final ObjectiveDefinitionTypeRegistry objectiveTypeRegistry;
+    private final ObjectiveTypeRegistry objectiveTypeRegistry;
 
-    public QuestDefinitionMapper(ObjectiveDefinitionTypeRegistry objectiveTypeRegistry) {
+    public QuestDefinitionMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
         this.objectiveTypeRegistry = objectiveTypeRegistry;
     }
 
@@ -45,14 +41,14 @@ public class QuestDefinitionMapper {
                 gson.toJson(entity.getTags()),
                 gson.toJson(entity.getRewards()),
                 entity.getDuration(),
-                entity.getCreatedAt().getTime(),
-                entity.getUpdatedAt().getTime(),
                 objectiveDtos
         );
     }
 
     public QuestDefinition toEntity(QuestDefinitionDTO dto) {
-        QuestDefinition questDefinition = new QuestDefinition(dto.uniqueId(), dto.name(), dto.description(), dto.duration());
+        QuestDefinition questDefinition = new QuestDefinition(
+                dto.id(), dto.name(), dto.description(), dto.duration()
+        );
 
         try {
             Set<String> tags = gson.fromJson(dto.tags(), new TypeToken<Set<String>>(){}.getType());
@@ -64,16 +60,16 @@ public class QuestDefinitionMapper {
             Map<UUID, QuestObjectiveDefinition> objectives = new HashMap<>();
             for (Map.Entry<UUID, QuestObjectiveDefinitionDTO> entry : dto.objectives().entrySet()) {
                 QuestObjectiveDefinitionDTO objectiveDto = entry.getValue();
-                Class<? extends QuestObjectiveDefinition> type = objectiveTypeRegistry.getType(objectiveDto.type());
-                if (type == null) {
-                    throw new IllegalArgumentException("Type d'objectif non trouvé : " + objectiveDto.type());
+                Class<? extends QuestObjectiveDefinition> definitionClass = objectiveTypeRegistry.getDefinitionClass(objectiveDto.type());
+                if (definitionClass == null) {
+                    throw new IllegalArgumentException("Objective type not found: " + objectiveDto.type());
                 }
-                QuestObjectiveDefinition objective = gson.fromJson(objectiveDto.config(), type);
+                QuestObjectiveDefinition objective = gson.fromJson(objectiveDto.config(), definitionClass);
                 objectives.put(entry.getKey(), objective);
             }
             questDefinition.setObjectives(objectives);
         } catch (JsonSyntaxException e) {
-            throw new RuntimeException("Erreur lors du parsing des données JSON", e);
+            throw new RuntimeException("Error parsing JSON data", e);
         }
 
         return questDefinition;

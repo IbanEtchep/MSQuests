@@ -18,7 +18,7 @@ public class CreateTablesMigration extends Migration {
                 actor_reference_id VARCHAR(255) UNIQUE,
                 actor_type VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )""");
 
             handle.execute("""
@@ -30,7 +30,7 @@ public class CreateTablesMigration extends Migration {
                 rewards JSON,
                 duration INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )""");
 
             handle.execute("""
@@ -39,7 +39,7 @@ public class CreateTablesMigration extends Migration {
                 objective_type VARCHAR(255),
                 config JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 quest_definition_id UUID REFERENCES msquests_definition(id) ON DELETE CASCADE
             )""");
 
@@ -51,7 +51,7 @@ public class CreateTablesMigration extends Migration {
                 expires_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 quest_definition_id UUID REFERENCES msquests_definition(id) ON DELETE CASCADE,
                 actor_id UUID REFERENCES msquests_actor(id) ON DELETE CASCADE
             )""");
@@ -64,7 +64,7 @@ public class CreateTablesMigration extends Migration {
                 started_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 quest_id UUID REFERENCES msquests_quest(id) ON DELETE CASCADE,
                 objective_definition_id UUID REFERENCES msquests_objective_definition(id) ON DELETE CASCADE
             )""");

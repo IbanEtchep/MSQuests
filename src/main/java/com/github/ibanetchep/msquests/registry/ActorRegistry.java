@@ -77,7 +77,7 @@ public class ActorRegistry {
 
         try {
             Constructor<? extends QuestActor> constructor = actorClass.getConstructor(java.util.UUID.class, String.class);
-            return constructor.newInstance(actorDTO.uniqueId(), actorDTO.actorReferenceId());
+            return constructor.newInstance(actorDTO.id(), actorDTO.actorReferenceId());
         } catch (Exception e) {
             e.printStackTrace();
             return null;

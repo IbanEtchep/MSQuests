@@ -13,7 +13,8 @@ import com.github.ibanetchep.msquests.model.actor.QuestActor;
 import com.github.ibanetchep.msquests.model.quest.Quest;
 import com.github.ibanetchep.msquests.model.quest.QuestDefinition;
 import com.github.ibanetchep.msquests.model.quest.definition.BlockBreakObjectiveDefinition;
-import com.github.ibanetchep.msquests.registry.ObjectiveDefinitionTypeRegistry;
+import com.github.ibanetchep.msquests.model.quest.type.BlockBreakObjective;
+import com.github.ibanetchep.msquests.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.strategy.ActorStrategy;
 
 import java.util.Map;
@@ -31,10 +32,13 @@ public class QuestManager extends AbstractManager {
     private final QuestRepository questRepository;
 
     private final QuestDefinitionMapper questDefinitionMapper;
-    private final ObjectiveDefinitionTypeRegistry objectiveTypeRegistry;
+    private final QuestEntryMapper questEntryMapper;
+
+    private final ObjectiveTypeRegistry objectiveTypeRegistry;
 
     private final Map<String, Class<? extends QuestActor>> actorTypes = new ConcurrentHashMap<>();
     private final Map<Class<? extends QuestActor>, ActorStrategy> actorStrategies = new ConcurrentHashMap<>();
+
 
     public QuestManager(MSQuestsPlugin plugin) {
         super(plugin);
@@ -42,14 +46,17 @@ public class QuestManager extends AbstractManager {
         actorRepository = new ActorRepository(plugin.getDbAccess());
         questRepository = new QuestRepository(plugin.getDbAccess());
 
-        objectiveTypeRegistry = new ObjectiveDefinitionTypeRegistry();
+        objectiveTypeRegistry = new ObjectiveTypeRegistry();
         registerObjectiveTypes();
+
         questDefinitionMapper = new QuestDefinitionMapper(objectiveTypeRegistry);
+        questEntryMapper = new QuestEntryMapper(objectiveTypeRegistry);
+
+        plugin.runAsyncQueued(this::loadQuestDefinitions);
     }
 
     private void registerObjectiveTypes() {
-        objectiveTypeRegistry.registerType(BlockBreakObjectiveDefinition.class);
-        // Ajouter d'autres types d'objectifs ici
+        objectiveTypeRegistry.registerType(BlockBreakObjectiveDefinition.class, BlockBreakObjective.class);
     }
 
     public void loadQuestDefinitions() {
@@ -80,8 +87,16 @@ public class QuestManager extends AbstractManager {
 
         for (QuestDTO questEntryDTO : questEntryDtos.values()) {
             QuestDefinition questDefinition = questDefinitions.get(questEntryDTO.questId());
-            Quest quest = QuestEntryMapper.toEntity(questEntryDTO, actor, questDefinition);
+            Quest quest = questEntryMapper.toEntity(questEntryDTO, actor, questDefinition);
             quests.put(quest.getId(), quest);
         }
+    }
+
+    public void saveQuestDefinition(QuestDefinition questDefinition) {
+        this.questDefinitions.put(questDefinition.getId(), questDefinition);
+        plugin.runAsyncQueued(() -> {
+            QuestDefinitionDTO questDefinitionDTO = questDefinitionMapper.toDto(questDefinition);
+            questDefinitionRepository.upsert(questDefinitionDTO);
+        });
     }
 }

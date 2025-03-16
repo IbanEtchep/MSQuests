@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public record QuestDTO(
-        UUID uniqueId,
+        UUID id,
         UUID questId,
         UUID actorId,
         QuestStatus status,

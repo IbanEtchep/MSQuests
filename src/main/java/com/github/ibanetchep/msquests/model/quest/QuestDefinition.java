@@ -11,14 +11,15 @@ public class QuestDefinition {
     private Map<UUID, QuestObjectiveDefinition> objectives;
     private long duration; // max in seconds
     private List<QuestReward> rewards;
-    private Date createdAt;
-    private Date updatedAt;
 
     public QuestDefinition(UUID id, String name, String description, long duration) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.duration = duration;
+        this.tags = new HashSet<>();
+        this.objectives = new HashMap<>();
+        this.rewards = new ArrayList<>();
     }
 
     public UUID getId() {
@@ -55,22 +56,6 @@ public class QuestDefinition {
 
     public long getDuration() {
         return duration;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public void setDuration(long duration) {

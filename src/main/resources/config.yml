@@ -1,11 +1,8 @@
 config-version: 1
 
 database:
-    # mysql or sqlite
-    type: mysql
     host: localhost
     port: 3306
     name: database
     user: username
     password: password
-    prefix: msquests_
