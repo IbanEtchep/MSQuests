@@ -31,3 +31,4 @@ Thumbs.db
 *.swp
 *.bak
 *.orig
+.idea/workspace.xml
