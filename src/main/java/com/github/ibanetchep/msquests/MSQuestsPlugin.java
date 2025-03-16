@@ -2,12 +2,9 @@ package com.github.ibanetchep.msquests;
 
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
-import com.github.ibanetchep.msquests.database.repository.ActorRepository;
-import com.github.ibanetchep.msquests.database.repository.QuestEntryRepository;
 import com.github.ibanetchep.msquests.event.PlayerJoinListener;
-import com.github.ibanetchep.msquests.manager.QuestActorManager;
-import com.github.ibanetchep.msquests.manager.QuestEntryManager;
-import com.github.ibanetchep.msquests.objective.BlockBreakObjectiveEntry;
+import com.github.ibanetchep.msquests.manager.QuestManager;
+import com.github.ibanetchep.msquests.model.quest.type.BlockBreakObjective;
 import com.github.ibanetchep.msquests.registry.ActorRegistry;
 import com.github.ibanetchep.msquests.registry.ObjectiveEntryTypeRegistry;
 import com.tcoded.folialib.FoliaLib;
@@ -34,10 +31,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
     private ObjectiveEntryTypeRegistry objectiveEntryTypeRegistry;
 
     private QuestActorManager questActorManager;
-    private QuestEntryManager questManager;
-
-    private ActorRepository actorRepository;
-    private QuestEntryRepository questEntryRepository;
+    private QuestManager questManager;
 
     private Executor singleThreadExecutor;
     private YamlDocument config;
@@ -53,14 +47,9 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
         actorRegistry = new ActorRegistry();
         objectiveEntryTypeRegistry = new ObjectiveEntryTypeRegistry();
-        objectiveEntryTypeRegistry.registerObjectiveType(BlockBreakObjectiveEntry.class);
+        objectiveEntryTypeRegistry.registerObjectiveType(BlockBreakObjective.class);
 
-        actorRepository = new ActorRepository(dbAccess);
-        questEntryRepository = new QuestEntryRepository(dbAccess);
-
-        questActorManager = new QuestActorManager(this, actorRepository);
-        questManager = new QuestEntryManager(this, questEntryRepository);
-
+        questManager = new QuestManager(this);
 
         registerListeners();
     }
@@ -114,12 +103,12 @@ public final class MSQuestsPlugin extends JavaPlugin {
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
     }
 
-    public QuestEntryManager getQuestManager() {
-        return questManager;
+    public DbAccess getDbAccess() {
+        return dbAccess;
     }
 
-    public QuestActorManager getQuestActorManager() {
-        return questActorManager;
+    public QuestManager getQuestManager() {
+        return questManager;
     }
 
     public ActorRegistry getActorRegistry() {

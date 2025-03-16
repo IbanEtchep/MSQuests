@@ -22,10 +22,9 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         UUID uniqueId = player.getUniqueId();
 
-        plugin.getScheduler().runAsync(task -> {
-            QuestActor actor = plugin.getQuestActorManager().loadOrCreateByReferenceId("player", uniqueId.toString());
-            plugin.getQuestManager().loadQuests(actor);
-        });
+        plugin.getScheduler().runAsync(task ->
+                plugin.getQuestManager().loadActor("player", uniqueId.toString())
+        );
     }
 
 }

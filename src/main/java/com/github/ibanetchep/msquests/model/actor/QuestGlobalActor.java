@@ -6,14 +6,14 @@ import java.util.UUID;
 
 public class QuestGlobalActor extends QuestActor {
 
-    public QuestGlobalActor(UUID uniqueId, String actorReferenceId) {
-        super(uniqueId, actorReferenceId);
+    public QuestGlobalActor(UUID id, String actorReferenceId) {
+        super(id, actorReferenceId);
         this.actorReferenceId = "global";
     }
 
     @Override
     public boolean isActor(Player player) {
-        return player.getUniqueId().equals(uniqueId);
+        return true;
     }
 
     @Override

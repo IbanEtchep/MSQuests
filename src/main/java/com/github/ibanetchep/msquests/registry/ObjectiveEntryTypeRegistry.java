@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.registry;
 
-import com.github.ibanetchep.msquests.objective.QuestObjectiveEntry;
+import com.github.ibanetchep.msquests.model.quest.QuestObjective;
 import com.github.ibanetchep.msquests.annotation.ObjectiveEntryType;
 
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ObjectiveEntryTypeRegistry {
 
-    private final Map<String, Class<? extends QuestObjectiveEntry>> registeredObjectiveTypes = new HashMap<>();
+    private final Map<String, Class<? extends QuestObjective>> registeredObjectiveTypes = new HashMap<>();
 
     public ObjectiveEntryTypeRegistry() {
     }
@@ -19,7 +19,7 @@ public class ObjectiveEntryTypeRegistry {
      * @param clazz the class type of the objective.
      * @throws IllegalArgumentException if the class is not annotated with ObjectiveEntryType.
      */
-    public void registerObjectiveType(Class<? extends QuestObjectiveEntry> clazz) {
+    public void registerObjectiveType(Class<? extends QuestObjective> clazz) {
         // Check if the class has the ObjectiveEntryType annotation
         ObjectiveEntryType annotation = clazz.getAnnotation(ObjectiveEntryType.class);
         if (annotation == null) {
@@ -37,7 +37,7 @@ public class ObjectiveEntryTypeRegistry {
      * @param name the name of the objective.
      * @return the class type of the objective, or null if not found.
      */
-    public Class<? extends QuestObjectiveEntry> getObjectiveClass(String name) {
+    public Class<? extends QuestObjective> getObjectiveClass(String name) {
         return registeredObjectiveTypes.get(name);
     }
 
@@ -46,7 +46,7 @@ public class ObjectiveEntryTypeRegistry {
      *
      * @return a map of all registered objectives with their class types.
      */
-    public Map<String, Class<? extends QuestObjectiveEntry>> getRegisteredObjectiveTypes() {
+    public Map<String, Class<? extends QuestObjective>> getRegisteredObjectiveTypes() {
         return Map.copyOf(registeredObjectiveTypes);
     }
 }

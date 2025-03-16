@@ -7,13 +7,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.UUID;
 
-public class ActorRepository extends Repository<UUID, QuestActorDTO> {
+public class ActorRepository extends Repository {
 
     public ActorRepository(DbAccess dbAccess) {
         super(dbAccess);
     }
 
-    @Override
     @Nullable
     public QuestActorDTO get(UUID id) {
         String query = "SELECT * FROM actors WHERE unique_id = :uniqueId";
@@ -37,7 +36,6 @@ public class ActorRepository extends Repository<UUID, QuestActorDTO> {
                         .orElse(null));
     }
 
-    @Override
     public void add(QuestActorDTO actor) {
         String query = "INSERT INTO actors (actor_type, unique_id, actor_reference_id) VALUES (:actorType, :uniqueId, :actorReferenceId)";
 
@@ -48,19 +46,8 @@ public class ActorRepository extends Repository<UUID, QuestActorDTO> {
                 .execute());
     }
 
-    @Override
     public void update(QuestActorDTO entity) {
         throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public Map<UUID, QuestActorDTO> getAll() {
-        String query = "SELECT * FROM actors";
-
-        return getJdbi().withHandle(handle -> handle.createQuery(query)
-                .mapToBean(QuestActorDTO.class)
-                .collectToMap(QuestActorDTO::uniqueId, questActorDTO -> questActorDTO)
-        );
     }
 
 }
