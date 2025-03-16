@@ -30,7 +30,6 @@ public final class MSQuestsPlugin extends JavaPlugin {
     private ActorRegistry actorRegistry;
     private ObjectiveEntryTypeRegistry objectiveEntryTypeRegistry;
 
-    private QuestActorManager questActorManager;
     private QuestManager questManager;
 
     private Executor singleThreadExecutor;
