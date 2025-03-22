@@ -1,11 +1,9 @@
 package com.github.ibanetchep.msquests.database.repository;
 
 import com.github.ibanetchep.msquests.database.DbAccess;
-import com.github.ibanetchep.msquests.database.dto.QuestDTO;
 import com.github.ibanetchep.msquests.database.dto.QuestDefinitionDTO;
-import com.github.ibanetchep.msquests.database.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.database.dto.QuestObjectiveDefinitionDTO;
-import org.jdbi.v3.core.mapper.reflect.BeanMapper;
+import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,9 +94,9 @@ public class QuestDefinitionRepository extends Repository {
                 """;
 
         return dbAccess.getJdbi().withHandle(handle -> handle.createQuery(query)
-                .registerRowMapper(BeanMapper.factory(QuestDefinitionDTO.class, "quest_"))
-                .registerRowMapper(BeanMapper.factory(QuestObjectiveDefinitionDTO.class, "objective_"))
-                .reduceRows(new LinkedHashMap<UUID, QuestDefinitionDTO>(), (map, rowView) -> {
+                .registerRowMapper(ConstructorMapper.factory(QuestDefinitionDTO.class, "quest_"))
+                .registerRowMapper(ConstructorMapper.factory(QuestObjectiveDefinitionDTO.class, "objective_"))
+                .reduceRows(new LinkedHashMap<>(), (map, rowView) -> {
                     QuestDefinitionDTO quest = map.computeIfAbsent(
                             rowView.getColumn("quest_id", UUID.class),
                             id -> rowView.getRow(QuestDefinitionDTO.class)

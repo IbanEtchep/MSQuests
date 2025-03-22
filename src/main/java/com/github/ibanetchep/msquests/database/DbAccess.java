@@ -1,14 +1,19 @@
 package com.github.ibanetchep.msquests.database;
 
+import com.github.ibanetchep.msquests.database.dto.QuestActorDTO;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
+import org.jdbi.v3.core.mapper.reflect.ReflectionMappers;
+import org.jdbi.v3.core.mapper.reflect.SnakeCaseColumnNameMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 public class DbAccess {
 
@@ -45,6 +50,8 @@ public class DbAccess {
 		LOGGER.info("Initializing database connection to {}", credentials.toURI());
 		this.dataSource = new HikariDataSource(config);
 		this.jdbi = Jdbi.create(dataSource);
+
+		jdbi.registerRowMapper(new RecordRowMapper());
 
 		if (testConnection()) {
 			LOGGER.info("Database connection established successfully");
