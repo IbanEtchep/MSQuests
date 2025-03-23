@@ -13,7 +13,6 @@ import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestDefinitionRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
-import com.github.ibanetchep.msquests.core.scheduler.Scheduler;
 import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 
 import java.util.Map;
@@ -25,8 +24,6 @@ public class QuestManager {
     private final Map<UUID, QuestDefinition> questDefinitions = new ConcurrentHashMap<>();
     private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
     private final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
-
-    private final Scheduler scheduler;
 
     private final QuestDefinitionRepository questDefinitionRepository;
     private final ActorRepository actorRepository;
@@ -42,7 +39,6 @@ public class QuestManager {
     private final Map<Class<? extends QuestActor>, ActorStrategy> actorStrategies = new ConcurrentHashMap<>();
 
     public QuestManager(
-            Scheduler scheduler,
             QuestDefinitionRepository questDefinitionRepository,
             ActorRepository actorRepository,
             QuestRepository questRepository,
@@ -51,7 +47,6 @@ public class QuestManager {
             ActorTypeRegistry actorTypeRegistry,
             ObjectiveTypeRegistry objectiveTypeRegistry
     ) {
-        this.scheduler = scheduler;
         this.questDefinitionRepository = questDefinitionRepository;
         this.actorRepository = actorRepository;
         this.questRepository = questRepository;
@@ -59,48 +54,44 @@ public class QuestManager {
         this.questEntryMapper = questEntryMapper;
         this.actorTypeRegistry = actorTypeRegistry;
         this.objectiveTypeRegistry = objectiveTypeRegistry;
-
-        scheduler.runAsyncQueued(this::loadQuestDefinitions);
     }
 
     public void loadQuestDefinitions() {
-        Map<UUID, QuestDefinitionDTO> questDefinitionDtos = questDefinitionRepository.getAll();
-
-        for (QuestDefinitionDTO questDefinitionDTO : questDefinitionDtos.values()) {
-            QuestDefinition questDefinition = questDefinitionMapper.toEntity(questDefinitionDTO);
-            questDefinitions.put(questDefinition.getId(), questDefinition);
-        }
+        questDefinitionRepository.getAll().thenAccept(questDefinitionDtos -> {
+            for (QuestDefinitionDTO questDefinitionDTO : questDefinitionDtos.values()) {
+                QuestDefinition questDefinition = questDefinitionMapper.toEntity(questDefinitionDTO);
+                questDefinitions.put(questDefinition.getId(), questDefinition);
+            }
+        });
     }
 
     public void loadActor(String type, UUID uuid) {
-        QuestActorDTO actorDTO = actorRepository.get(uuid);
+        actorRepository.get(uuid).thenAccept(actorDTO -> {
+            if (actorDTO == null) {
+                actorDTO = new QuestActorDTO(type, UUID.randomUUID());
+                actorRepository.add(actorDTO);
+            }
 
-        if (actorDTO == null) {
-            actorDTO = new QuestActorDTO(type, UUID.randomUUID());
-            actorRepository.add(actorDTO);
-        }
+            QuestActor actor = actorTypeRegistry.createActor(actorDTO);
+            actors.put(actor.getId(), actor);
 
-        QuestActor actor = actorTypeRegistry.createActor(actorDTO);
-        actors.put(actor.getId(), actor);
-
-        loadQuests(actor);
+            loadQuests(actor);
+        });
     }
 
     private void loadQuests(QuestActor actor) {
-        Map<UUID, QuestDTO> questEntryDtos = questRepository.getAllByActor(actor.getId());
-
-        for (QuestDTO questEntryDTO : questEntryDtos.values()) {
-            QuestDefinition questDefinition = questDefinitions.get(questEntryDTO.questId());
-            Quest quest = questEntryMapper.toEntity(questEntryDTO, actor, questDefinition);
-            quests.put(quest.getId(), quest);
-        }
+        questRepository.getAllByActor(actor.getId()).thenAccept(questEntryDtos -> {
+            for (QuestDTO questEntryDTO : questEntryDtos.values()) {
+                QuestDefinition questDefinition = questDefinitions.get(questEntryDTO.questId());
+                Quest quest = questEntryMapper.toEntity(questEntryDTO, actor, questDefinition);
+                quests.put(quest.getId(), quest);
+            }
+        });
     }
 
     public void saveQuestDefinition(QuestDefinition questDefinition) {
         this.questDefinitions.put(questDefinition.getId(), questDefinition);
-        scheduler.runAsyncQueued(() -> {
-            QuestDefinitionDTO questDefinitionDTO = questDefinitionMapper.toDto(questDefinition);
-            questDefinitionRepository.upsert(questDefinitionDTO);
-        });
+        QuestDefinitionDTO questDefinitionDTO = questDefinitionMapper.toDto(questDefinition);
+        questDefinitionRepository.upsert(questDefinitionDTO);
     }
 }

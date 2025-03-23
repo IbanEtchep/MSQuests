@@ -10,12 +10,13 @@ import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjective;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveDefinition;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveHandler;
-import com.github.ibanetchep.msquests.bukkit.scheduler.PluginScheduler;
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.mapper.QuestDefinitionMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.PlatformScheduler;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
@@ -36,7 +37,6 @@ import java.util.Objects;
 
 public final class MSQuestsPlugin extends JavaPlugin {
 
-    private PluginScheduler scheduler;
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
 
@@ -44,19 +44,19 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private YamlDocument config;
     private DbAccess dbAccess;
+    private FoliaLib foliaLib;
 
     @Override
     public void onEnable() {
         loadConfig();
         loadDatabase();
-        scheduler = new PluginScheduler(this);
+        foliaLib = new FoliaLib(this);
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
 
 
         questManager = new QuestManager(
-                scheduler,
                 new QuestDefinitionSqlRepository(dbAccess),
                 new ActorSqlRepository(dbAccess),
                 new QuestSqlRepository(dbAccess),
@@ -153,7 +153,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
         return config;
     }
 
-    public PluginScheduler getScheduler() {
-        return scheduler;
+    public PlatformScheduler getScheduler() {
+        return foliaLib.getScheduler();
     }
 }

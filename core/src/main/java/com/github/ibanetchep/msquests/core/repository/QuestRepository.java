@@ -4,8 +4,9 @@ import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface QuestRepository {
 
-    Map<UUID, QuestDTO> getAllByActor(UUID actorUniqueId);
+    CompletableFuture<Map<UUID, QuestDTO>> getAllByActor(UUID actorUniqueId);
 }

@@ -7,6 +7,7 @@ import com.github.ibanetchep.msquests.core.repository.QuestDefinitionRepository;
 import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class QuestDefinitionSqlRepository extends SqlRepository implements QuestDefinitionRepository {
@@ -16,8 +17,8 @@ public class QuestDefinitionSqlRepository extends SqlRepository implements Quest
     }
 
     @Override
-    public void upsert(QuestDefinitionDTO dto) {
-        dbAccess.getJdbi().useTransaction(handle -> {
+    public CompletableFuture<Void> upsert(QuestDefinitionDTO dto) {
+        return runAsync(() -> dbAccess.getJdbi().useTransaction(handle -> {
             handle.createUpdate("""
                 INSERT INTO msquests_definition (
                     id, name, description, tags, rewards, duration
@@ -74,11 +75,11 @@ public class QuestDefinitionSqlRepository extends SqlRepository implements Quest
                         .execute();
                 }
             }
-        });
+        }));
     }
 
     @Override
-    public Map<UUID, QuestDefinitionDTO> getAll() {
+    public CompletableFuture<Map<UUID, QuestDefinitionDTO>> getAll() {
         String query = """
                 SELECT
                     msquests_definition.id as quest_id,
@@ -96,7 +97,7 @@ public class QuestDefinitionSqlRepository extends SqlRepository implements Quest
                 LEFT JOIN msquests_objective_definition ON msquests_objective_definition.quest_definition_id = msquests_definition.id
                 """;
 
-        return dbAccess.getJdbi().withHandle(handle -> handle.createQuery(query)
+        return supplyAsync(() -> dbAccess.getJdbi().withHandle(handle -> handle.createQuery(query)
                 .registerRowMapper(ConstructorMapper.factory(QuestDefinitionDTO.class, "quest_"))
                 .registerRowMapper(ConstructorMapper.factory(QuestObjectiveDefinitionDTO.class, "objective_"))
                 .reduceRows(new LinkedHashMap<>(), (map, rowView) -> {
@@ -111,15 +112,15 @@ public class QuestDefinitionSqlRepository extends SqlRepository implements Quest
                     }
 
                     return map;
-                }));
+                })));
     }
 
     @Override
-    public void delete(UUID id) {
-        dbAccess.getJdbi().useHandle(handle -> {
+    public CompletableFuture<Void> delete(UUID id) {
+        return runAsync(() -> dbAccess.getJdbi().useHandle(handle -> {
             handle.createUpdate("DELETE FROM msquests_definition WHERE id = :id")
                 .bind("id", id)
                 .execute();
-        });
+        }));
     }
 }

@@ -5,12 +5,13 @@ import com.github.ibanetchep.msquests.core.dto.QuestDefinitionDTO;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface QuestDefinitionRepository {
 
-    void upsert(QuestDefinitionDTO dto);
+    CompletableFuture<Void> upsert(QuestDefinitionDTO dto);
 
-    Map<UUID, QuestDefinitionDTO> getAll();
+    CompletableFuture<Map<UUID, QuestDefinitionDTO>> getAll();
 
-    void delete(UUID id);
+    CompletableFuture<Void> delete(UUID id);
 }

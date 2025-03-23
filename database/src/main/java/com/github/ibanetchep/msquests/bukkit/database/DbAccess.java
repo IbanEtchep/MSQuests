@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DbAccess {
 
@@ -16,6 +18,7 @@ public class DbAccess {
 
 	private HikariDataSource dataSource;
 	private Jdbi jdbi;
+	private ExecutorService singleThreadExecutor;
 
 	public void initPool(DbCredentials credentials) {
 		HikariConfig config = new HikariConfig();
@@ -42,6 +45,8 @@ public class DbAccess {
 		config.addDataSourceProperty("elideSetAutoCommits", "true");
 		config.addDataSourceProperty("maintainTimeStats", "false");
 
+		singleThreadExecutor = Executors.newSingleThreadExecutor();
+
 		LOGGER.info("Initializing database connection to {}", credentials.toURI());
 		this.dataSource = new HikariDataSource(config);
 		this.jdbi = Jdbi.create(dataSource);
@@ -63,6 +68,10 @@ public class DbAccess {
 		if (dataSource != null && !dataSource.isClosed()) {
 			LOGGER.info("Closing database connection pool");
 			dataSource.close();
+		}
+
+		if (singleThreadExecutor != null) {
+			singleThreadExecutor.shutdown();
 		}
 	}
 
@@ -87,5 +96,9 @@ public class DbAccess {
 			LOGGER.error("Database connection test failed", e);
 			return false;
 		}
+	}
+
+	public ExecutorService getSingleThreadExecutor() {
+		return singleThreadExecutor;
 	}
 }

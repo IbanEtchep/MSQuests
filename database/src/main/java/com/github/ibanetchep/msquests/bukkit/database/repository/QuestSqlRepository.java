@@ -9,6 +9,7 @@ import org.jdbi.v3.core.mapper.reflect.BeanMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class QuestSqlRepository extends SqlRepository implements QuestRepository {
 
@@ -17,7 +18,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
     }
 
     @Override
-    public Map<UUID, QuestDTO> getAllByActor(UUID actorUniqueId) {
+    public CompletableFuture<Map<UUID, QuestDTO>> getAllByActor(UUID actorUniqueId) {
         String query = """
         SELECT
             qe.unique_id qe_unique_id,
@@ -43,7 +44,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
         WHERE qe.actor_id = ?
         """;
 
-        return getJdbi().withHandle(handle -> handle
+        return supplyAsync(() -> getJdbi().withHandle(handle -> handle
                 .createQuery(query)
                 .bind(0, actorUniqueId)
                 .registerRowMapper(BeanMapper.factory(QuestDTO.class, "qe_"))
@@ -62,6 +63,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
                             return map;
                         }
-                ));
+                )));
     }
 }
