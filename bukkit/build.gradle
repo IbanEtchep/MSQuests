@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'io.github.goooler.shadow'
+}
+
+dependencies {
+    implementation(project(":core"))
+    implementation(project(":database"))
+
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    implementation("com.github.technicallycoded:FoliaLib:main-SNAPSHOT")
+    implementation("io.github.revxrsal:lamp.common:4.0.0-rc.9")
+    implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.9")
+    implementation("dev.dejvokep:boosted-yaml:1.3.7")
+
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('paper-plugin.yml') {
+        expand props
+    }
+}
+
+shadowJar {
+    archiveFileName = "msquests-bukkit-${version}.jar"
+
+    dependencies {
+        include(dependency('com.github.technicallycoded:FoliaLib:.*'))
+        include(dependency('dev.dejvokep:boosted-yaml:.*'))
+        include(dependency('io.github.revxrsal:lamp.*'))
+        include(dependency('org.jdbi:jdbi3-core:.*'))
+        include(dependency('com.zaxxer:HikariCP:.*'))
+        include(project(':core'))
+        include(project(':database'))
+    }
+
+    relocate "com.tcoded.folialib", "com.github.ibanetchep.msquests.lib.folialib"
+    relocate "dev.dejvokep.boostedyaml", "com.github.ibanetchep.msquests.lib.boostedyaml"
+    relocate "org.jdbi", "com.github.ibanetchep.msquests.lib.jdbi"
+    relocate "com.zaxxer.hikari", "com.github.ibanetchep.msquests.lib.hikari"
+    relocate "revxrsal.commands", "com.github.ibanetchep.msquests.lib.commands"
+
+    archiveClassifier.set('')
+}
+
+build {
+    dependsOn shadowJar
+}
