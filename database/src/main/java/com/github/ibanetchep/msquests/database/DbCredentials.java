@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.database;
+package com.github.ibanetchep.msquests.database;
 
 public record DbCredentials(String host, String user, String pass, String dbName, int port) {
 

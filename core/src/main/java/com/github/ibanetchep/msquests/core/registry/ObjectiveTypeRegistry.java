@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.core.registry;
 import com.github.ibanetchep.msquests.core.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveDefinition;
+import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 
 import java.lang.reflect.Constructor;
@@ -24,38 +24,38 @@ public class ObjectiveTypeRegistry {
     }
 
     /**
-     * Registers a new objective type with its associated definition and handler.
+     * Registers a new objective type with its associated config and handler.
      *
-     * @param definitionClass the objective definition class
+     * @param configClass the objective config class
      * @param objectiveClass the corresponding objective class
      * @param handler the handler for this objective type
-     * @throws IllegalArgumentException if the definition class is not annotated with ObjectiveDefinitionType
+     * @throws IllegalArgumentException if the config class is not annotated with ObjectiveType
      */
-    public <D extends QuestObjectiveDefinition, O extends QuestObjective<D>> void registerType(
-            Class<D> definitionClass,
+    public <D extends QuestObjectiveConfig, O extends QuestObjective<D>> void registerType(
+            Class<D> configClass,
             Class<O> objectiveClass,
             QuestObjectiveHandler<O> handler
     ) {
-        ObjectiveType annotation = definitionClass.getAnnotation(ObjectiveType.class);
+        ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
         if (annotation == null) {
-            throw new IllegalArgumentException("Class " + definitionClass.getName() + " is not annotated with ObjectiveDefinitionType.");
+            throw new IllegalArgumentException("Class " + configClass.getName() + " is not annotated with ObjectiveConfigType.");
         }
 
         String typeName = annotation.type();
-        registeredTypes.put(typeName, new ObjectiveTypeEntry(definitionClass, objectiveClass));
+        registeredTypes.put(typeName, new ObjectiveTypeEntry(configClass, objectiveClass));
         handlers.put(typeName, handler);
     }
 
 
     /**
-     * Gets the objective definition class by its type name.
+     * Gets the objective config class by its type name.
      *
      * @param name the objective type name
-     * @return the objective definition class, or null if not found
+     * @return the objective config class, or null if not found
      */
-    public Class<? extends QuestObjectiveDefinition> getDefinitionClass(String name) {
+    public Class<? extends QuestObjectiveConfig> getConfigClass(String name) {
         ObjectiveTypeEntry entry = registeredTypes.get(name);
-        return entry != null ? entry.definitionClass() : null;
+        return entry != null ? entry.configClass() : null;
     }
 
     /**
@@ -70,24 +70,24 @@ public class ObjectiveTypeRegistry {
     }
 
     /**
-     * Creates a new objective definition instance from configuration.
+     * Creates a new objective config instance from configuration.
      *
      * @param type the objective type name
      * @param config the configuration map for the objective
-     * @return the created objective definition, or null if the type is not registered
+     * @return the created objective config, or null if the type is not registered
      */
     @SuppressWarnings("unchecked")
-    public QuestObjectiveDefinition createDefinition(String type, Map<String, String> config) {
+    public QuestObjectiveConfig createConfig(String type, Map<String, String> config) {
         try {
-            Class<? extends QuestObjectiveDefinition> definitionClass = getDefinitionClass(type);
-            if (definitionClass == null) {
+            Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
+            if (configClass == null) {
                 return null;
             }
 
-            Constructor<? extends QuestObjectiveDefinition> constructor = definitionClass.getConstructor(Map.class);
+            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(Map.class);
             return constructor.newInstance(config);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create objective definition of type " + type, e);
+            throw new RuntimeException("Failed to create objective config of type " + type, e);
         }
     }
 
@@ -97,40 +97,40 @@ public class ObjectiveTypeRegistry {
      * @param id the objective UUID
      * @param quest the quest this objective belongs to
      * @param progress the initial progress value
-     * @param definition the objective definition
+     * @param config the objective config
      * @return the created objective instance
      */
     @SuppressWarnings("unchecked")
-    public <D extends QuestObjectiveDefinition> QuestObjective<D> createObjective(
+    public <D extends QuestObjectiveConfig> QuestObjective<D> createObjective(
             UUID id,
             Quest quest,
             int progress,
-            D definition
+            D config
     ) {
         try {
-            String type = getTypeFromDefinition(definition);
+            String type = getTypeFromConfig(config);
             if (type == null) {
-                throw new IllegalArgumentException("Definition class is not registered: " + definition.getClass().getName());
+                throw new IllegalArgumentException("Configuration class is not registered: " + config.getClass().getName());
             }
 
             Class<? extends QuestObjective<?>> objectiveClass = getObjectiveClass(type);
-            Constructor<?> constructor = objectiveClass.getConstructor(UUID.class, Quest.class, int.class, definition.getClass());
+            Constructor<?> constructor = objectiveClass.getConstructor(UUID.class, Quest.class, int.class, config.getClass());
 
-            return (QuestObjective<D>) constructor.newInstance(id, quest, progress, definition);
+            return (QuestObjective<D>) constructor.newInstance(id, quest, progress, config);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create objective instance for definition: " + definition.getClass().getName(), e);
+            throw new RuntimeException("Failed to create objective instance for config: " + config.getClass().getName(), e);
         }
     }
 
     /**
-     * Gets the type name from a definition instance.
+     * Gets the type name from a config instance.
      *
-     * @param definition the objective definition
+     * @param config the objective config
      * @return the type name, or null if not found
      */
-    private String getTypeFromDefinition(QuestObjectiveDefinition definition) {
-        Class<?> definitionClass = definition.getClass();
-        ObjectiveType annotation = definitionClass.getAnnotation(ObjectiveType.class);
+    private String getTypeFromConfig(QuestObjectiveConfig config) {
+        Class<?> configClass = config.getClass();
+        ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
 
         if (annotation != null) {
             String typeName = annotation.type();
@@ -139,9 +139,9 @@ public class ObjectiveTypeRegistry {
             }
         }
 
-        // Check if any registered class is assignable from the definition class
+        // Check if any registered class is assignable from the config class
         for (Map.Entry<String, ObjectiveTypeEntry> entry : registeredTypes.entrySet()) {
-            if (entry.getValue().definitionClass().isAssignableFrom(definitionClass)) {
+            if (entry.getValue().configClass().isAssignableFrom(configClass)) {
                 return entry.getKey();
             }
         }
@@ -160,10 +160,10 @@ public class ObjectiveTypeRegistry {
 
     /**
      * Internal class representing an entry in the objective type registry.
-     * Contains both the definition class and the objective class.
+     * Contains both the config class and the objective class.
      */
     public record ObjectiveTypeEntry(
-            Class<? extends QuestObjectiveDefinition> definitionClass,
+            Class<? extends QuestObjectiveConfig> configClass,
             Class<? extends QuestObjective<?>> objectiveClass
     ) {}
 }

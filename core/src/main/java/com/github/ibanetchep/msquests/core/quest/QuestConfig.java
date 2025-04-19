@@ -2,18 +2,18 @@ package com.github.ibanetchep.msquests.core.quest;
 
 import java.util.*;
 
-public class QuestDefinition {
+public class QuestConfig {
 
-    private UUID id;
+    private String key;
     private String name;
     private String description;
     private Set<String> tags;
-    private Map<UUID, QuestObjectiveDefinition> objectives;
+    private Map<String, QuestObjectiveConfig> objectives;
     private long duration; // max in seconds
     private List<QuestReward> rewards;
 
-    public QuestDefinition(UUID id, String name, String description, long duration) {
-        this.id = id;
+    public QuestConfig(String key, String name, String description, long duration) {
+        this.key = key;
         this.name = name;
         this.description = description;
         this.duration = duration;
@@ -22,12 +22,12 @@ public class QuestDefinition {
         this.rewards = new ArrayList<>();
     }
 
-    public UUID getId() {
-        return id;
+    public String getKey() {
+        return key;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -46,12 +46,12 @@ public class QuestDefinition {
         this.description = description;
     }
 
-    public Map<UUID, QuestObjectiveDefinition> getObjectives() {
+    public Map<String, QuestObjectiveConfig> getObjectives() {
         return objectives;
     }
 
-    public void setObjectives(Map<UUID, QuestObjectiveDefinition> objectives) {
-        this.objectives = objectives;
+    public void addObjective(QuestObjectiveConfig objective) {
+        objectives.put(objective.getKey(), objective);
     }
 
     public long getDuration() {

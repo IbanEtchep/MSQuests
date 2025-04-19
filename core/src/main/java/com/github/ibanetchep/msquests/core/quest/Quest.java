@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Quest {
 
     private final UUID id;
-    private QuestDefinition quest;
+    private QuestConfig quest;
     private QuestStatus status;
     private QuestActor actor;
     private Map<UUID, QuestObjective<?>> objectives;
@@ -19,7 +19,7 @@ public class Quest {
     private Date createdAt;
     private Date updatedAt;
 
-    public Quest(UUID uniqueId, QuestDefinition quest, QuestActor actor, QuestStatus status, Date startedAt, Date expiresAt, Date completedAt, Date createdAt, Date updatedAt) {
+    public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date startedAt, Date expiresAt, Date completedAt, Date createdAt, Date updatedAt) {
         this.id = uniqueId;
         this.quest = quest;
         this.status = status;
@@ -91,11 +91,11 @@ public class Quest {
         this.status = status;
     }
 
-    public QuestDefinition getQuest() {
+    public QuestConfig getQuest() {
         return quest;
     }
 
-    public void setQuest(QuestDefinition quest) {
+    public void setQuest(QuestConfig quest) {
         this.quest = quest;
     }
 
@@ -103,7 +103,11 @@ public class Quest {
         return objectives;
     }
 
-    public void setObjectives(Map<UUID, QuestObjective<?>> objectives) {
-        this.objectives = objectives;
+    public void addObjective(QuestObjective<?> objective) {
+        this.objectives.put(objective.getId(), objective);
+    }
+
+    public QuestObjective<?> getObjective(UUID id) {
+        return this.objectives.get(id);
     }
 }

@@ -2,16 +2,16 @@ package com.github.ibanetchep.msquests.core.manager;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestDefinitionDTO;
-import com.github.ibanetchep.msquests.core.mapper.QuestDefinitionMapper;
+import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestDefinition;
+import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
-import com.github.ibanetchep.msquests.core.repository.QuestDefinitionRepository;
+import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 
@@ -21,15 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestManager {
 
-    private final Map<UUID, QuestDefinition> questDefinitions = new ConcurrentHashMap<>();
+    private final Map<String, QuestConfig> questConfigs = new ConcurrentHashMap<>();
     private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
     private final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
 
-    private final QuestDefinitionRepository questDefinitionRepository;
+    private final QuestConfigRepository questConfigRepository;
     private final ActorRepository actorRepository;
     private final QuestRepository questRepository;
 
-    private final QuestDefinitionMapper questDefinitionMapper;
+    private final QuestConfigMapper questConfigMapper;
     private final QuestEntryMapper questEntryMapper;
 
     private final ActorTypeRegistry actorTypeRegistry;
@@ -39,28 +39,28 @@ public class QuestManager {
     private final Map<Class<? extends QuestActor>, ActorStrategy> actorStrategies = new ConcurrentHashMap<>();
 
     public QuestManager(
-            QuestDefinitionRepository questDefinitionRepository,
+            QuestConfigRepository questConfigRepository,
             ActorRepository actorRepository,
             QuestRepository questRepository,
-            QuestDefinitionMapper questDefinitionMapper,
+            QuestConfigMapper questConfigMapper,
             QuestEntryMapper questEntryMapper,
             ActorTypeRegistry actorTypeRegistry,
             ObjectiveTypeRegistry objectiveTypeRegistry
     ) {
-        this.questDefinitionRepository = questDefinitionRepository;
+        this.questConfigRepository = questConfigRepository;
         this.actorRepository = actorRepository;
         this.questRepository = questRepository;
-        this.questDefinitionMapper = questDefinitionMapper;
+        this.questConfigMapper = questConfigMapper;
         this.questEntryMapper = questEntryMapper;
         this.actorTypeRegistry = actorTypeRegistry;
         this.objectiveTypeRegistry = objectiveTypeRegistry;
     }
 
-    public void loadQuestDefinitions() {
-        questDefinitionRepository.getAll().thenAccept(questDefinitionDtos -> {
-            for (QuestDefinitionDTO questDefinitionDTO : questDefinitionDtos.values()) {
-                QuestDefinition questDefinition = questDefinitionMapper.toEntity(questDefinitionDTO);
-                questDefinitions.put(questDefinition.getId(), questDefinition);
+    public void loadQuestConfigs() {
+        questConfigRepository.getAll().thenAccept(questConfigDtos -> {
+            for (QuestConfigDTO questConfigDTO : questConfigDtos.values()) {
+                QuestConfig questConfig = questConfigMapper.toEntity(questConfigDTO);
+                questConfigs.put(questConfig.getKey(), questConfig);
             }
         });
     }
@@ -81,17 +81,17 @@ public class QuestManager {
 
     private void loadQuests(QuestActor actor) {
         questRepository.getAllByActor(actor.getId()).thenAccept(questEntryDtos -> {
-            for (QuestDTO questEntryDTO : questEntryDtos.values()) {
-                QuestDefinition questDefinition = questDefinitions.get(questEntryDTO.questId());
-                Quest quest = questEntryMapper.toEntity(questEntryDTO, actor, questDefinition);
+            for (QuestDTO questDTO : questEntryDtos.values()) {
+                QuestConfig questConfig = questConfigs.get(questDTO.questKey());
+                Quest quest = questEntryMapper.toEntity(questDTO, actor, questConfig);
                 quests.put(quest.getId(), quest);
             }
         });
     }
 
-    public void saveQuestDefinition(QuestDefinition questDefinition) {
-        this.questDefinitions.put(questDefinition.getId(), questDefinition);
-        QuestDefinitionDTO questDefinitionDTO = questDefinitionMapper.toDto(questDefinition);
-        questDefinitionRepository.upsert(questDefinitionDTO);
+    public void saveQuestConfig(QuestConfig questConfig) {
+        this.questConfigs.put(questConfig.getKey(), questConfig);
+        QuestConfigDTO questConfigDTO = questConfigMapper.toDto(questConfig);
+        questConfigRepository.upsert(questConfigDTO);
     }
 }

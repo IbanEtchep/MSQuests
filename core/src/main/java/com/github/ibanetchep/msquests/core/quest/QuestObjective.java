@@ -3,9 +3,9 @@ package com.github.ibanetchep.msquests.core.quest;
 import java.util.Date;
 import java.util.UUID;
 
-public abstract class QuestObjective<T extends QuestObjectiveDefinition> {
+public abstract class QuestObjective<T extends QuestObjectiveConfig> {
 
-    protected T objectiveDefinition;
+    protected T objectiveConfig;
 
     protected UUID id;
     protected int progress;
@@ -21,11 +21,11 @@ public abstract class QuestObjective<T extends QuestObjectiveDefinition> {
         this.id = id;
         this.quest = quest;
         this.progress = progress;
-        this.objectiveDefinition = objectiveDefinition;
+        this.objectiveConfig = objectiveDefinition;
     }
 
     public boolean isCompleted() {
-        return progress >= objectiveDefinition.getTargetAmount();
+        return progress >= objectiveConfig.getTargetAmount();
     }
 
     public UUID getId() {
@@ -68,8 +68,8 @@ public abstract class QuestObjective<T extends QuestObjectiveDefinition> {
         return updatedAt;
     }
 
-    public T getObjectiveDefinition() {
-        return objectiveDefinition;
+    public T getObjectiveConfig() {
+        return objectiveConfig;
     }
 
     public void callOnProgress() {

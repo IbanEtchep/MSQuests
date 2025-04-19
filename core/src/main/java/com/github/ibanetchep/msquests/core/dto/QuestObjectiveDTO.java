@@ -7,7 +7,7 @@ import java.util.UUID;
 public record QuestObjectiveDTO(
         UUID id,
         UUID questEntryId,
-        UUID objectiveId,
+        String objectiveKey,
         int progress,
         QuestObjectiveStatus objectiveStatus,
         long startedAt,

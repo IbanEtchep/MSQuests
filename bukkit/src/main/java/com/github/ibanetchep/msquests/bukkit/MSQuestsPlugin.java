@@ -1,17 +1,17 @@
 package com.github.ibanetchep.msquests.bukkit;
 
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
-import com.github.ibanetchep.msquests.bukkit.database.DbAccess;
-import com.github.ibanetchep.msquests.bukkit.database.DbCredentials;
-import com.github.ibanetchep.msquests.bukkit.database.repository.ActorSqlRepository;
-import com.github.ibanetchep.msquests.bukkit.database.repository.QuestDefinitionSqlRepository;
-import com.github.ibanetchep.msquests.bukkit.database.repository.QuestSqlRepository;
+import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
+import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
+import com.github.ibanetchep.msquests.database.DbAccess;
+import com.github.ibanetchep.msquests.database.DbCredentials;
+import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
+import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjective;
-import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveDefinition;
+import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveHandler;
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
-import com.github.ibanetchep.msquests.core.mapper.QuestDefinitionMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
@@ -57,10 +57,10 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
 
         questManager = new QuestManager(
-                new QuestDefinitionSqlRepository(dbAccess),
+                new QuestConfigYamlRepository(),
                 new ActorSqlRepository(dbAccess),
                 new QuestSqlRepository(dbAccess),
-                new QuestDefinitionMapper(objectiveTypeRegistry),
+                new QuestConfigMapper(objectiveTypeRegistry),
                 new QuestEntryMapper(objectiveTypeRegistry),
                 actorRegistry,
                 objectiveTypeRegistry
@@ -130,7 +130,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private void registerObjectiveTypes() {
         objectiveTypeRegistry.registerType(
-                BlockBreakObjectiveDefinition.class,
+                BlockBreakObjectiveConfig.class,
                 BlockBreakObjective.class,
                 new BlockBreakObjectiveHandler(this)
         );

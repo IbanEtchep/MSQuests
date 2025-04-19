@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.database;
+package com.github.ibanetchep.msquests.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

@@ -1,6 +1,6 @@
-package com.github.ibanetchep.msquests.bukkit.database.repository;
+package com.github.ibanetchep.msquests.database.repository;
 
-import com.github.ibanetchep.msquests.bukkit.database.DbAccess;
+import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;

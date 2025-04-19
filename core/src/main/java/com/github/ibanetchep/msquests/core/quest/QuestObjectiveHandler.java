@@ -19,7 +19,7 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
      */
     protected void updateProgress(T objective, int amount) {
         int newProgress = objective.getProgress() + amount;
-        int target = objective.getObjectiveDefinition().getTargetAmount();
+        int target = objective.getObjectiveConfig().getTargetAmount();
 
         newProgress = Math.min(newProgress, target);
 

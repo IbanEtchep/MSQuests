@@ -4,9 +4,9 @@ import com.github.ibanetchep.msquests.core.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestDefinition;
+import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveDefinition;
+import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 
@@ -23,10 +23,10 @@ public class QuestEntryMapper {
         this.objectiveTypeRegistry = objectiveTypeRegistry;
     }
 
-    public Quest toEntity(QuestDTO dto, QuestActor actor, QuestDefinition questDefinition) {
+    public Quest toEntity(QuestDTO dto, QuestActor actor, QuestConfig questConfig) {
         Quest quest = new Quest(
                 dto.id(),
-                questDefinition,
+                questConfig,
                 actor,
                 dto.status(),
                 new Date(dto.startedAt()),
@@ -36,20 +36,18 @@ public class QuestEntryMapper {
                 new Date(dto.updatedAt())
         );
 
-        Map<UUID, QuestObjective<?>> objectives = new HashMap<>();
-        
         if (dto.objectives() != null) {
             for (Map.Entry<UUID, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
                 QuestObjectiveDTO objectiveDto = entry.getValue();
                 
-                // Get the corresponding objective definition from the quest
-                QuestObjectiveDefinition objectiveDefinition = questDefinition.getObjectives().get(objectiveDto.objectiveId());
-                if (objectiveDefinition == null) {
-                    throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveId());
+                // Get the corresponding objective config from the quest
+                QuestObjectiveConfig questObjectiveConfig = questConfig.getObjectives().get(objectiveDto.objectiveKey());
+                if (questObjectiveConfig == null) {
+                    throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveKey());
                 }
 
-                // Get the objective type corresponding to the definition
-                String objectiveType = objectiveDefinition.getClass().getAnnotation(ObjectiveType.class).type();
+                // Get the objective type corresponding to the config
+                String objectiveType = questObjectiveConfig.getClass().getAnnotation(ObjectiveType.class).type();
                 Class<? extends QuestObjective<?>> objectiveClass = objectiveTypeRegistry.getObjectiveClass(objectiveType);
                 if (objectiveClass == null) {
                     throw new IllegalStateException("Objective type not found: " + objectiveType);
@@ -61,22 +59,20 @@ public class QuestEntryMapper {
                             UUID.class,
                             Quest.class,
                             int.class,
-                            objectiveDefinition.getClass()
+                            questObjectiveConfig.getClass()
                     ).newInstance(
                             objectiveDto.id(),
                             quest,
                             objectiveDto.progress(),
-                            objectiveDefinition
+                            questObjectiveConfig
                     );
 
-                    objectives.put(objectiveDto.id(), objective);
+                    quest.addObjective(objective);
                 } catch (ReflectiveOperationException e) {
                     throw new RuntimeException("Error creating objective of type " + objectiveType, e);
                 }
             }
         }
-
-        quest.setObjectives(objectives);
         return quest;
     }
 
@@ -90,7 +86,7 @@ public class QuestEntryMapper {
                 objectiveDtos.put(entry.getKey(), new QuestObjectiveDTO(
                         objective.getId(),
                         entity.getId(),
-                        objective.getObjectiveDefinition().getId(),
+                        objective.getObjectiveConfig().getKey(),
                         objective.getProgress(),
                         objective.getStatus(),
                         objective.getStartedAt().getTime(),
@@ -103,7 +99,7 @@ public class QuestEntryMapper {
 
         return new QuestDTO(
                 entity.getId(),
-                entity.getQuest().getId(),
+                entity.getQuest().getKey(),
                 entity.getActor().getId(),
                 entity.getStatus(),
                 entity.getStartedAt().getTime(),

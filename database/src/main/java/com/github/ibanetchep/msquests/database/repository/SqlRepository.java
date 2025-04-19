@@ -1,6 +1,6 @@
-package com.github.ibanetchep.msquests.bukkit.database.repository;
+package com.github.ibanetchep.msquests.database.repository;
 
-import com.github.ibanetchep.msquests.bukkit.database.DbAccess;
+import com.github.ibanetchep.msquests.database.DbAccess;
 import org.jdbi.v3.core.Jdbi;
 
 import java.util.concurrent.Callable;

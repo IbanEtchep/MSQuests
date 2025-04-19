@@ -1,22 +1,22 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import java.util.Map;
-import java.util.UUID;
 
-public abstract class QuestObjectiveDefinition {
+public abstract class QuestObjectiveConfig {
 
-    protected UUID id;
+    protected String key;
     protected String name;
     protected String description;
     protected int targetAmount;
 
-    public QuestObjectiveDefinition(Map<String, String> config) {
+    public QuestObjectiveConfig(String key, Map<String, String> config) {
+        this.key = key;
         this.name = config.get("name");
         this.description = config.get("description");
     }
 
-    public UUID getId() {
-        return id;
+    public String getKey() {
+        return key;
     }
 
     public String getName() {

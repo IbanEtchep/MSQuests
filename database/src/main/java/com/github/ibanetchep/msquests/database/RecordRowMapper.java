@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.database;
+package com.github.ibanetchep.msquests.database;
 
 import org.jdbi.v3.core.config.ConfigRegistry;
 import org.jdbi.v3.core.mapper.RowMapper;

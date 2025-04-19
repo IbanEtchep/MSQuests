@@ -34,7 +34,7 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
             }
 
             Material material = event.getBlock().getType();
-            if (material == objective.getObjectiveDefinition().getBlockType() && !objective.isCompleted()) {
+            if (material == objective.getObjectiveConfig().getBlockType() && !objective.isCompleted()) {
                 updateProgress(objective, 1);
             }
         }

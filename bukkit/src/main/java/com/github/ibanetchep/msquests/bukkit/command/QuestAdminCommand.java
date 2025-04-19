@@ -1,9 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.command;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.core.quest.QuestDefinition;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveDefinition;
-import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveDefinition;
+import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveConfig;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;
@@ -24,12 +23,11 @@ public class QuestAdminCommand {
     }
 
     @Subcommand("createtest")
-    @Description("Creates a test quest definition with two block break objectives")
+    @Description("Creates a test quest config with two block break objectives")
     public void createTest(CommandSender sender) {
-        // Create quest definition
-        UUID questId = UUID.randomUUID();
-        QuestDefinition questDefinition = new QuestDefinition(
-                questId,
+        // Create quest config
+        QuestConfig questConfig = new QuestConfig(
+                "test_quest",
                 "Test Quest",
                 "A test quest with block breaking objectives",
                 3600 // 1 hour duration
@@ -38,7 +36,7 @@ public class QuestAdminCommand {
         // Set tags
         Set<String> tags = new HashSet<>();
         tags.add("test");
-        questDefinition.setTags(tags);
+        questConfig.setTags(tags);
 
         // Create first objective - Break 5 dirt blocks
         Map<String, String> config1 = new HashMap<>();
@@ -46,7 +44,7 @@ public class QuestAdminCommand {
         config1.put("description", "Break 5 dirt blocks");
         config1.put("block_type", Material.DIRT.name());
         config1.put("amount_to_break", "5");
-        BlockBreakObjectiveDefinition objective1 = new BlockBreakObjectiveDefinition(config1);
+        BlockBreakObjectiveConfig objective1 = new BlockBreakObjectiveConfig("break_dirt", config1);
 
         // Create second objective - Break 3 stone blocks
         Map<String, String> config2 = new HashMap<>();
@@ -54,16 +52,13 @@ public class QuestAdminCommand {
         config2.put("description", "Break 3 stone blocks");
         config2.put("block_type", Material.STONE.name());
         config2.put("amount_to_break", "3");
-        BlockBreakObjectiveDefinition objective2 = new BlockBreakObjectiveDefinition(config2);
+        BlockBreakObjectiveConfig objective2 = new BlockBreakObjectiveConfig("break_stone", config2);
 
-        // Add objectives to quest definition
-        Map<UUID, QuestObjectiveDefinition> objectives = new HashMap<>();
-        objectives.put(UUID.randomUUID(), objective1);
-        objectives.put(UUID.randomUUID(), objective2);
-        questDefinition.setObjectives(objectives);
+        questConfig.addObjective(objective1);
+        questConfig.addObjective(objective2);
 
-        plugin.getQuestManager().saveQuestDefinition(questDefinition);
+        plugin.getQuestManager().saveQuestConfig(questConfig);
         
-        sender.sendMessage("§aTest quest definition created with ID: " + questId);
+        sender.sendMessage("§aTest quest config created with ID: " + questConfig.getKey());
     }
 }

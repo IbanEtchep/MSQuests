@@ -1,6 +1,6 @@
-package com.github.ibanetchep.msquests.bukkit.database;
+package com.github.ibanetchep.msquests.database;
 
-import com.github.ibanetchep.msquests.bukkit.database.migrations.CreateTablesMigration;
+import com.github.ibanetchep.msquests.database.migrations.CreateTablesMigration;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
 
