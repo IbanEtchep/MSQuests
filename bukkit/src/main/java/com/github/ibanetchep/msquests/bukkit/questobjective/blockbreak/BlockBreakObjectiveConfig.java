@@ -11,9 +11,18 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
 
     private final Material blockType;
 
-    public BlockBreakObjectiveConfig(String key, Map<String, String> config) {
+    public BlockBreakObjectiveConfig(String key, Map<String, Object> config) {
         super(key, config);
-        this.blockType = Material.valueOf(config.get("block_type"));
+        this.blockType = Material.valueOf((String) config.get("block_type"));
+    }
+
+    @Override
+    public Map<String, Object> serialize() {
+        return Map.of(
+                "type", "block_break",
+                "block_type", blockType.name(),
+                "amount", amount
+        );
     }
 
     public Material getBlockType() {

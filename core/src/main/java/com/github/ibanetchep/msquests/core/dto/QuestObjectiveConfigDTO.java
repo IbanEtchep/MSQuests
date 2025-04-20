@@ -1,7 +1,9 @@
 package com.github.ibanetchep.msquests.core.dto;
 
+import java.util.Map;
+
 public record QuestObjectiveConfigDTO(
         String key,
         String type,
-        String config
+        Map<String, Object> config
 ) {}

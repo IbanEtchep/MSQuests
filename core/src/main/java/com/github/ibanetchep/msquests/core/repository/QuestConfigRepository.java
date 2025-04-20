@@ -10,7 +10,7 @@ public interface QuestConfigRepository {
 
     CompletableFuture<Void> upsert(QuestConfigDTO dto);
 
-    CompletableFuture<Map<UUID, QuestConfigDTO>> getAll();
+    CompletableFuture<Map<String, QuestConfigDTO>> getAll();
 
     CompletableFuture<Void> delete(UUID id);
 }

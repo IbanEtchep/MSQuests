@@ -27,9 +27,5 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
         boolean completed = newProgress >= target;
 
-        if (completed && !objective.isCompleted()) {
-        //TODO
-        }
-
     }
 }

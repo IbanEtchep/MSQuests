@@ -24,12 +24,14 @@ public class QuestConfigMapper {
 
     public QuestConfigDTO toDto(QuestConfig entity) {
         Map<String, QuestObjectiveConfigDTO> objectiveDtos = new HashMap<>();
-        
+
         if (entity.getObjectives() != null) {
             for (Map.Entry<String, QuestObjectiveConfig> entry : entity.getObjectives().entrySet()) {
                 QuestObjectiveConfig objective = entry.getValue();
-                String type = objective.getClass().getAnnotation(ObjectiveType.class).type();
-                String config = gson.toJson(objective);
+                ObjectiveType typeAnnotation = objective.getClass().getAnnotation(ObjectiveType.class);
+                String type = Objects.requireNonNull(typeAnnotation).type();
+                Map<String, Object> config = objective.serialize();
+
                 objectiveDtos.put(entry.getKey(), new QuestObjectiveConfigDTO(entry.getKey(), type, config));
             }
         }
@@ -50,26 +52,19 @@ public class QuestConfigMapper {
                 dto.key(), dto.name(), dto.description(), dto.duration()
         );
 
-        try {
-            Set<String> tags = gson.fromJson(dto.tags(), new TypeToken<Set<String>>(){}.getType());
-            questConfig.setTags(tags);
+        Set<String> tags = gson.fromJson(dto.tags(), new TypeToken<Set<String>>(){}.getType());
+        questConfig.setTags(tags);
 
-            List<QuestReward> rewards = gson.fromJson(dto.rewards(), new TypeToken<List<QuestReward>>(){}.getType());
-            questConfig.setRewards(rewards);
+        //TODO rewards
 
-            for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
-                QuestObjectiveConfigDTO objectiveDto = entry.getValue();
-                Class<? extends QuestObjectiveConfig> configClass = objectiveTypeRegistry.getConfigClass(objectiveDto.type());
+        for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
+            QuestObjectiveConfigDTO objectiveDto = entry.getValue();
+            QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(
+                    objectiveDto.type(),
+                    objectiveDto.config()
+            );
 
-                if (configClass == null) {
-                    throw new IllegalArgumentException("Objective type not found: " + objectiveDto.type());
-                }
-
-                QuestObjectiveConfig objective = gson.fromJson(objectiveDto.config(), configClass);
-                questConfig.addObjective(objective);
-            }
-        } catch (JsonSyntaxException e) {
-            throw new RuntimeException("Error parsing JSON data", e);
+            questConfig.addObjective(objective);
         }
 
         return questConfig;

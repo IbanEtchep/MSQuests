@@ -39,7 +39,7 @@ public class QuestAdminCommand {
         questConfig.setTags(tags);
 
         // Create first objective - Break 5 dirt blocks
-        Map<String, String> config1 = new HashMap<>();
+        Map<String, Object> config1 = new HashMap<>();
         config1.put("name", "Break dirt");
         config1.put("description", "Break 5 dirt blocks");
         config1.put("block_type", Material.DIRT.name());
@@ -47,7 +47,7 @@ public class QuestAdminCommand {
         BlockBreakObjectiveConfig objective1 = new BlockBreakObjectiveConfig("break_dirt", config1);
 
         // Create second objective - Break 3 stone blocks
-        Map<String, String> config2 = new HashMap<>();
+        Map<String, Object> config2 = new HashMap<>();
         config2.put("name", "Break stone");
         config2.put("description", "Break 3 stone blocks");
         config2.put("block_type", Material.STONE.name());

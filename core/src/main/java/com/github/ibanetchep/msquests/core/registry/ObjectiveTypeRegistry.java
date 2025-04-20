@@ -77,7 +77,7 @@ public class ObjectiveTypeRegistry {
      * @return the created objective config, or null if the type is not registered
      */
     @SuppressWarnings("unchecked")
-    public QuestObjectiveConfig createConfig(String type, Map<String, String> config) {
+    public QuestObjectiveConfig createConfig(String type, Map<String, Object> config) {
         try {
             Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
             if (configClass == null) {

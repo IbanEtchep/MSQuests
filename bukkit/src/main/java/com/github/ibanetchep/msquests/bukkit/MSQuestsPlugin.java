@@ -33,6 +33,7 @@ import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public final class MSQuestsPlugin extends JavaPlugin {
@@ -57,7 +58,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
 
         questManager = new QuestManager(
-                new QuestConfigYamlRepository(),
+                new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests")),
                 new ActorSqlRepository(dbAccess),
                 new QuestSqlRepository(dbAccess),
                 new QuestConfigMapper(objectiveTypeRegistry),

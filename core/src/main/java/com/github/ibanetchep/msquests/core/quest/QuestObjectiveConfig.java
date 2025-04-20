@@ -5,41 +5,31 @@ import java.util.Map;
 public abstract class QuestObjectiveConfig {
 
     protected String key;
-    protected String name;
-    protected String description;
-    protected int targetAmount;
+    protected String type;
+    protected int amount;
 
-    public QuestObjectiveConfig(String key, Map<String, String> config) {
+    public QuestObjectiveConfig(String key, Map<String, Object> config) {
         this.key = key;
-        this.name = config.get("name");
-        this.description = config.get("description");
+        this.type = (String) config.get("type");
+
+        if(config.containsKey("amount")) {
+            this.amount = (int) config.get("amount");
+        } else {
+            this.amount = 1;
+        }
     }
+
+    public abstract Map<String, Object> serialize();
 
     public String getKey() {
         return key;
     }
 
-    public String getName() {
-        return name;
+    public String getType() {
+        return type;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * @return the target amount of the objective
-     */
     public int getTargetAmount() {
-        return targetAmount;
-    }
-
-    /**
-     * Sets the target amount of the objective
-     *
-     * @param targetAmount the target amount to set
-     */
-    public void setTargetAmount(int targetAmount) {
-        this.targetAmount = targetAmount;
+        return amount;
     }
 }
