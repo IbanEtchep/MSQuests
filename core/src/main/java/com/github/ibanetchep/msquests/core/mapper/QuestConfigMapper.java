@@ -5,17 +5,12 @@ import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
-import com.github.ibanetchep.msquests.core.quest.QuestReward;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.*;
 
 public class QuestConfigMapper {
 
-    private final Gson gson = new Gson();
     private final ObjectiveTypeRegistry objectiveTypeRegistry;
 
     public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
@@ -40,9 +35,9 @@ public class QuestConfigMapper {
                 entity.getKey(),
                 entity.getName(),
                 entity.getDescription(),
-                gson.toJson(entity.getTags()),
-                gson.toJson(entity.getRewards()),
                 entity.getDuration(),
+                List.copyOf(entity.getTags()),
+                List.copyOf(entity.getRewards()),
                 objectiveDtos
         );
     }
@@ -52,10 +47,13 @@ public class QuestConfigMapper {
                 dto.key(), dto.name(), dto.description(), dto.duration()
         );
 
-        Set<String> tags = gson.fromJson(dto.tags(), new TypeToken<Set<String>>(){}.getType());
-        questConfig.setTags(tags);
+        if (dto.tags() != null) {
+            questConfig.getTags().addAll(dto.tags());
+        }
 
-        //TODO rewards
+        if (dto.rewards() != null) {
+            questConfig.getRewards().addAll(dto.rewards());
+        }
 
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();

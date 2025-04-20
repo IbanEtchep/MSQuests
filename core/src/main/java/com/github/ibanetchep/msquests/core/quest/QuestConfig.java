@@ -8,9 +8,9 @@ public class QuestConfig {
     private String name;
     private String description;
     private Set<String> tags;
-    private Map<String, QuestObjectiveConfig> objectives;
+    private final Map<String, QuestObjectiveConfig> objectives;
     private long duration; // max in seconds
-    private List<QuestReward> rewards;
+    private List<String> rewards;
 
     public QuestConfig(String key, String name, String description, long duration) {
         this.key = key;
@@ -78,11 +78,11 @@ public class QuestConfig {
         tags.remove(tag);
     }
 
-    public List<QuestReward> getRewards() {
+    public List<String> getRewards() {
         return rewards;
     }
 
-    public void setRewards(List<QuestReward> rewards) {
+    public void setRewards(List<String> rewards) {
         this.rewards = rewards;
     }
 }

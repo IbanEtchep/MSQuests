@@ -2,7 +2,6 @@ package com.github.ibanetchep.msquests.bukkit.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -86,9 +85,9 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                     key,
                     config.getString(key + ".name"),
                     config.getString(key + ".description"),
-                    config.getString(key + ".tags"),
-                    config.getString(key + ".rewards"),
                     config.getLong(key + ".duration"),
+                    section.getStringList("tags"),
+                    section.getStringList("rewards"),
                     objectives
             );
 
