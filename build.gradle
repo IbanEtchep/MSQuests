@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     id 'java'
     id 'io.github.goooler.shadow' version '8.1.7' apply false
@@ -56,6 +58,9 @@ subprojects {
         testLogging {
             events("passed", "skipped", "failed")
             exceptionFormat = 'full'
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
         }
     }
 

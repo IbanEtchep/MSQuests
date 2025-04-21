@@ -12,5 +12,5 @@ public interface QuestConfigRepository {
 
     CompletableFuture<Map<String, QuestConfigDTO>> getAll();
 
-    CompletableFuture<Void> delete(UUID id);
+    CompletableFuture<Void> delete(String id);
 }

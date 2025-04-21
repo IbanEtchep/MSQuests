@@ -72,12 +72,17 @@ public class ObjectiveTypeRegistry {
     /**
      * Creates a new objective config instance from configuration.
      *
-     * @param type the objective type name
      * @param config the configuration map for the objective
      * @return the created objective config, or null if the type is not registered
      */
     @SuppressWarnings("unchecked")
-    public QuestObjectiveConfig createConfig(String type, Map<String, Object> config) {
+    public QuestObjectiveConfig createConfig(Map<String, Object> config) {
+        String type = (String) config.get("type");
+
+        if (type == null) {
+            throw new IllegalArgumentException("Configuration does not contain a type.");
+        }
+
         try {
             Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
             if (configClass == null) {

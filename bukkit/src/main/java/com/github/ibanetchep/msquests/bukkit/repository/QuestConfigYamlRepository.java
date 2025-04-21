@@ -9,7 +9,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -74,9 +77,8 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 for (String objectiveKey : objectiveSection.getKeys(false)) {
                     ConfigurationSection objectiveConfig = objectiveSection.getConfigurationSection(objectiveKey);
                     if (objectiveConfig != null) {
-                        String type = objectiveConfig.getString("type");
                         Map<String, Object> data = objectiveConfig.getValues(true);
-                        objectives.put(objectiveKey, new QuestObjectiveConfigDTO(objectiveKey, type, data));
+                        objectives.put(objectiveKey, new QuestObjectiveConfigDTO(objectiveKey, data));
                     }
                 }
             }
@@ -100,11 +102,47 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     @Override
     public CompletableFuture<Void> upsert(QuestConfigDTO dto) {
-        return null;
+        return CompletableFuture.runAsync(() -> {
+            Path path = questConfigPaths.computeIfAbsent(dto.key(), k -> rootFolder.resolve(dto.key() + ".yml"));
+
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(path.toFile());
+
+            config.set(dto.key() + ".name", dto.name());
+            config.set(dto.key() + ".description", dto.description());
+            config.set(dto.key() + ".duration", dto.duration());
+            config.set(dto.key() + ".tags", dto.tags());
+            config.set(dto.key() + ".rewards", dto.rewards());
+
+            for (QuestObjectiveConfigDTO objective : dto.objectives().values()) {
+                String objectiveKey = dto.key() + ".objectives." + objective.key();
+                config.set(objectiveKey, objective.config());
+            }
+
+            try {
+                config.save(path.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to save quest config file: " + path, e);
+            }
+        });
     }
 
     @Override
-    public CompletableFuture<Void> delete(UUID id) {
-        return null;
+    public CompletableFuture<Void> delete(String key) {
+        return CompletableFuture.runAsync(() -> {
+            Path path = questConfigPaths.get(key);
+            if (path == null) {
+                throw new RuntimeException("Quest config not found: " + key);
+            }
+
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(path.toFile());
+            config.set(key, null);
+
+            try {
+                config.save(path.toFile());
+                questConfigPaths.remove(key);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to delete quest config: " + key, e);
+            }
+        });
     }
 }

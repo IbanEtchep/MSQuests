@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.core.manager;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
@@ -18,8 +18,11 @@ import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public class QuestManager {
+
+    private final Logger logger;
 
     private final Map<String, QuestConfig> questConfigs = new ConcurrentHashMap<>();
     private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
@@ -39,6 +42,7 @@ public class QuestManager {
     private final Map<Class<? extends QuestActor>, ActorStrategy> actorStrategies = new ConcurrentHashMap<>();
 
     public QuestManager(
+            Logger logger,
             QuestConfigRepository questConfigRepository,
             ActorRepository actorRepository,
             QuestRepository questRepository,
@@ -47,6 +51,7 @@ public class QuestManager {
             ActorTypeRegistry actorTypeRegistry,
             ObjectiveTypeRegistry objectiveTypeRegistry
     ) {
+        this.logger = logger;
         this.questConfigRepository = questConfigRepository;
         this.actorRepository = actorRepository;
         this.questRepository = questRepository;
@@ -57,11 +62,14 @@ public class QuestManager {
     }
 
     public void loadQuestConfigs() {
+        questConfigs.clear();
         questConfigRepository.getAll().thenAccept(questConfigDtos -> {
             for (QuestConfigDTO questConfigDTO : questConfigDtos.values()) {
                 QuestConfig questConfig = questConfigMapper.toEntity(questConfigDTO);
                 questConfigs.put(questConfig.getKey(), questConfig);
             }
+
+            logger.info("Loaded " + questConfigs.size() + " quest configs");
         });
     }
 

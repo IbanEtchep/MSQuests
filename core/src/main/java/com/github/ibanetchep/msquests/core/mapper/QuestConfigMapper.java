@@ -26,8 +26,8 @@ public class QuestConfigMapper {
                 ObjectiveType typeAnnotation = objective.getClass().getAnnotation(ObjectiveType.class);
                 String type = Objects.requireNonNull(typeAnnotation).type();
                 Map<String, Object> config = objective.serialize();
-
-                objectiveDtos.put(entry.getKey(), new QuestObjectiveConfigDTO(entry.getKey(), type, config));
+                config.put("type", type);
+                objectiveDtos.put(entry.getKey(), new QuestObjectiveConfigDTO(entry.getKey(), config));
             }
         }
 
@@ -58,7 +58,6 @@ public class QuestConfigMapper {
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();
             QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(
-                    objectiveDto.type(),
                     objectiveDto.config()
             );
 
