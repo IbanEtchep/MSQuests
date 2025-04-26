@@ -1,7 +1,5 @@
 package com.github.ibanetchep.msquests.core.registry;
 
-import com.github.ibanetchep.msquests.core.annotation.ObjectiveType;
-import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
@@ -9,7 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Registry for managing objective types and their associated classes.
@@ -26,24 +23,20 @@ public class ObjectiveTypeRegistry {
     /**
      * Registers a new objective type with its associated config and handler.
      *
+     * @param type the objective type key
      * @param configClass the objective config class
      * @param objectiveClass the corresponding objective class
      * @param handler the handler for this objective type
      * @throws IllegalArgumentException if the config class is not annotated with ObjectiveType
      */
     public <D extends QuestObjectiveConfig, O extends QuestObjective<D>> void registerType(
+            String type,
             Class<D> configClass,
             Class<O> objectiveClass,
             QuestObjectiveHandler<O> handler
     ) {
-        ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
-        if (annotation == null) {
-            throw new IllegalArgumentException("Class " + configClass.getName() + " is not annotated with ObjectiveConfigType.");
-        }
-
-        String typeName = annotation.type();
-        registeredTypes.put(typeName, new ObjectiveTypeEntry(configClass, objectiveClass));
-        handlers.put(typeName, handler);
+        registeredTypes.put(type, new ObjectiveTypeEntry(configClass, objectiveClass));
+        handlers.put(type, handler);
     }
 
 
@@ -94,64 +87,6 @@ public class ObjectiveTypeRegistry {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create objective config of type " + type, e);
         }
-    }
-
-    /**
-     * Creates a new objective instance.
-     *
-     * @param id the objective UUID
-     * @param quest the quest this objective belongs to
-     * @param progress the initial progress value
-     * @param config the objective config
-     * @return the created objective instance
-     */
-    @SuppressWarnings("unchecked")
-    public <D extends QuestObjectiveConfig> QuestObjective<D> createObjective(
-            UUID id,
-            Quest quest,
-            int progress,
-            D config
-    ) {
-        try {
-            String type = getTypeFromConfig(config);
-            if (type == null) {
-                throw new IllegalArgumentException("Configuration class is not registered: " + config.getClass().getName());
-            }
-
-            Class<? extends QuestObjective<?>> objectiveClass = getObjectiveClass(type);
-            Constructor<?> constructor = objectiveClass.getConstructor(UUID.class, Quest.class, int.class, config.getClass());
-
-            return (QuestObjective<D>) constructor.newInstance(id, quest, progress, config);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create objective instance for config: " + config.getClass().getName(), e);
-        }
-    }
-
-    /**
-     * Gets the type name from a config instance.
-     *
-     * @param config the objective config
-     * @return the type name, or null if not found
-     */
-    private String getTypeFromConfig(QuestObjectiveConfig config) {
-        Class<?> configClass = config.getClass();
-        ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
-
-        if (annotation != null) {
-            String typeName = annotation.type();
-            if (registeredTypes.containsKey(typeName)) {
-                return typeName;
-            }
-        }
-
-        // Check if any registered class is assignable from the config class
-        for (Map.Entry<String, ObjectiveTypeEntry> entry : registeredTypes.entrySet()) {
-            if (entry.getValue().configClass().isAssignableFrom(configClass)) {
-                return entry.getKey();
-            }
-        }
-
-        return null;
     }
 
     /**

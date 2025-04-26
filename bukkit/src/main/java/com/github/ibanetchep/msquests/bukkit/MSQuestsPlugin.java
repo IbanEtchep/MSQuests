@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit;
 
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
+import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjective;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveConfig;
@@ -41,6 +42,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
 
+    private LangManager langManager;
     private QuestManager questManager;
 
     private YamlDocument config;
@@ -52,6 +54,9 @@ public final class MSQuestsPlugin extends JavaPlugin {
         loadConfig();
         loadDatabase();
         foliaLib = new FoliaLib(this);
+
+        this.langManager = new LangManager(this);
+        langManager.load();
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
@@ -131,6 +136,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private void registerObjectiveTypes() {
         objectiveTypeRegistry.registerType(
+                "block_break",
                 BlockBreakObjectiveConfig.class,
                 BlockBreakObjective.class,
                 new BlockBreakObjectiveHandler(this)
@@ -139,6 +145,10 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     public QuestManager getQuestManager() {
         return questManager;
+    }
+
+    public LangManager getLangManager() {
+        return langManager;
     }
 
     public ActorTypeRegistry getActorRegistry() {

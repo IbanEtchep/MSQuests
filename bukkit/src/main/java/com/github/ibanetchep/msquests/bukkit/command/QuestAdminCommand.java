@@ -61,4 +61,12 @@ public class QuestAdminCommand {
         
         sender.sendMessage("§aTest quest config created with ID: " + questConfig.getKey());
     }
+
+    @Subcommand("reload")
+    @Description("Reloads the quest configs")
+    public void reload(CommandSender sender) {
+        plugin.getLangManager().load();
+        plugin.getQuestManager().loadQuestConfigs();
+        sender.sendMessage("§aQuest configs reloaded");
+    }
 }

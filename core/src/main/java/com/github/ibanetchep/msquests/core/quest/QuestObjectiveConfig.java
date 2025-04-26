@@ -6,7 +6,7 @@ public abstract class QuestObjectiveConfig {
 
     protected String key;
     protected String type;
-    protected int amount;
+    protected int amount = 1;
 
     public QuestObjectiveConfig(String key, Map<String, Object> config) {
         this.key = key;
@@ -14,8 +14,6 @@ public abstract class QuestObjectiveConfig {
 
         if(config.containsKey("amount")) {
             this.amount = (int) config.get("amount");
-        } else {
-            this.amount = 1;
         }
     }
 

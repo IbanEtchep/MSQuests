@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
-import com.github.ibanetchep.msquests.core.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
@@ -40,14 +39,12 @@ public class QuestEntryMapper {
             for (Map.Entry<UUID, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
                 QuestObjectiveDTO objectiveDto = entry.getValue();
                 
-                // Get the corresponding objective config from the quest
                 QuestObjectiveConfig questObjectiveConfig = questConfig.getObjectives().get(objectiveDto.objectiveKey());
                 if (questObjectiveConfig == null) {
                     throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveKey());
                 }
 
-                // Get the objective type corresponding to the config
-                String objectiveType = questObjectiveConfig.getClass().getAnnotation(ObjectiveType.class).type();
+                String objectiveType = questObjectiveConfig.getType();
                 Class<? extends QuestObjective<?>> objectiveClass = objectiveTypeRegistry.getObjectiveClass(objectiveType);
                 if (objectiveClass == null) {
                     throw new IllegalStateException("Objective type not found: " + objectiveType);

@@ -1,13 +1,14 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
-import com.github.ibanetchep.msquests.core.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class QuestConfigMapper {
 
@@ -23,8 +24,7 @@ public class QuestConfigMapper {
         if (entity.getObjectives() != null) {
             for (Map.Entry<String, QuestObjectiveConfig> entry : entity.getObjectives().entrySet()) {
                 QuestObjectiveConfig objective = entry.getValue();
-                ObjectiveType typeAnnotation = objective.getClass().getAnnotation(ObjectiveType.class);
-                String type = Objects.requireNonNull(typeAnnotation).type();
+                String type = objective.getType();
                 Map<String, Object> config = objective.serialize();
                 config.put("type", type);
                 objectiveDtos.put(entry.getKey(), new QuestObjectiveConfigDTO(entry.getKey(), config));

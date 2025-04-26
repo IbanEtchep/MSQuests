@@ -59,6 +59,8 @@ public class QuestManager {
         this.questEntryMapper = questEntryMapper;
         this.actorTypeRegistry = actorTypeRegistry;
         this.objectiveTypeRegistry = objectiveTypeRegistry;
+
+        loadQuestConfigs();
     }
 
     public void loadQuestConfigs() {

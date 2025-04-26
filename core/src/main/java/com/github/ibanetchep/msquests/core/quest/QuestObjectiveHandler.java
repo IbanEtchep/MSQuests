@@ -5,7 +5,7 @@ import java.util.List;
 
 public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
-    public abstract String getType();
+    protected String type;
 
     public List<T> getQuestObjectives() {
         throw new UnsupportedOperationException("Not supported yet.");

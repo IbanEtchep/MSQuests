@@ -17,11 +17,6 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
         this.plugin = plugin;
     }
 
-    @Override
-    public String getType() {
-        return "block_break";
-    }
-
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -39,5 +34,4 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
             }
         }
     }
-
 }

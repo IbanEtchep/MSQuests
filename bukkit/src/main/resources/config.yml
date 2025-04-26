@@ -1,7 +1,9 @@
 config-version: 1
 
+language: en_EN
+
 database:
-    host: localhost
+    host: mariadb
     port: 3306
     name: database
     user: username

@@ -47,6 +47,16 @@ shadowJar {
     archiveClassifier.set('')
 }
 
+tasks.register('copyPlugin', Copy) {
+    from shadowJar.archiveFile
+    into "../docker/plugins"
+
+    from('src/main/resources/config.yml') {
+        into "./MSQuests"
+    }
+}
+
 build {
     dependsOn shadowJar
+    finalizedBy(tasks.named("copyPlugin"))
 }

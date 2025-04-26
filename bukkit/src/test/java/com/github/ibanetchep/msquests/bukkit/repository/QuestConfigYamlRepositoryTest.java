@@ -144,7 +144,7 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("This is a new quest", createdQuest.description());
         assertEquals(200L, createdQuest.duration());
         assertEquals(List.of("new", "test"), createdQuest.tags());
-        assertEquals(List.of("xp_100"), createdQuest.rewards());
+        assertEquals(List.of("xp 100"), createdQuest.rewards());
 
         QuestObjectiveConfigDTO objective = createdQuest.objectives().get("objective_1");
         assertNotNull(objective);
