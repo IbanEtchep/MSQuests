@@ -14,7 +14,7 @@ public class CreateTablesMigration extends Migration {
         jdbi.useHandle(handle -> {
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_actor (
-                id UUID PRIMARY KEY,
+                id CHAR(36) PRIMARY KEY,
                 actor_type VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -23,13 +23,13 @@ public class CreateTablesMigration extends Migration {
 
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_quest (
-                id UUID PRIMARY KEY,
+                id CHAR(36) PRIMARY KEY,
                 quest_key VARCHAR(255) NOT NULL,
                 quest_status VARCHAR(50) NOT NULL,
                 started_at TIMESTAMP,
                 expires_at TIMESTAMP,
                 completed_at TIMESTAMP,
-                actor_id UUID NOT NULL REFERENCES msquests_actor(id) ON DELETE CASCADE,
+                actor_id CHAR(36) NOT NULL REFERENCES msquests_actor(id) ON DELETE CASCADE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
@@ -37,13 +37,13 @@ public class CreateTablesMigration extends Migration {
 
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_objective (
-                id UUID PRIMARY KEY,
+                id CHAR(36) PRIMARY KEY,
                 objective_key VARCHAR(255) NOT NULL,
                 objective_status VARCHAR(50) NOT NULL,
                 progress INTEGER DEFAULT 0,
                 started_at TIMESTAMP,
                 completed_at TIMESTAMP,
-                quest_id UUID NOT NULL REFERENCES msquests_quest(id) ON DELETE CASCADE,
+                quest_id CHAR(36) NOT NULL REFERENCES msquests_quest(id) ON DELETE CASCADE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )

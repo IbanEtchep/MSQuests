@@ -3,8 +3,9 @@ config-version: 1
 language: en_EN
 
 database:
-    host: mariadb
-    port: 3306
-    name: database
-    user: username
-    password: password
+  type: h2 # Options: mysql, h2
+  host: mariadb
+  port: 3306
+  name: database
+  user: username
+  password: password

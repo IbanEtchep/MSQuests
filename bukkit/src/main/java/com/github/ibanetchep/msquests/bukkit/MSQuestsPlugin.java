@@ -103,11 +103,13 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     public void loadDatabase() {
         var dbCredentials = new DbCredentials(
+                config.getString("database.type", "mysql"),
                 config.getString("database.host"),
                 config.getString("database.user"),
                 config.getString("database.password"),
                 config.getString("database.name"),
-                config.getInt("database.port")
+                config.getInt("database.port"),
+                getDataFolder()
         );
 
         dbAccess = new DbAccess();

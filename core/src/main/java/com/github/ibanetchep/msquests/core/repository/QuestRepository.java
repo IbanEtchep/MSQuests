@@ -9,4 +9,6 @@ import java.util.concurrent.CompletableFuture;
 public interface QuestRepository {
 
     CompletableFuture<Map<UUID, QuestDTO>> getAllByActor(UUID actorUniqueId);
+
+    CompletableFuture<Void> save(QuestDTO quest);
 }

@@ -18,7 +18,7 @@ public class ActorSqlRepository extends SqlRepository implements ActorRepository
         String query = "SELECT * FROM msquests_actor WHERE id = :id";
 
         return supplyAsync(() -> getJdbi().withHandle(handle -> handle.createQuery(query)
-                .bind("id", id)
+                .bind("id", id.toString())
                 .mapTo(QuestActorDTO.class)
                 .findFirst()
                 .orElse(null)));

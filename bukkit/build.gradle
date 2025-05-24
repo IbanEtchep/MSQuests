@@ -32,16 +32,12 @@ shadowJar {
         include(dependency('com.github.technicallycoded:FoliaLib:.*'))
         include(dependency('dev.dejvokep:boosted-yaml:.*'))
         include(dependency('io.github.revxrsal:lamp.*'))
-        include(dependency('org.jdbi:jdbi3-core:.*'))
-        include(dependency('com.zaxxer:HikariCP:.*'))
         include(project(':core'))
         include(project(':database'))
     }
 
     relocate "com.tcoded.folialib", "com.github.ibanetchep.msquests.lib.folialib"
     relocate "dev.dejvokep.boostedyaml", "com.github.ibanetchep.msquests.lib.boostedyaml"
-    relocate "org.jdbi", "com.github.ibanetchep.msquests.lib.jdbi"
-    relocate "com.zaxxer.hikari", "com.github.ibanetchep.msquests.lib.hikari"
     relocate "revxrsal.commands", "com.github.ibanetchep.msquests.lib.commands"
 
     archiveClassifier.set('')

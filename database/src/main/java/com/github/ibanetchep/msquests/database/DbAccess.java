@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.File;
 
 public class DbAccess {
 
@@ -23,31 +24,47 @@ public class DbAccess {
 	public void initPool(DbCredentials credentials) {
 		HikariConfig config = new HikariConfig();
 
-		config.setDriverClassName("com.mysql.cj.jdbc.Driver");
-		config.setJdbcUrl(credentials.toURI());
-		config.setUsername(credentials.user());
-		config.setPassword(credentials.pass());
-
 		config.setMaximumPoolSize(5);
 		config.setMinimumIdle(1);
 		config.setIdleTimeout(300000);
 		config.setMaxLifetime(600000);
 		config.setConnectionTimeout(10000);
 
-		config.addDataSourceProperty("cachePrepStmts", "true");
-		config.addDataSourceProperty("prepStmtCacheSize", "250");
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-		config.addDataSourceProperty("useServerPrepStmts", "true");
-		config.addDataSourceProperty("useLocalSessionState", "true");
-		config.addDataSourceProperty("rewriteBatchedStatements", "true");
-		config.addDataSourceProperty("cacheResultSetMetadata", "true");
-		config.addDataSourceProperty("cacheServerConfiguration", "true");
-		config.addDataSourceProperty("elideSetAutoCommits", "true");
-		config.addDataSourceProperty("maintainTimeStats", "false");
-
 		singleThreadExecutor = Executors.newSingleThreadExecutor();
 
-		LOGGER.info("Initializing database connection to {}", credentials.toURI());
+		final String dbType = credentials.type();
+
+		switch (dbType.toLowerCase()) {
+			case "h2" -> {
+				config.setDriverClassName("org.h2.Driver");
+				File dbFile = new File(credentials.dataFolder(), "database");
+				String jdbcUrl = "jdbc:h2:file:" + dbFile.getAbsolutePath();
+				LOGGER.info("Testing H2 connection via DriverManager to {}", jdbcUrl);
+				config.setJdbcUrl(jdbcUrl);
+				LOGGER.info("Initializing H2 database connection pool to {}", jdbcUrl);
+			}
+			case "mysql" -> {
+				config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+				config.setJdbcUrl(credentials.toURI());
+				config.setUsername(credentials.user());
+				config.setPassword(credentials.pass());
+
+				config.addDataSourceProperty("cachePrepStmts", "true");
+				config.addDataSourceProperty("prepStmtCacheSize", "250");
+				config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+				config.addDataSourceProperty("useServerPrepStmts", "true");
+				config.addDataSourceProperty("useLocalSessionState", "true");
+				config.addDataSourceProperty("rewriteBatchedStatements", "true");
+				config.addDataSourceProperty("cacheResultSetMetadata", "true");
+				config.addDataSourceProperty("cacheServerConfiguration", "true");
+				config.addDataSourceProperty("elideSetAutoCommits", "true");
+				config.addDataSourceProperty("maintainTimeStats", "false");
+
+				LOGGER.info("Initializing MySQL database connection to {}", credentials.toURI());
+			}
+			default -> throw new IllegalArgumentException("Base de données non supportée: " + dbType);
+		}
+
 		this.dataSource = new HikariDataSource(config);
 		this.jdbi = Jdbi.create(dataSource);
 

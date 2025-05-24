@@ -32,6 +32,8 @@ services:
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
     volumes:
       - "./other-services/mariadb:/var/lib/mysql"
     restart: unless-stopped
