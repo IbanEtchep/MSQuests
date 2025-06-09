@@ -7,6 +7,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public enum Lang {
+
     CONFIG_RELOADED("messages.config.reloaded"),
     ;
 

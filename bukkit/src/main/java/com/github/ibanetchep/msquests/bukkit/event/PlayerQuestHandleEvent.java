@@ -6,14 +6,19 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class QuestHandleEvent extends Event {
+/**
+ * Event triggered when quest handling is triggered by a player.
+ * For example, when a player the /quest player <player> handle <quest> command is executed
+ * when clicking an NPC to handle a quest.
+ */
+public class PlayerQuestHandleEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final Quest quest;
     private final Player player;
 
-    public QuestHandleEvent(Quest quest, Player player) {
+    public PlayerQuestHandleEvent(Quest quest, Player player) {
         this.quest = quest;
         this.player = player;
     }

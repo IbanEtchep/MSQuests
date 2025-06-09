@@ -6,9 +6,9 @@ import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 
 import java.util.UUID;
 
-public class DeliverItemObjective extends QuestObjective<QuestObjectiveConfig> {
+public class DeliverItemObjective extends QuestObjective<DeliverItemObjectiveConfig> {
 
-    public DeliverItemObjective(UUID id, Quest quest, int progress, QuestObjectiveConfig objectiveDefinition) {
-        super(id, quest, progress, objectiveDefinition);
+    public DeliverItemObjective(UUID id, Quest quest, int progress, DeliverItemObjectiveConfig objectiveConfig) {
+        super(id, quest, progress, objectiveConfig);
     }
 }

@@ -1,14 +1,23 @@
 package com.github.ibanetchep.msquests.core.quest;
 
+import com.github.ibanetchep.msquests.core.manager.QuestManager;
+
 import java.util.List;
+import java.util.UUID;
 
 
 public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
-    protected String type;
+    protected QuestManager questManager;
 
-    public List<T> getQuestObjectives() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public QuestObjectiveHandler(QuestManager questManager) {
+        this.questManager = questManager;
+    }
+
+    protected abstract String getObjectiveType();
+
+    public List<T> getQuestObjectives(UUID playerId) {
+        return questManager.getObjectivesByType(playerId, getObjectiveType());
     }
 
     /**
