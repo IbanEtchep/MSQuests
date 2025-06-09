@@ -7,6 +7,8 @@ import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
@@ -15,6 +17,8 @@ import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,6 +80,8 @@ public class QuestManager {
     }
 
     public void loadActor(String type, UUID uuid) {
+        actors.remove(uuid);
+
         actorRepository.get(uuid).thenAccept(actorDTO -> {
             if (actorDTO == null) {
                 actorDTO = new QuestActorDTO(type, UUID.randomUUID());
@@ -103,5 +109,19 @@ public class QuestManager {
         this.questConfigs.put(questConfig.getKey(), questConfig);
         QuestConfigDTO questConfigDTO = questConfigMapper.toDto(questConfig);
         questConfigRepository.upsert(questConfigDTO);
+    }
+
+    public List<Quest> getActiveQuests(UUID playerId) {
+        return quests.values().stream()
+                .filter(quest -> quest.getActor().isActor(playerId) && quest.getStatus() == QuestStatus.IN_PROGRESS)
+                .toList();
+    }
+    @SuppressWarnings("unchecked")
+    public <T extends QuestObjective<?>> List<T> getObjectivesByType(UUID playerId, String objectiveType) {
+        return getActiveQuests(playerId).stream()
+                .flatMap(quest -> quest.getObjectives().values().stream())
+                .filter(objective -> objectiveType.equals(objective.getType()))
+                .map(objective -> (T) objective)
+                .toList();
     }
 }

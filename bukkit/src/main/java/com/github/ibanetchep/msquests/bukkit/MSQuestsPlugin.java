@@ -3,9 +3,13 @@ package com.github.ibanetchep.msquests.bukkit;
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
 import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
+import com.github.ibanetchep.msquests.bukkit.questobjective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjective;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjective;
+import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
@@ -138,10 +142,16 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private void registerObjectiveTypes() {
         objectiveTypeRegistry.registerType(
-                "block_break",
+                ObjectiveTypes.BLOCK_BREAK,
                 BlockBreakObjectiveConfig.class,
                 BlockBreakObjective.class,
                 new BlockBreakObjectiveHandler(this)
+        );
+        objectiveTypeRegistry.registerType(
+                ObjectiveTypes.DELIVER_ITEM,
+                DeliverItemObjectiveConfig.class,
+                DeliverItemObjective.class,
+                new DeliverItemObjectiveHandler(this)
         );
     }
 

@@ -17,11 +17,11 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> {
     protected Date createdAt;
     protected Date updatedAt;
 
-    public QuestObjective(UUID id, Quest quest, int progress, T objectiveDefinition) {
+    public QuestObjective(UUID id, Quest quest, int progress, T objectiveConfig) {
         this.id = id;
         this.quest = quest;
         this.progress = progress;
-        this.objectiveConfig = objectiveDefinition;
+        this.objectiveConfig = objectiveConfig;
     }
 
     public boolean isCompleted() {
@@ -70,6 +70,10 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> {
 
     public T getObjectiveConfig() {
         return objectiveConfig;
+    }
+
+    public String getType() {
+        return objectiveConfig.getType();
     }
 
     public void callOnProgress() {
