@@ -11,6 +11,7 @@ public class QuestConfig {
     private final Map<String, QuestObjectiveConfig> objectives;
     private long duration; // max in seconds
     private List<String> rewards;
+    private QuestGroup group;
 
     public QuestConfig(String key, String name, String description, long duration) {
         this.key = key;
@@ -84,5 +85,13 @@ public class QuestConfig {
 
     public void setRewards(List<String> rewards) {
         this.rewards = rewards;
+    }
+
+    public void setGroup(QuestGroup group) {
+        this.group = group;
+    }
+
+    public QuestGroup getGroup() {
+        return group;
     }
 }

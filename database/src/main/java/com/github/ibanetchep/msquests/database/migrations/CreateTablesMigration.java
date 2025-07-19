@@ -25,6 +25,7 @@ public class CreateTablesMigration extends Migration {
             CREATE TABLE IF NOT EXISTS msquests_quest (
                 id CHAR(36) PRIMARY KEY,
                 quest_key VARCHAR(255) NOT NULL,
+                quest_group_key VARCHAR(255) NOT NULL,
                 quest_status VARCHAR(50) NOT NULL,
                 started_at TIMESTAMP,
                 expires_at TIMESTAMP,

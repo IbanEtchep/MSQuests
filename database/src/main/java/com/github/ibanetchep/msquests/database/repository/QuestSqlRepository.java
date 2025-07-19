@@ -24,7 +24,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
     public CompletableFuture<Map<UUID, QuestDTO>> getAllByActor(UUID actorUniqueId) {
         String query = """
                 SELECT 
-                    q.id as q_id, q.quest_key as q_key, q.quest_status as q_status, 
+                    q.id as q_id, q.quest_key as q_key, q.quest_group_key as q_group_key,
+                    q.quest_status as q_status, 
                     q.started_at as q_started_at, q.completed_at as q_completed_at, 
                     q.expires_at as q_expires_at, q.created_at as q_created_at, 
                     q.updated_at as q_updated_at, q.actor_id as q_actor_id,
@@ -39,7 +40,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
         return supplyAsync(() -> {
             Map<UUID, QuestDTO> quests = new HashMap<>();
-            Map<UUID, Map<UUID, QuestObjectiveDTO>> questObjectives = new HashMap<>();
 
             getJdbi().useHandle(handle -> {
                 handle.createQuery(query)
@@ -49,6 +49,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
                             if (!quests.containsKey(questId)) {
                                 String questKey = rs.getString("q_key");
+                                String groupKey = rs.getString("q_group_key");
                                 UUID actorId = UUID.fromString(rs.getString("q_actor_id"));
                                 QuestStatus status = QuestStatus.valueOf(rs.getString("q_status"));
 
@@ -59,11 +60,10 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                 long createdAt = rs.getTimestamp("q_created_at").getTime();
                                 long updatedAt = rs.getTimestamp("q_updated_at").getTime();
 
-                                questObjectives.put(questId, new HashMap<>());
-
                                 QuestDTO quest = new QuestDTO(
                                         questId,
                                         questKey,
+                                        groupKey,
                                         actorId,
                                         status,
                                         startedAt,
@@ -71,7 +71,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         expiresAt,
                                         createdAt,
                                         updatedAt,
-                                        new HashMap<>()
+                                        new HashMap<>()  // map mutable ici
                                 );
 
                                 quests.put(questId, quest);
@@ -102,7 +102,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         objUpdatedAt
                                 );
 
-                                questObjectives.get(questId).put(objId, objective);
+                                quests.get(questId).objectives().put(objId, objective);
                             }
 
                             return questId;
@@ -110,36 +110,15 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                         .list();
             });
 
-            return quests.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> {
-                                UUID questId = entry.getKey();
-                                QuestDTO quest = entry.getValue();
-                                Map<UUID, QuestObjectiveDTO> objectives = questObjectives.get(questId);
-
-                                return new QuestDTO(
-                                        quest.id(),
-                                        quest.questKey(),
-                                        quest.actorId(),
-                                        quest.status(),
-                                        quest.startedAt(),
-                                        quest.completedAt(),
-                                        quest.expiresAt(),
-                                        quest.createdAt(),
-                                        quest.updatedAt(),
-                                        objectives
-                                );
-                            }
-                    ));
+            return quests;
         });
     }
 
     @Override
     public CompletableFuture<Void> save(QuestDTO quest) {
         String questUpsertQuery = """
-                INSERT INTO msquests_quest (id, quest_key, quest_status, started_at, expires_at, completed_at, actor_id, created_at, updated_at) 
-                VALUES (:id, :questKey, :status, :startedAt, :expiresAt, :completedAt, :actorId, :createdAt, :updatedAt)
+                INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, started_at, expires_at, completed_at, actor_id, created_at, updated_at) 
+                VALUES (:id, :questKey, :groupKey, :status, :startedAt, :expiresAt, :completedAt, :actorId, :createdAt, :updatedAt)
                 ON DUPLICATE KEY UPDATE
                     quest_status = :status,
                     started_at = :startedAt,
@@ -166,6 +145,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
             handle.createUpdate(questUpsertQuery)
                     .bind("id", quest.id().toString())
                     .bind("questKey", quest.questKey())
+                    .bind("groupKey", quest.groupKey())
                     .bind("status", quest.status().toString())
                     .bind("startedAt", quest.startedAt() > 0 ? new Timestamp(quest.startedAt()) : null)
                     .bind("expiresAt", quest.expiresAt() > 0 ? new Timestamp(quest.expiresAt()) : null)

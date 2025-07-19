@@ -33,6 +33,7 @@ public class QuestConfigMapper {
 
         return new QuestConfigDTO(
                 entity.getKey(),
+                entity.getGroup().getKey(),
                 entity.getName(),
                 entity.getDescription(),
                 entity.getDuration(),

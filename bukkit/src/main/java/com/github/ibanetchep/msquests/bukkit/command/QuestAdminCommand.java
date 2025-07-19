@@ -22,7 +22,7 @@ public class QuestAdminCommand {
     @Description("Reloads the quest configs")
     public void reload(CommandSender sender) {
         plugin.getLangManager().load();
-        plugin.getQuestManager().loadQuestConfigs();
+        plugin.getQuestManager().loadQuestGroups();
         sender.sendMessage(Lang.CONFIG_RELOADED.component());
     }
 }

@@ -18,7 +18,6 @@ public class Quest {
     private Date completedAt;
     private Date createdAt;
     private Date updatedAt;
-    private QuestCategory category;
 
     public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date startedAt, Date expiresAt, Date completedAt, Date createdAt, Date updatedAt) {
         this.id = uniqueId;
@@ -110,13 +109,5 @@ public class Quest {
 
     public QuestObjective<?> getObjective(UUID id) {
         return this.objectives.get(id);
-    }
-
-    public QuestCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(QuestCategory category) {
-        this.category = category;
     }
 }

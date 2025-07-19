@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,14 +40,21 @@ public class QuestConfigYamlRepositoryTest {
     }
 
     @Test
-    public void testGetAll() throws ExecutionException, InterruptedException {
-        CompletableFuture<Map<String, QuestConfigDTO>> future = repository.getAll();
-        Map<String, QuestConfigDTO> result = future.get();
+    public void testGetAllGroups() throws ExecutionException, InterruptedException {
+        CompletableFuture<Map<String, QuestGroupDTO>> future = repository.getAllGroups();
+        Map<String, QuestGroupDTO> result = future.get();
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
+        
+        QuestGroupDTO group = result.get("group_1");
+        assertNotNull(group);
+        
+        Map<String, QuestConfigDTO> quests = group.quests();
+        assertNotNull(quests);
+        assertEquals(2, quests.size());
 
-        QuestConfigDTO quest1 = result.get("quest_1");
+        QuestConfigDTO quest1 = quests.get("quest_1");
         assertNotNull(quest1);
         assertEquals("First Quest", quest1.name());
         assertEquals("This is the first quest", quest1.description());
@@ -63,7 +71,7 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("stone", objective1.config().get("item"));
         assertEquals(10, ((Number) objective1.config().get("quantity")).intValue());
 
-        QuestConfigDTO quest2 = result.get("quest_2");
+        QuestConfigDTO quest2 = quests.get("quest_2");
         assertNotNull(quest2);
         assertEquals("Second Quest", quest2.name());
         assertEquals("This is the second quest", quest2.description());
@@ -81,115 +89,29 @@ public class QuestConfigYamlRepositoryTest {
     }
 
     @Test
-    public void testUpsert_UpdateExisting() throws ExecutionException, InterruptedException {
-        Map<String, QuestConfigDTO> existingQuests = repository.getAll().get();
-        QuestConfigDTO quest1 = existingQuests.get("quest_1");
+    public void testLoadFileGroups() {
+        List<QuestGroupDTO> loadedGroups = repository.loadFileGroups(testFilePath);
 
-        Map<String, QuestObjectiveConfigDTO> modifiedObjectives = new HashMap<>(quest1.objectives());
-        QuestConfigDTO updatedQuest = new QuestConfigDTO(
-                quest1.key(),
-                "Updated Quest",
-                quest1.description(),
-                150L,
-                List.of("tag1", "tag2", "new_tag"),
-                quest1.rewards(),
-                modifiedObjectives
-        );
+        assertEquals(1, loadedGroups.size());
+        
+        QuestGroupDTO group = loadedGroups.get(0);
+        assertEquals("group_1", group.key());
+        
+        Map<String, QuestConfigDTO> quests = group.quests();
+        assertEquals(2, quests.size());
 
-        repository.upsert(updatedQuest).get();
-
-        Map<String, QuestConfigDTO> updatedQuests = repository.getAll().get();
-        QuestConfigDTO modifiedQuest = updatedQuests.get("quest_1");
-
-        assertNotNull(modifiedQuest);
-        assertEquals("Updated Quest", modifiedQuest.name());
-        assertEquals(150L, modifiedQuest.duration());
-        assertTrue(modifiedQuest.tags().contains("new_tag"));
-        assertEquals(3, modifiedQuest.tags().size());
-    }
-
-    @Test
-    public void testUpsert_CreateNew() throws ExecutionException, InterruptedException {
-        String newQuestKey = "quest_3";
-        Map<String, QuestObjectiveConfigDTO> objectives = new HashMap<>();
-        objectives.put("objective_1", new QuestObjectiveConfigDTO(
-                "objective_1",
-                Map.of(
-                        "type", "craft",
-                        "item", "wooden_sword",
-                        "quantity", 1
-                )
-        ));
-
-        QuestConfigDTO newQuest = new QuestConfigDTO(
-                newQuestKey,
-                "New Quest",
-                "This is a new quest",
-                200L,
-                List.of("new", "test"),
-                List.of("xp 100"),
-                objectives
-        );
-
-        CompletableFuture<Void> upsertFuture = repository.upsert(newQuest);
-        upsertFuture.get();
-
-        Map<String, QuestConfigDTO> updatedQuests = repository.getAll().get();
-
-        assertEquals(3, updatedQuests.size());
-        assertTrue(updatedQuests.containsKey(newQuestKey));
-
-        QuestConfigDTO createdQuest = updatedQuests.get(newQuestKey);
-        assertEquals("New Quest", createdQuest.name());
-        assertEquals("This is a new quest", createdQuest.description());
-        assertEquals(200L, createdQuest.duration());
-        assertEquals(List.of("new", "test"), createdQuest.tags());
-        assertEquals(List.of("xp 100"), createdQuest.rewards());
-
-        QuestObjectiveConfigDTO objective = createdQuest.objectives().get("objective_1");
-        assertNotNull(objective);
-        assertEquals("craft", objective.config().get("type"));
-        assertEquals("wooden_sword", objective.config().get("item"));
-        assertEquals(1, ((Number) objective.config().get("quantity")).intValue());
-    }
-
-    @Test
-    public void testDelete() throws ExecutionException, InterruptedException {
-        Map<String, QuestConfigDTO> initialQuests = repository.getAll().get();
-        assertTrue(initialQuests.containsKey("quest_1"));
-
-        CompletableFuture<Void> deleteFuture = repository.delete("quest_1");
-        deleteFuture.get();
-
-        Map<String, QuestConfigDTO> remainingQuests = repository.getAll().get();
-        assertEquals(1, remainingQuests.size());
-        assertFalse(remainingQuests.containsKey("quest_1"));
-        assertTrue(remainingQuests.containsKey("quest_2"));
-    }
-
-    @Test
-    public void testLoadFileQuests() {
-        List<QuestConfigDTO> loadedQuests = repository.loadFileQuests(testFilePath);
-
-        assertEquals(2, loadedQuests.size());
-
-        QuestConfigDTO quest1 = loadedQuests.stream()
-                .filter(q -> q.key().equals("quest_1"))
-                .findFirst()
-                .orElse(null);
-
-        QuestConfigDTO quest2 = loadedQuests.stream()
-                .filter(q -> q.key().equals("quest_2"))
-                .findFirst()
-                .orElse(null);
+        QuestConfigDTO quest1 = quests.get("quest_1");
+        QuestConfigDTO quest2 = quests.get("quest_2");
 
         assertNotNull(quest1);
         assertNotNull(quest2);
 
         assertEquals("First Quest", quest1.name());
         assertEquals(2, quest1.objectives().size());
+        assertEquals("group_1", quest1.groupKey());
 
         assertEquals("Second Quest", quest2.name());
         assertEquals(1, quest2.objectives().size());
+        assertEquals("group_1", quest2.groupKey());
     }
 }

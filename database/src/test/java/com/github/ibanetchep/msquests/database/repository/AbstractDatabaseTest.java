@@ -166,12 +166,18 @@ public abstract class AbstractDatabaseTest {
     protected static class QuestFixture implements TestFixture {
         private final List<UUID> questIds = new ArrayList<>();
         private final List<String> questKeys = new ArrayList<>();
+        private final List<String> questGroupKeys = new ArrayList<>();
         private final List<String> questStatuses = new ArrayList<>();
         private final List<UUID> actorIds = new ArrayList<>();
 
         public QuestFixture addQuest(UUID id, String key, String status, UUID actorId) {
+            return addQuest(id, key, "default_group", status, actorId);
+        }
+
+        public QuestFixture addQuest(UUID id, String key, String groupKey, String status, UUID actorId) {
             questIds.add(id);
             questKeys.add(key);
+            questGroupKeys.add(groupKey);
             questStatuses.add(status);
             actorIds.add(actorId);
             return this;
@@ -179,13 +185,14 @@ public abstract class AbstractDatabaseTest {
 
         @Override
         public void load(Connection connection) throws SQLException {
-            String sql = "INSERT INTO msquests_quest (id, quest_key, quest_status, actor_id) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, actor_id) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 for (int i = 0; i < questIds.size(); i++) {
                     stmt.setString(1, questIds.get(i).toString());
                     stmt.setString(2, questKeys.get(i));
-                    stmt.setString(3, questStatuses.get(i));
-                    stmt.setString(4, actorIds.get(i).toString());
+                    stmt.setString(3, questGroupKeys.get(i));
+                    stmt.setString(4, questStatuses.get(i));
+                    stmt.setString(5, actorIds.get(i).toString());
                     stmt.executeUpdate();
                 }
             }

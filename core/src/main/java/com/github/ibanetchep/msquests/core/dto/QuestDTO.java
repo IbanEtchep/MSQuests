@@ -9,6 +9,7 @@ import java.util.UUID;
 public record QuestDTO(
         UUID id,
         String questKey,
+        String groupKey,
         UUID actorId,
         QuestStatus status,
         long startedAt,
