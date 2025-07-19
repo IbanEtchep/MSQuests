@@ -43,9 +43,9 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         addFixture(actorFixture);
 
         QuestFixture questFixture = new QuestFixture()
-                .addQuest(questId1, "daily_quest", "IN_PROGRESS", actorId1)
-                .addQuest(questId2, "main_story", "COMPLETED", actorId1)
-                .addQuest(questId3, "side_quest", "FAILED", actorId2);
+                .addQuest(questId1, "daily_quest", "daily", "IN_PROGRESS", actorId1)
+                .addQuest(questId2, "main_story", "story", "COMPLETED", actorId1)
+                .addQuest(questId3, "side_quest", "side", "FAILED", actorId2);
         addFixture(questFixture);
 
         ObjectiveFixture objectiveFixture = new ObjectiveFixture()
@@ -156,5 +156,22 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertNotNull(mainStoryQuest.objectives());
         assertEquals(1, mainStoryQuest.objectives().size());
         assertTrue(mainStoryQuest.objectives().containsKey(objectiveId2));
+    }
+    
+    @Test
+    void testQuestGroupKeyIsLoaded() throws ExecutionException, InterruptedException {
+        // Test H2
+        Map<UUID, QuestDTO> h2Quests = h2Repository.getAllByActor(actorId1).get();
+        assertEquals("daily", h2Quests.get(questId1).groupKey());
+        assertEquals("story", h2Quests.get(questId2).groupKey());
+        
+        // Test MySQL
+        Map<UUID, QuestDTO> mysqlQuests = mysqlRepository.getAllByActor(actorId1).get();
+        assertEquals("daily", mysqlQuests.get(questId1).groupKey());
+        assertEquals("story", mysqlQuests.get(questId2).groupKey());
+        
+        // Test for actor 2
+        Map<UUID, QuestDTO> actor2Quests = h2Repository.getAllByActor(actorId2).get();
+        assertEquals("side", actor2Quests.get(questId3).groupKey());
     }
 }

@@ -25,6 +25,7 @@ allprojects {
             name = "jitpack"
             url = "https://jitpack.io"
         }
+        maven { url = uri("https://repo.tcoded.com/releases") }
     }
 }
 

@@ -1,32 +1,34 @@
-quest_1:
-  name: "First Quest"
-  description: "This is the first quest"
-  duration: 120
-  tags:
-    - "tag1"
-    - "tag2"
-  rewards:
-    - "reward1"
-    - "reward2"
-  objectives:
-    objective_1:
-      type: "collect"
-      item: "stone"
-      quantity: 10
-    objective_2:
-      type: "kill"
-      mob: "zombie"
-      quantity: 5
+group_1:
+  quests:
+    quest_1:
+      name: "First Quest"
+      description: "This is the first quest"
+      duration: 120
+      tags:
+        - "tag1"
+        - "tag2"
+      rewards:
+        - "reward1"
+        - "reward2"
+      objectives:
+        objective_1:
+          type: "collect"
+          item: "stone"
+          quantity: 10
+        objective_2:
+          type: "kill"
+          mob: "zombie"
+          quantity: 5
 
-quest_2:
-  name: "Second Quest"
-  description: "This is the second quest"
-  duration: 180
-  tags:
-    - "tag3"
-  rewards:
-    - "reward3"
-  objectives:
-    objective_1:
-      type: "explore"
-      location: "village"
+    quest_2:
+      name: "Second Quest"
+      description: "This is the second quest"
+      duration: 180
+      tags:
+        - "tag3"
+      rewards:
+        - "reward3"
+      objectives:
+        objective_1:
+          type: "explore"
+          location: "village"

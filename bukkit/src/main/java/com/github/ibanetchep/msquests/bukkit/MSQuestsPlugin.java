@@ -14,6 +14,7 @@ import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepositor
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
+import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.database.DbAccess;
@@ -65,13 +66,18 @@ public final class MSQuestsPlugin extends JavaPlugin {
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
 
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry);
+        QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
+        QuestEntryMapper questEntryMapper = new QuestEntryMapper(objectiveTypeRegistry);
+
         questManager = new QuestManager(
                 getLogger(),
                 new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests")),
                 new ActorSqlRepository(dbAccess),
                 new QuestSqlRepository(dbAccess),
-                new QuestConfigMapper(objectiveTypeRegistry),
-                new QuestEntryMapper(objectiveTypeRegistry),
+                questConfigMapper,
+                questGroupMapper,
+                questEntryMapper,
                 actorRegistry,
                 objectiveTypeRegistry
         );

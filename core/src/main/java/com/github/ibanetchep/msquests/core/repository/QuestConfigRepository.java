@@ -1,16 +1,12 @@
 package com.github.ibanetchep.msquests.core.repository;
 
-import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface QuestConfigRepository {
 
-    CompletableFuture<Void> upsert(QuestConfigDTO dto);
+    CompletableFuture<Map<String, QuestGroupDTO>> getAllGroups();
 
-    CompletableFuture<Map<String, QuestConfigDTO>> getAll();
-
-    CompletableFuture<Void> delete(String id);
 }

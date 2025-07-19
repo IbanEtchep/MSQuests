@@ -97,6 +97,7 @@ public class QuestEntryMapper {
         return new QuestDTO(
                 entity.getId(),
                 entity.getQuest().getKey(),
+                entity.getQuest().getGroup().getKey(),
                 entity.getActor().getId(),
                 entity.getStatus(),
                 entity.getStartedAt().getTime(),
