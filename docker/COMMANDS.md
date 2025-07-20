@@ -1,7 +1,13 @@
 # Docker Commands
+
 start:
 ```shell
 docker compose up -d
+```
+
+recreate:
+```shell
+docker compose up -d --force-recreate
 ```
 
 stop:

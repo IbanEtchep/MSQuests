@@ -15,7 +15,7 @@ de les écrire manuellement dans la config.
 
 ### Player quest management
 Commandes qui permettent de gérer les acteurs et leurs quetes.
-- /msquests actor <actortype> <actorId> list
-- /msquests actor <actortype> <actorId> start <id>
-- /msquests actor <actortype> <actorId> complete <id>
-- /msquests actor <actortype> <actorId> remove <id>
+- /msquests actor <actortype> <actorId> list <group_key>
+- /msquests actor <actortype> <actorId> start <group_key> <quest_key>
+- /msquests actor <actortype> <actorId> complete <group_key> <quest_key>
+- /msquests actor <actortype> <actorId> remove <group_key> <quest_key>

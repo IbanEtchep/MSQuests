@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem;
+package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import org.bukkit.Material;

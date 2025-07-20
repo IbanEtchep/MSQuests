@@ -1,11 +1,15 @@
-package com.github.ibanetchep.msquests.core.quest.actor;
+package com.github.ibanetchep.msquests.bukkit.quest.actor;
+
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 
 import java.util.UUID;
 
 public class QuestPlayerActor extends QuestActor {
 
-    public QuestPlayerActor(UUID id) {
-        super(id);
+    public QuestPlayerActor(UUID id, String name) {
+        super(id, name);
     }
 
     @Override

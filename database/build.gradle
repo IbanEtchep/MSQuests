@@ -19,6 +19,7 @@ dependencies {
 
 shadowJar {
     archiveClassifier.set('')
+    configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
         include(dependency('org.jdbi:jdbi3-core:.*'))
