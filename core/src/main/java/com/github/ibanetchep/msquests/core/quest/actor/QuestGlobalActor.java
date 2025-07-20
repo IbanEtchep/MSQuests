@@ -4,8 +4,8 @@ import java.util.UUID;
 
 public class QuestGlobalActor extends QuestActor {
 
-    public QuestGlobalActor(UUID id) {
-        super(id);
+    public QuestGlobalActor(UUID id, String name) {
+        super(id, name);
     }
 
     @Override

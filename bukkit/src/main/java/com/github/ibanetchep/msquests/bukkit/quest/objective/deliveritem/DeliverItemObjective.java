@@ -1,8 +1,7 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem;
+package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 
 import java.util.UUID;
 

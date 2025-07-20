@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective;
+package com.github.ibanetchep.msquests.bukkit.quest.objective;
 
 public final class ObjectiveTypes {
 

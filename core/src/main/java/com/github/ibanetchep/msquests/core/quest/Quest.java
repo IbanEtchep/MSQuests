@@ -91,6 +91,10 @@ public class Quest {
         this.status = status;
     }
 
+    public boolean isActive() {
+        return this.status == QuestStatus.IN_PROGRESS;
+    }
+
     public QuestConfig getQuest() {
         return quest;
     }

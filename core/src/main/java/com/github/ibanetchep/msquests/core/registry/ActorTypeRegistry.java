@@ -3,7 +3,6 @@ package com.github.ibanetchep.msquests.core.registry;
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestGlobalActor;
-import com.github.ibanetchep.msquests.core.quest.actor.QuestPlayerActor;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
@@ -57,29 +56,6 @@ public class ActorTypeRegistry {
     }
 
     private void registerDefaultActorTypes() {
-        registerActorType("player", QuestPlayerActor.class);
         registerActorType("global", QuestGlobalActor.class);
-    }
-
-
-    /**
-     * Creates an actor instance by its type.
-     *
-     * @param actorDTO the actor data transfer object.
-     * @return a new instance of the actor, or null if the type is not registered.
-     */
-    public QuestActor createActor(QuestActorDTO actorDTO) {
-        Class<? extends QuestActor> actorClass = actorTypes.get(actorDTO.actorType());
-        if (actorClass == null) {
-            return null;
-        }
-
-        try {
-            Constructor<? extends QuestActor> constructor = actorClass.getConstructor(java.util.UUID.class);
-            return constructor.newInstance(actorDTO.id());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }

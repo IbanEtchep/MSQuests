@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.listener;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +22,8 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
 
-        plugin.getQuestManager().loadActor("player", playerId);
+        QuestPlayerActor actor = new QuestPlayerActor(playerId, player.getName());
+        plugin.getQuestManager().loadActor(actor);
     }
 
 }

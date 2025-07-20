@@ -15,6 +15,7 @@ import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +28,6 @@ public class QuestManager {
 
     private final Map<String, QuestGroup> questGroups = new ConcurrentHashMap<>();
     private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
-    private final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
 
     private final QuestConfigRepository questConfigRepository;
     private final ActorRepository actorRepository;
@@ -78,16 +78,15 @@ public class QuestManager {
         });
     }
 
-    public void loadActor(String type, UUID uuid) {
-        actors.remove(uuid);
+    public void loadActor(QuestActor actor) {
+        actors.remove(actor.getId());
 
-        actorRepository.get(uuid).thenAccept(actorDTO -> {
+        actorRepository.get(actor.getId()).thenAccept(actorDTO -> {
             if (actorDTO == null) {
-                actorDTO = new QuestActorDTO(type, UUID.randomUUID());
+                actorDTO = new QuestActorDTO(actor.getActorType(), UUID.randomUUID());
                 actorRepository.add(actorDTO);
             }
 
-            QuestActor actor = actorTypeRegistry.createActor(actorDTO);
             actors.put(actor.getId(), actor);
 
             loadQuests(actor);
@@ -112,22 +111,21 @@ public class QuestManager {
                 }
 
                 Quest quest = questEntryMapper.toEntity(questDTO, actor, questConfig);
-                quests.put(quest.getId(), quest);
+                actor.addQuest(quest);
             }
         });
     }
 
-    public QuestConfig getQuestConfig(String key) {
-        return this.questGroups.values().stream()
-                .flatMap(group -> group.getQuests().values().stream())
-                .filter(quest -> key.equals(quest.getKey()))
-                .findFirst()
-                .orElse(null);
+    public List<QuestActor> getActors(UUID playerId) {
+        return actors.values().stream()
+                .filter(actor -> actor.isActor(playerId))
+                .toList();
     }
 
     public List<Quest> getActiveQuests(UUID playerId) {
-        return quests.values().stream()
-                .filter(quest -> quest.getActor().isActor(playerId) && quest.getStatus() == QuestStatus.IN_PROGRESS)
+        return getActors(playerId).stream()
+                .flatMap(actor -> actor.getQuests().values().stream())
+                .filter(Quest::isActive)
                 .toList();
     }
 
@@ -137,6 +135,12 @@ public class QuestManager {
                 .flatMap(quest -> quest.getObjectives().values().stream())
                 .filter(objective -> objectiveType.equals(objective.getType()))
                 .map(objective -> (T) objective)
+                .toList();
+    }
+
+    public Collection<QuestActor> getActorsByType(String actorType) {
+        return actors.values().stream()
+                .filter(actor -> actor.getActorType().equals(actorType))
                 .toList();
     }
 }

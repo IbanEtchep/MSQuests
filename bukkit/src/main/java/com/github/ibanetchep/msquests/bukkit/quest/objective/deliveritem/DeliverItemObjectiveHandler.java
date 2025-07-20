@@ -1,8 +1,8 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem;
+package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.event.PlayerQuestHandleEvent;
-import com.github.ibanetchep.msquests.bukkit.questobjective.ObjectiveTypes;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

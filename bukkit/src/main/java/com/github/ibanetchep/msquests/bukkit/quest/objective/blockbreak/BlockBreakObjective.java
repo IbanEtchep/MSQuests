@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak;
+package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;

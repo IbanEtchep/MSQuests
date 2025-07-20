@@ -1,8 +1,10 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QuestGroup {
 
@@ -11,6 +13,7 @@ public class QuestGroup {
     private final String description;
 
     private final Map<String, QuestConfig>  quests = new ConcurrentHashMap<>();
+    private final List<QuestConfig> orderedQuests = new CopyOnWriteArrayList<>();
 
     public QuestGroup(String key, String name, String description) {
         this.key = key;
@@ -32,11 +35,13 @@ public class QuestGroup {
 
     public void addQuest(QuestConfig quest) {
         quests.put(quest.getKey(), quest);
+        orderedQuests.add(quest);
         quest.setGroup(this);
     }
 
     public void removeQuest(QuestConfig quest) {
         quests.remove(quest.getKey());
+        orderedQuests.remove(quest);
     }
 
     public String getKey() {

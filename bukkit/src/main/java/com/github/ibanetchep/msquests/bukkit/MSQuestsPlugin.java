@@ -1,20 +1,24 @@
 package com.github.ibanetchep.msquests.bukkit;
 
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
+import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
+import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorParameterType;
 import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
-import com.github.ibanetchep.msquests.bukkit.questobjective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjective;
-import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveConfig;
-import com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak.BlockBreakObjectiveHandler;
-import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjective;
-import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjectiveConfig;
-import com.github.ibanetchep.msquests.bukkit.questobjective.deliveritem.DeliverItemObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.database.DbAccess;
@@ -65,6 +69,8 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
+
+        actorRegistry.registerActorType("player", QuestPlayerActor.class);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
@@ -134,6 +140,14 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private void registerCommands() {
         Lamp<BukkitCommandActor> lamp =  BukkitLamp.builder(this)
+                .parameterTypes(builder ->
+                        builder
+                                .addParameterType(QuestActor.class, new QuestActorParameterType(this)))
+                .suggestionProviders(providers -> {
+                    providers.addProviderForAnnotation(QuestActorType.class, actorType -> {
+                        return context -> actorRegistry.getAllActorTypes().keySet();
+                    });
+                })
                 .build();
 
         BukkitLampConfig.builder(this).disableBrigadier().build();

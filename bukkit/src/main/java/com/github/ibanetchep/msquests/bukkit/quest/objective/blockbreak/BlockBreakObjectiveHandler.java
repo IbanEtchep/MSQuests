@@ -1,7 +1,7 @@
-package com.github.ibanetchep.msquests.bukkit.questobjective.blockbreak;
+package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.bukkit.questobjective.ObjectiveTypes;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.bukkit.Material;
