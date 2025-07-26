@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Quest {
 
     private final UUID id;
-    private QuestConfig quest;
+    private QuestConfig questConfig;
     private QuestStatus status;
     private QuestActor actor;
     private Map<UUID, QuestObjective<?>> objectives;
@@ -21,7 +21,7 @@ public class Quest {
 
     public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date startedAt, Date expiresAt, Date completedAt, Date createdAt, Date updatedAt) {
         this.id = uniqueId;
-        this.quest = quest;
+        this.questConfig = quest;
         this.status = status;
         this.actor = actor;
         this.startedAt = startedAt;
@@ -95,12 +95,12 @@ public class Quest {
         return this.status == QuestStatus.IN_PROGRESS;
     }
 
-    public QuestConfig getQuest() {
-        return quest;
+    public QuestConfig getQuestConfig() {
+        return questConfig;
     }
 
-    public void setQuest(QuestConfig quest) {
-        this.quest = quest;
+    public void setQuestConfig(QuestConfig questConfig) {
+        this.questConfig = questConfig;
     }
 
     public Map<UUID, QuestObjective<?>> getObjectives() {

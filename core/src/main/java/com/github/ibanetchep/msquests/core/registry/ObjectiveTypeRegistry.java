@@ -79,11 +79,11 @@ public class ObjectiveTypeRegistry {
         try {
             Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
             if (configClass == null) {
-                return null;
+                throw new IllegalArgumentException("Type " + type + " is not registered.");
             }
 
-            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(Map.class);
-            return constructor.newInstance(config);
+            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(String.class,Map.class);
+            return constructor.newInstance(type, config);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create objective config of type " + type, e);
         }

@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.core.quest.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;
@@ -10,32 +11,30 @@ import revxrsal.commands.parameter.ParameterType;
 import revxrsal.commands.parameter.PrioritySpec;
 import revxrsal.commands.stream.MutableStringStream;
 
-public class QuestActorParameterType implements ParameterType<BukkitCommandActor, QuestActor> {
+public class QuestGroupParameterType implements ParameterType<BukkitCommandActor, QuestGroup> {
 
     private final MSQuestsPlugin plugin;
 
-    public QuestActorParameterType(MSQuestsPlugin plugin) {
+    public QuestGroupParameterType(MSQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public QuestActor parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
+    public QuestGroup parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
-        String actorType = executionContext.getResolvedArgument("actor type");
 
-        return plugin.getQuestManager().getActorsByType(actorType).stream()
-                .filter(actor -> actor.getName().equals(value))
-                .findFirst()
-                .orElse(null);
+        QuestGroup questGroup = plugin.getQuestManager().getQuestGroups().get(value);
+
+        if(questGroup == null) {
+            throw new IllegalArgumentException("Could not find group " + value);
+        }
+
+        return questGroup;
     }
 
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
-        return (context) -> {
-            String[] args = context.input().source().split(" ");
-            String actorType = args[2];
-            return plugin.getQuestManager().getActorsByType(actorType).stream().map(QuestActor::getName).toList();
-        };
+        return (context) -> plugin.getQuestManager().getQuestGroups().keySet();
     }
 
     @Override

@@ -34,6 +34,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     public QuestConfigYamlRepository(Path rootFolder) {
         this.rootFolder = rootFolder;
+        System.out.println("QuestConfigYamlRepository rootFolder: " + rootFolder);
     }
 
     @Override
@@ -45,6 +46,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 paths
                         .filter(path -> path.getFileName().toString().endsWith(".yml"))
                         .forEach(path -> {
+                            System.out.println("Found quest config file: " + path);
                             List<QuestGroupDTO> groups = loadFileGroups(path);
                             for (QuestGroupDTO group : groups) {
                                 questGroups.put(group.key(), group);

@@ -58,6 +58,7 @@ public class QuestConfigMapper {
 
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();
+            System.out.println(objectiveDto.config());
             QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(
                     objectiveDto.config()
             );
