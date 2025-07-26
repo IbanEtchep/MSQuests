@@ -9,7 +9,6 @@ import revxrsal.commands.node.ExecutionContext;
 import revxrsal.commands.parameter.ParameterType;
 import revxrsal.commands.parameter.PrioritySpec;
 import revxrsal.commands.stream.MutableStringStream;
-import revxrsal.commands.stream.StringStream;
 
 public class QuestActorParameterType implements ParameterType<BukkitCommandActor, QuestActor> {
 
@@ -22,13 +21,6 @@ public class QuestActorParameterType implements ParameterType<BukkitCommandActor
     @Override
     public QuestActor parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
-
-        System.out.println(executionContext.command().parameters());
-        executionContext.command().parameters().forEach((parameter, node) -> {
-            System.out.println(parameter);
-            System.out.println(node.toString());
-        });
-
         String actorType = executionContext.getResolvedArgument("actor type");
 
         return plugin.getQuestManager().getActorsByType(actorType).stream()

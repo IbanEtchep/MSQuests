@@ -12,7 +12,7 @@ public class QuestGroup {
     private final String name;
     private final String description;
 
-    private final Map<String, QuestConfig>  quests = new ConcurrentHashMap<>();
+    private final Map<String, QuestConfig> questConfigs = new ConcurrentHashMap<>();
     private final List<QuestConfig> orderedQuests = new CopyOnWriteArrayList<>();
 
     public QuestGroup(String key, String name, String description) {
@@ -29,22 +29,26 @@ public class QuestGroup {
         return description;
     }
 
-    public Map<String, QuestConfig> getQuests() {
-        return Collections.unmodifiableMap(quests);
+    public Map<String, QuestConfig> getQuestConfigs() {
+        return Collections.unmodifiableMap(questConfigs);
     }
 
     public void addQuest(QuestConfig quest) {
-        quests.put(quest.getKey(), quest);
+        questConfigs.put(quest.getKey(), quest);
         orderedQuests.add(quest);
         quest.setGroup(this);
     }
 
     public void removeQuest(QuestConfig quest) {
-        quests.remove(quest.getKey());
+        questConfigs.remove(quest.getKey());
         orderedQuests.remove(quest);
     }
 
     public String getKey() {
         return key;
+    }
+
+    public List<QuestConfig> getOrderedQuests() {
+        return Collections.unmodifiableList(orderedQuests);
     }
 }

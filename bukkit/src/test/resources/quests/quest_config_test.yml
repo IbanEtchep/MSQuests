@@ -12,13 +12,13 @@ group_1:
         - "reward2"
       objectives:
         objective_1:
-          type: "collect"
-          item: "stone"
-          quantity: 10
+          type: "block_break"
+          material: "stone"
+          amount: 10
         objective_2:
           type: "kill"
           mob: "zombie"
-          quantity: 5
+          amount: 5
 
     quest_2:
       name: "Second Quest"

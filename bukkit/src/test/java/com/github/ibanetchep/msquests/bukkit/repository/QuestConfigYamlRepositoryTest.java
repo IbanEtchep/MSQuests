@@ -67,9 +67,9 @@ public class QuestConfigYamlRepositoryTest {
 
         QuestObjectiveConfigDTO objective1 = objectives1.get("objective_1");
         assertNotNull(objective1);
-        assertEquals("collect", objective1.config().get("type"));
-        assertEquals("stone", objective1.config().get("item"));
-        assertEquals(10, ((Number) objective1.config().get("quantity")).intValue());
+        assertEquals("block_break", objective1.config().get("type"));
+        assertEquals("stone", objective1.config().get("material"));
+        assertEquals(10, ((Number) objective1.config().get("amount")).intValue());
 
         QuestConfigDTO quest2 = quests.get("quest_2");
         assertNotNull(quest2);

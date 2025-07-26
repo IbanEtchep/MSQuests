@@ -15,11 +15,9 @@ import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.strategy.ActorStrategy;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class QuestManager {
@@ -73,8 +71,11 @@ public class QuestManager {
             for (QuestGroupDTO questGroupDTO : questGroupDtos.values()) {
                 QuestGroup questGroup = questGroupMapper.toEntity(questGroupDTO);
                 questGroups.put(questGroup.getKey(), questGroup);
-                logger.info("Loaded group " + questGroup.getKey() + " with " + questGroup.getQuests().size() + " quests.");
+                logger.info("Loaded group " + questGroup.getKey() + " with " + questGroup.getQuestConfigs().size() + " quests.");
             }
+        }).exceptionally(e -> {
+            logger.log(Level.SEVERE, "Failed to load quest groups", e);
+            return null;
         });
     }
 
@@ -103,7 +104,7 @@ public class QuestManager {
                     continue;
                 }
 
-                QuestConfig questConfig = questGroup.getQuests().get(questDTO.questKey());
+                QuestConfig questConfig = questGroup.getQuestConfigs().get(questDTO.questKey());
 
                 if (questConfig == null) {
                     logger.warning("Could not find config for quest " + questDTO.questKey() + " in group " + questDTO.groupKey());
@@ -122,11 +123,26 @@ public class QuestManager {
                 .toList();
     }
 
+    public Map<UUID, QuestActor> getActors() {
+        return Collections.unmodifiableMap(actors);
+    }
+
+    public Map<String, QuestGroup> getQuestGroups() {
+        return Collections.unmodifiableMap(questGroups);
+    }
+
     public List<Quest> getActiveQuests(UUID playerId) {
         return getActors(playerId).stream()
                 .flatMap(actor -> actor.getQuests().values().stream())
                 .filter(Quest::isActive)
                 .toList();
+    }
+
+    public Quest getLastQuest(QuestActor actor, QuestConfig questConfig) {
+        return actor.getQuests().values().stream()
+                .filter(q -> q.getQuestConfig().getKey().equals(questConfig.getKey()))
+                .max(Comparator.comparing(Quest::getStartedAt))
+                .orElse(null);
     }
 
     @SuppressWarnings("unchecked")

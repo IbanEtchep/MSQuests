@@ -27,7 +27,7 @@ public class QuestGroupMapper {
         }
 
         Map<String, QuestConfigDTO> questDtos = new HashMap<>();
-        for (Map.Entry<String, QuestConfig> entry : entity.getQuests().entrySet()) {
+        for (Map.Entry<String, QuestConfig> entry : entity.getQuestConfigs().entrySet()) {
             questDtos.put(entry.getKey(), questConfigMapper.toDto(entry.getValue()));
         }
 

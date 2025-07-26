@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import org.bukkit.Material;
 
@@ -7,23 +8,23 @@ import java.util.Map;
 
 public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
 
-    private final Material blockType;
+    private final Material material;
 
     public BlockBreakObjectiveConfig(String key, Map<String, Object> config) {
         super(key, config);
-        this.blockType = Material.valueOf((String) config.get("block_type"));
+        this.material = Material.valueOf(config.get("material").toString().toUpperCase());
     }
 
     @Override
     public Map<String, Object> serialize() {
         return Map.of(
-                "type", "block_break",
-                "block_type", blockType.name(),
+                "type", ObjectiveTypes.BLOCK_BREAK,
+                "material", material.name(),
                 "amount", amount
         );
     }
 
-    public Material getBlockType() {
-        return blockType;
+    public Material getMaterial() {
+        return material;
     }
 }
