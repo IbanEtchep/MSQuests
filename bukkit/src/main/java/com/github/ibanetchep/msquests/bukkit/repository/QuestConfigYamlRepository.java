@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.repository;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroupType;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,6 +11,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +79,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     private QuestGroupDTO parseGroup(String groupKey, ConfigurationSection groupSection, Path path) {
         ConfigurationSection questsSection = groupSection.getConfigurationSection("quests");
-        Map<String, QuestConfigDTO> quests = new HashMap<>();
+        List<QuestConfigDTO> quests = new ArrayList<>();
 
         if (questsSection != null) {
             for (String questKey : questsSection.getKeys(false)) {
@@ -95,12 +97,50 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                         questSection.getStringList("rewards"),
                         objectives
                 );
-                quests.put(questKey, questConfig);
+
+                quests.add(questConfig);
             }
         }
 
+        Instant startAt = null;
+        Instant endAt = null;
+        String startAtString = groupSection.getString("startAt");
+        String endAtString = groupSection.getString("endAt");
+
+        if (startAtString != null) {
+            startAt = Instant.parse(startAtString);
+        }
+        if (endAtString != null) {
+            endAt = Instant.parse(endAtString);
+        }
+
+        Integer maxActiveQuests = null;
+        Integer maxPerPeriod = null;
+        String periodSwitchCron = null;
+
+        if (groupSection.contains("maxActiveQuests")) {
+            maxActiveQuests = groupSection.getInt("maxActiveQuests");
+        }
+        if (groupSection.contains("maxPerPeriod")) {
+            maxPerPeriod = groupSection.getInt("maxPerPeriod");
+        }
+        if (groupSection.contains("periodSwitchCron")) {
+            periodSwitchCron = groupSection.getString("periodSwitchCron");
+        }
+
         questConfigPaths.put(groupKey, path);
-        return new QuestGroupDTO(groupKey, groupSection.getString("name"), quests);
+        return new QuestGroupDTO(
+                groupKey,
+                groupSection.getString("name"),
+                groupSection.getString("description"),
+                quests,
+                QuestGroupType.valueOf(groupSection.getString("type")),
+                maxActiveQuests,
+                maxPerPeriod,
+                periodSwitchCron,
+                startAt,
+                endAt
+        );
     }
 
     private Map<String, QuestObjectiveConfigDTO> parseObjectives(ConfigurationSection questSection) {

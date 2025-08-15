@@ -12,9 +12,7 @@ public record QuestDTO(
         String groupKey,
         UUID actorId,
         QuestStatus status,
-        long startedAt,
         long completedAt,
-        long expiresAt,
         long createdAt,
         long updatedAt,
         Map<UUID, QuestObjectiveDTO> objectives

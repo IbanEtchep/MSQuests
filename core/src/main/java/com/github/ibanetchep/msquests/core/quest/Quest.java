@@ -13,19 +13,15 @@ public class Quest {
     private QuestStatus status;
     private QuestActor actor;
     private Map<UUID, QuestObjective<?>> objectives;
-    private Date startedAt;
-    private Date expiresAt;
     private Date completedAt;
     private Date createdAt;
     private Date updatedAt;
 
-    public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date startedAt, Date expiresAt, Date completedAt, Date createdAt, Date updatedAt) {
+    public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date completedAt, Date createdAt, Date updatedAt) {
         this.id = uniqueId;
         this.questConfig = quest;
         this.status = status;
         this.actor = actor;
-        this.startedAt = startedAt;
-        this.expiresAt = expiresAt;
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -61,22 +57,6 @@ public class Quest {
 
     public void setCompletedAt(Date completedAt) {
         this.completedAt = completedAt;
-    }
-
-    public Date getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(Date expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public Date getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(Date startedAt) {
-        this.startedAt = startedAt;
     }
 
     public void setActor(QuestActor actor) {

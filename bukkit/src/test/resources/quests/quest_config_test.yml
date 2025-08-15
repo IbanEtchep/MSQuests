@@ -1,4 +1,5 @@
 group_1:
+  type: CHAINED
   quests:
     quest_1:
       name: "First Quest"

@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.quest.*;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
@@ -141,7 +142,7 @@ public class QuestManager {
     public Quest getLastQuest(QuestActor actor, QuestConfig questConfig) {
         return actor.getQuests().values().stream()
                 .filter(q -> q.getQuestConfig().getKey().equals(questConfig.getKey()))
-                .max(Comparator.comparing(Quest::getStartedAt))
+                .max(Comparator.comparing(Quest::getCreatedAt))
                 .orElse(null);
     }
 
@@ -158,5 +159,12 @@ public class QuestManager {
         return actors.values().stream()
                 .filter(actor -> actor.getActorType().equals(actorType))
                 .toList();
+    }
+
+    public void startNextQuest(QuestActor actor, QuestGroup questGroup) {
+//        Quest quest = new Quest()
+        // TODO vérifier les conditions selon le type de groupe de quete (Pool, chain...)
+        // Chain = une seule quete à la fois et les quetes ne sont pas faisables plusieurs fois.
+        // Pool = plusieurs quetes et elles peuvent etre faites plusieurs fois
     }
 }

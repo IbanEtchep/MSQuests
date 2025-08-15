@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest;
 
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+
 import java.util.*;
 
 public class QuestConfig {

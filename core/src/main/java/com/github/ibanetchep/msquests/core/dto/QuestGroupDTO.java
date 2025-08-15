@@ -1,10 +1,20 @@
 package com.github.ibanetchep.msquests.core.dto;
 
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroupType;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 public record QuestGroupDTO(
         String key,
         String name,
-        Map<String, QuestConfigDTO> quests
+        String description,
+        List<QuestConfigDTO> quests,
+        QuestGroupType type,
+        Integer maxActiveQuests,
+        Integer maxPerPeriod,
+        String periodSwitchCron,
+        Instant startAt,
+        Instant endAt
 ) {}

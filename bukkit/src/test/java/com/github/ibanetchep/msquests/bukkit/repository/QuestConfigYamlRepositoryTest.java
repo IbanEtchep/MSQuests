@@ -50,7 +50,7 @@ public class QuestConfigYamlRepositoryTest {
         QuestGroupDTO group = result.get("group_1");
         assertNotNull(group);
         
-        Map<String, QuestConfigDTO> quests = group.quests();
+        Map<String, QuestConfigDTO> quests = group.quests().stream().collect(HashMap::new, (m, v) -> m.put(v.key(), v), HashMap::putAll);
         assertNotNull(quests);
         assertEquals(2, quests.size());
 
@@ -97,7 +97,7 @@ public class QuestConfigYamlRepositoryTest {
         QuestGroupDTO group = loadedGroups.get(0);
         assertEquals("group_1", group.key());
         
-        Map<String, QuestConfigDTO> quests = group.quests();
+        Map<String, QuestConfigDTO> quests = group.quests().stream().collect(HashMap::new, (m, v) -> m.put(v.key(), v), HashMap::putAll);
         assertEquals(2, quests.size());
 
         QuestConfigDTO quest1 = quests.get("quest_1");
