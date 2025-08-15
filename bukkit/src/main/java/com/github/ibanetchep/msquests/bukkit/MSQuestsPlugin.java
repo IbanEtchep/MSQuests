@@ -22,7 +22,7 @@ import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
-import com.github.ibanetchep.msquests.core.quest.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;

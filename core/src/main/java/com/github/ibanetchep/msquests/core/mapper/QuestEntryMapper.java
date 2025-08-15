@@ -28,8 +28,6 @@ public class QuestEntryMapper {
                 questConfig,
                 actor,
                 dto.status(),
-                new Date(dto.startedAt()),
-                new Date(dto.expiresAt()),
                 new Date(dto.completedAt()),
                 new Date(dto.createdAt()),
                 new Date(dto.updatedAt())
@@ -86,7 +84,6 @@ public class QuestEntryMapper {
                         objective.getObjectiveConfig().getKey(),
                         objective.getProgress(),
                         objective.getStatus(),
-                        objective.getStartedAt().getTime(),
                         objective.getCompletedAt().getTime(),
                         objective.getCreatedAt().getTime(),
                         objective.getUpdatedAt().getTime()
@@ -100,9 +97,7 @@ public class QuestEntryMapper {
                 entity.getQuestConfig().getGroup().getKey(),
                 entity.getActor().getId(),
                 entity.getStatus(),
-                entity.getStartedAt().getTime(),
                 entity.getCompletedAt().getTime(),
-                entity.getExpiresAt().getTime(),
                 entity.getCreatedAt().getTime(),
                 entity.getUpdatedAt().getTime(),
                 objectiveDtos

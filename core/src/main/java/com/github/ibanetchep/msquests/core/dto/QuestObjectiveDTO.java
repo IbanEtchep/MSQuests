@@ -10,7 +10,6 @@ public record QuestObjectiveDTO(
         String objectiveKey,
         int progress,
         QuestObjectiveStatus objectiveStatus,
-        long startedAt,
         long completedAt,
         long createdAt,
         long updatedAt

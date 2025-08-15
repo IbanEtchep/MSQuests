@@ -6,7 +6,7 @@ import com.github.ibanetchep.msquests.bukkit.lang.Lang;
 import com.github.ibanetchep.msquests.core.manager.QuestManager;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;

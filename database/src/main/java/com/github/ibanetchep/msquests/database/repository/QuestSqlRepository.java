@@ -53,10 +53,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                 UUID actorId = UUID.fromString(rs.getString("q_actor_id"));
                                 QuestStatus status = QuestStatus.valueOf(rs.getString("q_status"));
 
-                                long startedAt = rs.getTimestamp("q_started_at") != null ? rs.getTimestamp("q_started_at").getTime() : 0;
                                 long completedAt = rs.getTimestamp("q_completed_at") != null ? rs.getTimestamp("q_completed_at").getTime() : 0;
-                                long expiresAt = rs.getTimestamp("q_expires_at") != null ? rs.getTimestamp("q_expires_at").getTime() : 0;
-
                                 long createdAt = rs.getTimestamp("q_created_at").getTime();
                                 long updatedAt = rs.getTimestamp("q_updated_at").getTime();
 
@@ -66,9 +63,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         groupKey,
                                         actorId,
                                         status,
-                                        startedAt,
                                         completedAt,
-                                        expiresAt,
                                         createdAt,
                                         updatedAt,
                                         new HashMap<>()  // map mutable ici
@@ -84,7 +79,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                 QuestObjectiveStatus objStatus = QuestObjectiveStatus.valueOf(rs.getString("o_status"));
                                 int progress = rs.getInt("o_progress");
 
-                                long objStartedAt = rs.getTimestamp("o_started_at") != null ? rs.getTimestamp("o_started_at").getTime() : 0;
                                 long objCompletedAt = rs.getTimestamp("o_completed_at") != null ? rs.getTimestamp("o_completed_at").getTime() : 0;
 
                                 long objCreatedAt = rs.getTimestamp("o_created_at").getTime();
@@ -96,7 +90,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         objKey,
                                         progress,
                                         objStatus,
-                                        objStartedAt,
                                         objCompletedAt,
                                         objCreatedAt,
                                         objUpdatedAt
@@ -117,8 +110,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
     @Override
     public CompletableFuture<Void> save(QuestDTO quest) {
         String questUpsertQuery = """
-                INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, started_at, expires_at, completed_at, actor_id, created_at, updated_at) 
-                VALUES (:id, :questKey, :groupKey, :status, :startedAt, :expiresAt, :completedAt, :actorId, :createdAt, :updatedAt)
+                INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, completed_at, actor_id, created_at, updated_at) 
+                VALUES (:id, :questKey, :groupKey, :status, :completedAt, :actorId, :createdAt, :updatedAt)
                 ON DUPLICATE KEY UPDATE
                     quest_status = :status,
                     started_at = :startedAt,
@@ -128,8 +121,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                 """;
 
         String objectiveUpsertQuery = """
-                INSERT INTO msquests_objective (id, objective_key, objective_status, progress, started_at, completed_at, quest_id, created_at, updated_at) 
-                VALUES (:id, :objectiveKey, :status, :progress, :startedAt, :completedAt, :questId, :createdAt, :updatedAt)
+                INSERT INTO msquests_objective (id, objective_key, objective_status, progress, completed_at, quest_id, created_at, updated_at) 
+                VALUES (:id, :objectiveKey, :status, :progress, :completedAt, :questId, :createdAt, :updatedAt)
                 ON DUPLICATE KEY UPDATE 
                     objective_status = :status,
                     progress = :progress,
@@ -147,8 +140,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                     .bind("questKey", quest.questKey())
                     .bind("groupKey", quest.groupKey())
                     .bind("status", quest.status().toString())
-                    .bind("startedAt", quest.startedAt() > 0 ? new Timestamp(quest.startedAt()) : null)
-                    .bind("expiresAt", quest.expiresAt() > 0 ? new Timestamp(quest.expiresAt()) : null)
                     .bind("completedAt", quest.completedAt() > 0 ? new Timestamp(quest.completedAt()) : null)
                     .bind("actorId", quest.actorId().toString())
                     .bind("createdAt", quest.createdAt() > 0 ? new Timestamp(quest.createdAt()) : currentTime)
@@ -164,7 +155,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                             .bind("objectiveKey", objective.objectiveKey())
                             .bind("status", objective.objectiveStatus().toString())
                             .bind("progress", objective.progress())
-                            .bind("startedAt", objective.startedAt() > 0 ? new Timestamp(objective.startedAt()) : null)
                             .bind("completedAt", objective.completedAt() > 0 ? new Timestamp(objective.completedAt()) : null)
                             .bind("questId", objective.questEntryId().toString())
                             .bind("createdAt", objective.createdAt() > 0 ? new Timestamp(objective.createdAt()) : currentTime)

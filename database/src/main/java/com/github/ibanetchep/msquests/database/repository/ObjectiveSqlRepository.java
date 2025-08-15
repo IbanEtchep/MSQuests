@@ -34,15 +34,14 @@ public class ObjectiveSqlRepository extends SqlRepository implements ObjectiveRe
     @Override
     public CompletableFuture<Void> save(QuestObjectiveDTO objective) {
         String query = """
-                INSERT INTO msquests_objective (id, objective_key, objective_status, progress, started_at, completed_at, quest_id, created_at, updated_at) 
-                VALUES (:id, :objectiveKey, :objectiveStatus, :progress, :startedAt, :completedAt, :questId, :createdAt, :updatedAt);
+                INSERT INTO msquests_objective (id, objective_key, objective_status, progress, completed_at, quest_id, created_at, updated_at) 
+                VALUES (:id, :objectiveKey, :objectiveStatus, :progress, :completedAt, :questId, :createdAt, :updatedAt);
                 """;
 
         String updateQuery = """
                 UPDATE msquests_objective 
                 SET objective_status = :objectiveStatus,
                     progress = :progress,
-                    started_at = :startedAt,
                     completed_at = :completedAt,
                     updated_at = :updatedAt
                 WHERE id = :id;
@@ -58,7 +57,6 @@ public class ObjectiveSqlRepository extends SqlRepository implements ObjectiveRe
                     .bind("id", objective.id().toString())
                     .bind("objectiveStatus", objective.objectiveStatus().toString())
                     .bind("progress", objective.progress())
-                    .bind("startedAt", objective.startedAt() > 0 ? new Timestamp(objective.startedAt()) : null)
                     .bind("completedAt", objective.completedAt() > 0 ? new Timestamp(objective.completedAt()) : null)
                     .bind("updatedAt", currentTime)
                     .execute();
@@ -70,7 +68,6 @@ public class ObjectiveSqlRepository extends SqlRepository implements ObjectiveRe
                         .bind("objectiveKey", objective.objectiveKey())
                         .bind("objectiveStatus", objective.objectiveStatus().toString())
                         .bind("progress", objective.progress())
-                        .bind("startedAt", objective.startedAt() > 0 ? new Timestamp(objective.startedAt()) : null)
                         .bind("completedAt", objective.completedAt() > 0 ? new Timestamp(objective.completedAt()) : null)
                         .bind("questId", objective.questEntryId().toString())
                         .bind("createdAt", objective.createdAt() > 0 ? new Timestamp(objective.createdAt()) : currentTime)
