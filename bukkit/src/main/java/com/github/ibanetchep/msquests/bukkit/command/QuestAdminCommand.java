@@ -20,11 +20,11 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 public class QuestAdminCommand {
 
     private final MSQuestsPlugin plugin;
-    private final QuestRegistry questManager;
+    private final QuestRegistry questRegistry;
 
     public QuestAdminCommand(MSQuestsPlugin plugin) {
         this.plugin = plugin;
-        this.questManager = plugin.getQuestRegistry();
+        this.questRegistry = plugin.getQuestRegistry();
     }
 
     @Subcommand("reload")
@@ -51,7 +51,7 @@ public class QuestAdminCommand {
     ) {
         sender.reply(group.getName());
         for (QuestConfig questConfig : group.getOrderedQuests()) {
-            Quest lastQuest = questManager.getLastQuest(actor, questConfig);
+            Quest lastQuest = questRegistry.getLastQuest(actor, questConfig);
             sender.reply(questConfig.getName() + " (" + lastQuest.getStatus() + ")");
         }
     }

@@ -8,16 +8,16 @@ import java.util.UUID;
 
 public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
-    protected QuestRegistry questManager;
+    protected QuestRegistry questRegistry;
 
-    public QuestObjectiveHandler(QuestRegistry questManager) {
-        this.questManager = questManager;
+    public QuestObjectiveHandler(QuestRegistry questRegistry) {
+        this.questRegistry = questRegistry;
     }
 
     protected abstract String getObjectiveType();
 
     public List<T> getQuestObjectives(UUID playerId) {
-        return questManager.getObjectivesByType(playerId, getObjectiveType());
+        return questRegistry.getObjectivesByType(playerId, getObjectiveType());
     }
 
     /**
