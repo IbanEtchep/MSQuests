@@ -14,11 +14,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class QuestEntryMapper {
+public class QuestMapper {
 
     private final ObjectiveTypeRegistry objectiveTypeRegistry;
 
-    public QuestEntryMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
+    public QuestMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
         this.objectiveTypeRegistry = objectiveTypeRegistry;
     }
 

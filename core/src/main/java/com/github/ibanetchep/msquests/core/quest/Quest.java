@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 import java.util.Map;
@@ -13,11 +14,12 @@ public class Quest {
     private QuestStatus status;
     private QuestActor actor;
     private Map<UUID, QuestObjective<?>> objectives;
+    @Nullable
     private Date completedAt;
     private Date createdAt;
     private Date updatedAt;
 
-    public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, Date completedAt, Date createdAt, Date updatedAt) {
+    public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, @Nullable Date completedAt, Date createdAt, Date updatedAt) {
         this.id = uniqueId;
         this.questConfig = quest;
         this.status = status;
@@ -25,6 +27,10 @@ public class Quest {
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public Quest(QuestConfig questConfig, QuestActor actor) {
+        this(UUID.randomUUID(), questConfig, actor, QuestStatus.IN_PROGRESS, null, new Date(), new Date());
     }
 
     public UUID getId() {
@@ -51,11 +57,11 @@ public class Quest {
         this.createdAt = createdAt;
     }
 
-    public Date getCompletedAt() {
+    public @Nullable Date getCompletedAt() {
         return completedAt;
     }
 
-    public void setCompletedAt(Date completedAt) {
+    public void setCompletedAt(@Nullable Date completedAt) {
         this.completedAt = completedAt;
     }
 

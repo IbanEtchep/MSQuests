@@ -31,7 +31,7 @@ public class QuestAdminCommand {
     @Description("Reloads the quest configs")
     public void reload(CommandSender sender) {
         plugin.getLangManager().load();
-        plugin.getQuestLoaderService().loadQuestGroups();
+        plugin.getQuestPersistenceService().loadQuestGroups();
         sender.sendMessage(Lang.CONFIG_RELOADED.component());
     }
 
