@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.core.service;
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
-import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
+import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class QuestLoaderService {
+public class QuestPersistenceService {
 
     private final Logger logger;
     private final QuestRegistry questRegistry;
@@ -26,16 +26,16 @@ public class QuestLoaderService {
     private final ActorRepository actorRepository;
     private final QuestRepository questRepository;
     private final QuestGroupMapper questGroupMapper;
-    private final QuestEntryMapper questEntryMapper;
+    private final QuestMapper questMapper;
 
-    public QuestLoaderService(
+    public QuestPersistenceService(
             Logger logger,
             QuestRegistry questRegistry,
             QuestConfigRepository questConfigRepository,
             ActorRepository actorRepository,
             QuestRepository questRepository,
             QuestGroupMapper questGroupMapper,
-            QuestEntryMapper questEntryMapper
+            QuestMapper questMapper
     ) {
         this.logger = logger;
         this.questRegistry = questRegistry;
@@ -43,7 +43,7 @@ public class QuestLoaderService {
         this.actorRepository = actorRepository;
         this.questRepository = questRepository;
         this.questGroupMapper = questGroupMapper;
-        this.questEntryMapper = questEntryMapper;
+        this.questMapper = questMapper;
     }
 
     public void loadQuestGroups() {
@@ -92,9 +92,13 @@ public class QuestLoaderService {
                     continue;
                 }
 
-                Quest quest = questEntryMapper.toEntity(questDTO, actor, questConfig);
+                Quest quest = questMapper.toEntity(questDTO, actor, questConfig);
                 actor.addQuest(quest);
             }
         });
+    }
+
+    public void saveQuest(Quest quest) {
+        questRepository.save(questMapper.toDto(quest));
     }
 }

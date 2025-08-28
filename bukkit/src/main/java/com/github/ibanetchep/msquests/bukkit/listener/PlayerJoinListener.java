@@ -23,7 +23,7 @@ public class PlayerJoinListener implements Listener {
         UUID playerId = player.getUniqueId();
 
         QuestPlayerActor actor = new QuestPlayerActor(playerId, player.getName());
-        plugin.getQuestLoaderService().loadActor(actor);
+        plugin.getQuestPersistenceService().loadActor(actor);
     }
 
 }
