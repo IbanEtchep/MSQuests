@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.command;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.lang.Lang;
-import com.github.ibanetchep.msquests.core.manager.QuestManager;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
@@ -20,18 +20,18 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 public class QuestAdminCommand {
 
     private final MSQuestsPlugin plugin;
-    private final QuestManager questManager;
+    private final QuestRegistry questManager;
 
     public QuestAdminCommand(MSQuestsPlugin plugin) {
         this.plugin = plugin;
-        this.questManager = plugin.getQuestManager();
+        this.questManager = plugin.getQuestRegistry();
     }
 
     @Subcommand("reload")
     @Description("Reloads the quest configs")
     public void reload(CommandSender sender) {
         plugin.getLangManager().load();
-        plugin.getQuestManager().loadQuestGroups();
+        plugin.getQuestLoaderService().loadQuestGroups();
         sender.sendMessage(Lang.CONFIG_RELOADED.component());
     }
 

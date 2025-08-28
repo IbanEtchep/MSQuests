@@ -1,10 +1,8 @@
 package com.github.ibanetchep.msquests.core.registry;
 
-import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestGlobalActor;
 
-import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

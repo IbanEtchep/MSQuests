@@ -18,7 +18,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
-import com.github.ibanetchep.msquests.core.manager.QuestManager;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestEntryMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
@@ -26,6 +26,7 @@ import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
+import com.github.ibanetchep.msquests.core.service.QuestLoaderService;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
@@ -55,9 +56,11 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
+    private QuestRegistry questRegistry;
+
+    private QuestLoaderService questLoaderService;
 
     private LangManager langManager;
-    private QuestManager questManager;
 
     private YamlDocument config;
     private DbAccess dbAccess;
@@ -83,16 +86,15 @@ public final class MSQuestsPlugin extends JavaPlugin {
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
         QuestEntryMapper questEntryMapper = new QuestEntryMapper(objectiveTypeRegistry);
 
-        questManager = new QuestManager(
+        questRegistry = new QuestRegistry();
+        questLoaderService = new QuestLoaderService(
                 getLogger(),
+                questRegistry,
                 new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests")),
                 new ActorSqlRepository(dbAccess),
                 new QuestSqlRepository(dbAccess),
-                questConfigMapper,
                 questGroupMapper,
-                questEntryMapper,
-                actorRegistry,
-                objectiveTypeRegistry
+                questEntryMapper
         );
 
         registerListeners();
@@ -189,8 +191,12 @@ public final class MSQuestsPlugin extends JavaPlugin {
         );
     }
 
-    public QuestManager getQuestManager() {
-        return questManager;
+    public QuestRegistry getQuestRegistry() {
+        return questRegistry;
+    }
+
+    public QuestLoaderService getQuestLoaderService() {
+        return questLoaderService;
     }
 
     public LangManager getLangManager() {

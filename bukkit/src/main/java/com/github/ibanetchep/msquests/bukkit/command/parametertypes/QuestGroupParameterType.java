@@ -22,7 +22,7 @@ public class QuestGroupParameterType implements ParameterType<BukkitCommandActor
     public QuestGroup parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
 
-        QuestGroup questGroup = plugin.getQuestManager().getQuestGroups().get(value);
+        QuestGroup questGroup = plugin.getQuestRegistry().getQuestGroups().get(value);
 
         if(questGroup == null) {
             throw new IllegalArgumentException("Could not find group " + value);
@@ -33,7 +33,7 @@ public class QuestGroupParameterType implements ParameterType<BukkitCommandActor
 
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
-        return (context) -> plugin.getQuestManager().getQuestGroups().keySet();
+        return (context) -> plugin.getQuestRegistry().getQuestGroups().keySet();
     }
 
     @Override
