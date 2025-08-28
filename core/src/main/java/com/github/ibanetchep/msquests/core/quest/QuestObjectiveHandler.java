@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest;
 
-import com.github.ibanetchep.msquests.core.manager.QuestManager;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 
 import java.util.List;
 import java.util.UUID;
@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
-    protected QuestManager questManager;
+    protected QuestRegistry questManager;
 
-    public QuestObjectiveHandler(QuestManager questManager) {
+    public QuestObjectiveHandler(QuestRegistry questManager) {
         this.questManager = questManager;
     }
 

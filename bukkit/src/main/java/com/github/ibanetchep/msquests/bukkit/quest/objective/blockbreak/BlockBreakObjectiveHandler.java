@@ -15,7 +15,7 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
     private final MSQuestsPlugin plugin;
 
     public BlockBreakObjectiveHandler(MSQuestsPlugin plugin) {
-        super(plugin.getQuestManager());
+        super(plugin.getQuestRegistry());
         this.plugin = plugin;
     }
 
