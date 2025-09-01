@@ -12,11 +12,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreakObjective> implements Listener {
 
-    private final MSQuestsPlugin plugin;
 
     public BlockBreakObjectiveHandler(MSQuestsPlugin plugin) {
-        super(plugin.getQuestRegistry());
-        this.plugin = plugin;
+        super(plugin);
     }
 
     @Override

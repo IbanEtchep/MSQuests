@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 public class DeliverItemObjectiveHandler extends QuestObjectiveHandler<DeliverItemObjective> implements Listener {
 
     public DeliverItemObjectiveHandler(MSQuestsPlugin plugin) {
-        super(plugin.getQuestRegistry());
+        super(plugin);
     }
 
     @Override

@@ -9,7 +9,8 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 public enum Lang {
 
     CONFIG_RELOADED("messages.config.reloaded"),
-    ;
+    QUEST_STARTED("messages.quest.started"),
+    QUEST_COULD_NOT_START("messages.quest.could_not_start");
 
 
     private final String key;

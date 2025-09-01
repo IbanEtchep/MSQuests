@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Description;
@@ -56,4 +57,20 @@ public class QuestAdminCommand {
         }
     }
 
+    @Subcommand("actor <actor type> <actor> start <group> <quest>")
+    public void startActorQuest(
+            BukkitCommandActor sender,
+            @QuestActorType String actorType,
+            QuestActor actor,
+            QuestGroup group,
+            QuestConfig questConfig
+    ) {
+        boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
+
+        if(result) {
+            sender.reply(Lang.QUEST_STARTED.component());
+        } else {
+            sender.reply(Lang.QUEST_COULD_NOT_START.component());
+        }
+    }
 }
