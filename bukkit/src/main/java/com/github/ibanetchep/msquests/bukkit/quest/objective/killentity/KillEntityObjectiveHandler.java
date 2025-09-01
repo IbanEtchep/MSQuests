@@ -13,11 +13,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntityObjective> implements Listener {
 
-    private final MSQuestsPlugin plugin;
-
     public KillEntityObjectiveHandler(MSQuestsPlugin plugin) {
-        super(plugin.getQuestRegistry());
-        this.plugin = plugin;
+        super(plugin);
     }
 
     @Override

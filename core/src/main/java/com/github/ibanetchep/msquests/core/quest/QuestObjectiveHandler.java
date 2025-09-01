@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest;
 
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
+import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 
 import java.util.List;
 import java.util.UUID;
@@ -8,16 +8,16 @@ import java.util.UUID;
 
 public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
 
-    protected QuestRegistry questRegistry;
+    protected MSQuestsPlatform platform;
 
-    public QuestObjectiveHandler(QuestRegistry questRegistry) {
-        this.questRegistry = questRegistry;
+    public QuestObjectiveHandler(MSQuestsPlatform platform) {
+        this.platform = platform;
     }
 
     protected abstract String getObjectiveType();
 
     public List<T> getQuestObjectives(UUID playerId) {
-        return questRegistry.getObjectivesByType(playerId, getObjectiveType());
+        return platform.getQuestRegistry().getObjectivesByType(playerId, getObjectiveType());
     }
 
     /**
@@ -27,14 +27,6 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
      * @param amount The amount to increment progress by
      */
     protected void updateProgress(T objective, int amount) {
-        int newProgress = objective.getProgress() + amount;
-        int target = objective.getObjectiveConfig().getTargetAmount();
-
-        newProgress = Math.min(newProgress, target);
-
-        objective.setProgress(newProgress);
-
-        boolean completed = newProgress >= target;
-
+        platform.getQuestLifecycleService().updateObjectiveProgress(objective, amount);
     }
 }

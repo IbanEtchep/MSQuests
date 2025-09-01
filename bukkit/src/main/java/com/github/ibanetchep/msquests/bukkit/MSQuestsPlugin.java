@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupParameterType;
+import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
@@ -18,6 +19,8 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
+import com.github.ibanetchep.msquests.core.event.EventDispatcher;
+import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
@@ -26,6 +29,7 @@ import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
+import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
 import com.github.ibanetchep.msquests.core.service.QuestPersistenceService;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
@@ -39,6 +43,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -52,13 +57,16 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public final class MSQuestsPlugin extends JavaPlugin {
+public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
+
+    private EventDispatcher eventDispatcher;
 
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
     private QuestRegistry questRegistry;
 
     private QuestPersistenceService questPersistenceService;
+    private QuestLifecycleService questLifecycleService;
 
     private LangManager langManager;
 
@@ -70,6 +78,7 @@ public final class MSQuestsPlugin extends JavaPlugin {
     public void onEnable() {
         loadConfig();
         loadDatabase();
+
         foliaLib = new FoliaLib(this);
 
         this.langManager = new LangManager(this);
@@ -77,6 +86,8 @@ public final class MSQuestsPlugin extends JavaPlugin {
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
+
+        eventDispatcher = new BukkitEventDispatcher(this);
 
         registerObjectiveTypes();
 
@@ -96,6 +107,8 @@ public final class MSQuestsPlugin extends JavaPlugin {
                 questGroupMapper,
                 questEntryMapper
         );
+
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questPersistenceService);
 
         registerListeners();
         registerCommands();
@@ -189,24 +202,43 @@ public final class MSQuestsPlugin extends JavaPlugin {
                 KillEntityObjective.class,
                 new KillEntityObjectiveHandler(this)
         );
+
+        for (var handler : objectiveTypeRegistry.getHandlers().values()) {
+            if(handler instanceof Listener listener) {
+                getServer().getPluginManager().registerEvents(listener, this);
+            }
+        }
     }
 
     public QuestRegistry getQuestRegistry() {
         return questRegistry;
     }
 
+    @Override
+    public EventDispatcher getEventDispatcher() {
+        return null;
+    }
+
+    @Override
     public QuestPersistenceService getQuestPersistenceService() {
         return questPersistenceService;
+    }
+
+    @Override
+    public QuestLifecycleService getQuestLifecycleService() {
+        return this.questLifecycleService;
     }
 
     public LangManager getLangManager() {
         return langManager;
     }
 
+    @Override
     public ActorTypeRegistry getActorRegistry() {
         return actorRegistry;
     }
 
+    @Override
     public ObjectiveTypeRegistry getObjectiveTypeRegistry() {
         return objectiveTypeRegistry;
     }

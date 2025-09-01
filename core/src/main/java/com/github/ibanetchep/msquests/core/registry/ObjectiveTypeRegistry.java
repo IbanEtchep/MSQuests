@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,4 +107,8 @@ public class ObjectiveTypeRegistry {
             Class<? extends QuestObjectiveConfig> configClass,
             Class<? extends QuestObjective<?>> objectiveClass
     ) {}
+
+    public Map<String, QuestObjectiveHandler<?>> getHandlers() {
+        return Collections.unmodifiableMap(handlers);
+    }
 }
