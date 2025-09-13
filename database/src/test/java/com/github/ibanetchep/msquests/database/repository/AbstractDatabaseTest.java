@@ -200,14 +200,12 @@ public abstract class AbstractDatabaseTest {
     }
 
     protected static class ObjectiveFixture implements TestFixture {
-        private final List<UUID> objectiveIds = new ArrayList<>();
         private final List<String> objectiveKeys = new ArrayList<>();
         private final List<String> objectiveStatuses = new ArrayList<>();
         private final List<Integer> progresses = new ArrayList<>();
         private final List<UUID> questIds = new ArrayList<>();
 
-        public ObjectiveFixture addObjective(UUID id, String key, String status, int progress, UUID questId) {
-            objectiveIds.add(id);
+        public ObjectiveFixture addObjective(String key, String status, int progress, UUID questId) {
             objectiveKeys.add(key);
             objectiveStatuses.add(status);
             progresses.add(progress);
@@ -217,14 +215,13 @@ public abstract class AbstractDatabaseTest {
 
         @Override
         public void load(Connection connection) throws SQLException {
-            String sql = "INSERT INTO msquests_objective (id, objective_key, objective_status, progress, quest_id) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id) VALUES (?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                for (int i = 0; i < objectiveIds.size(); i++) {
-                    stmt.setString(1, objectiveIds.get(i).toString());
-                    stmt.setString(2, objectiveKeys.get(i));
-                    stmt.setString(3, objectiveStatuses.get(i));
-                    stmt.setInt(4, progresses.get(i));
-                    stmt.setString(5, questIds.get(i).toString());
+                for (int i = 0; i < objectiveKeys.size(); i++) {
+                    stmt.setString(1, objectiveKeys.get(i));
+                    stmt.setString(2, objectiveStatuses.get(i));
+                    stmt.setInt(3, progresses.get(i));
+                    stmt.setString(4, questIds.get(i).toString());
                     stmt.executeUpdate();
                 }
             }

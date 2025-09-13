@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.registry;
 
+import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
@@ -97,6 +98,39 @@ public class ObjectiveTypeRegistry {
      */
     public Map<String, ObjectiveTypeEntry> getRegisteredTypes() {
         return Map.copyOf(registeredTypes);
+    }
+
+    /**
+     * Creates a new objective instance from configuration.
+     *
+     * @param quest
+     * @param questObjectiveConfig
+     * @param progress
+     */
+    public void createObjective(Quest quest, QuestObjectiveConfig questObjectiveConfig, int progress) {
+        String type = questObjectiveConfig.getType();
+
+        Class<? extends QuestObjective<?>> objectiveClass = getObjectiveClass(type);
+        if (objectiveClass == null) {
+            throw new IllegalStateException("Objective type not found: " + type);
+        }
+
+        try {
+            // Create a new instance of the objective with the correct values
+            QuestObjective<?> objective = objectiveClass.getConstructor(
+                    Quest.class,
+                    questObjectiveConfig.getClass(),
+                    int.class
+            ).newInstance(
+                    quest,
+                    questObjectiveConfig,
+                    progress
+            );
+
+            quest.addObjective(objective);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("Error creating objective of type " + type, e);
+        }
     }
 
     /**

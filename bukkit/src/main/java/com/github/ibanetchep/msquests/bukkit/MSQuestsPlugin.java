@@ -3,10 +3,13 @@ package com.github.ibanetchep.msquests.bukkit;
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorParameterType;
+import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestConfigParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupParameterType;
+import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
@@ -20,7 +23,10 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
+import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
+import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
@@ -61,6 +67,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private EventDispatcher eventDispatcher;
 
+    private QuestFactory questFactory;
+
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
     private QuestRegistry questRegistry;
@@ -86,16 +94,17 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
-
+        questFactory = new QuestFactory(objectiveTypeRegistry);
         eventDispatcher = new BukkitEventDispatcher(this);
 
         registerObjectiveTypes();
 
         actorRegistry.registerActorType("player", QuestPlayerActor.class);
+        actorRegistry.registerActorType("global", QuestGlobalActor.class);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
-        QuestMapper questEntryMapper = new QuestMapper(objectiveTypeRegistry);
+        QuestMapper questEntryMapper = new QuestMapper(questFactory);
 
         questRegistry = new QuestRegistry();
         questPersistenceService = new QuestPersistenceService(
@@ -108,10 +117,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
                 questEntryMapper
         );
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questPersistenceService);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questPersistenceService, questFactory);
 
         registerListeners();
         registerCommands();
+
+        questPersistenceService.loadQuestGroups();
     }
 
     @Override
@@ -165,6 +176,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
                         builder
                                 .addParameterType(QuestActor.class, new QuestActorParameterType(this))
                                 .addParameterType(QuestGroup.class, new QuestGroupParameterType(this))
+                                .addParameterType(Quest.class, new QuestParameterType(this))
+                                .addParameterType(QuestConfig.class, new QuestConfigParameterType(this))
                 )
                 .suggestionProviders(providers -> {
                     providers.addProviderForAnnotation(QuestActorType.class, actorType -> {

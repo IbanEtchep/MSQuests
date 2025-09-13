@@ -1,9 +1,11 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -13,7 +15,7 @@ public class Quest {
     private QuestConfig questConfig;
     private QuestStatus status;
     private QuestActor actor;
-    private Map<UUID, QuestObjective<?>> objectives;
+    private final Map<String, QuestObjective<?>> objectives = new HashMap<>();
     @Nullable
     private Date completedAt;
     private Date createdAt;
@@ -27,10 +29,6 @@ public class Quest {
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public Quest(QuestConfig questConfig, QuestActor actor) {
-        this(UUID.randomUUID(), questConfig, actor, QuestStatus.IN_PROGRESS, null, new Date(), new Date());
     }
 
     public UUID getId() {
@@ -89,15 +87,19 @@ public class Quest {
         this.questConfig = questConfig;
     }
 
-    public Map<UUID, QuestObjective<?>> getObjectives() {
+    public Map<String, QuestObjective<?>> getObjectives() {
         return objectives;
     }
 
     public void addObjective(QuestObjective<?> objective) {
-        this.objectives.put(objective.getId(), objective);
+        this.objectives.put(objective.getObjectiveConfig().getKey(), objective);
     }
 
-    public QuestObjective<?> getObjective(UUID id) {
-        return this.objectives.get(id);
+    public QuestObjective<?> getObjective(String key) {
+        return this.objectives.get(key);
+    }
+
+    public QuestGroup getQuestGroup() {
+        return questConfig.getGroup();
     }
 }

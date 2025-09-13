@@ -1,7 +1,6 @@
 package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import com.github.ibanetchep.msquests.core.quest.actor.QuestGlobalActor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,10 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ActorTypeRegistry {
 
     private final Map<String, Class<? extends QuestActor>> actorTypes = new ConcurrentHashMap<>();
-
-    public ActorTypeRegistry() {
-        registerDefaultActorTypes();
-    }
 
     /**
      * Registers a new actor type.
@@ -51,9 +46,5 @@ public class ActorTypeRegistry {
      */
     public Map<String, Class<? extends QuestActor>> getAllActorTypes() {
         return Map.copyOf(actorTypes);
-    }
-
-    private void registerDefaultActorTypes() {
-        registerActorType("global", QuestGlobalActor.class);
     }
 }

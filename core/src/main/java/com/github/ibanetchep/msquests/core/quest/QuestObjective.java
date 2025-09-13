@@ -7,29 +7,18 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> {
 
     protected T objectiveConfig;
 
-    protected UUID id;
     protected int progress;
     protected QuestObjectiveStatus status = QuestObjectiveStatus.IN_PROGRESS;
     protected Quest quest;
 
-    protected Date startedAt;
-    protected Date completedAt;
-    protected Date createdAt;
-    protected Date updatedAt;
-
-    public QuestObjective(UUID id, Quest quest, int progress, T objectiveConfig) {
-        this.id = id;
+    public QuestObjective(Quest quest,T objectiveConfig, int progress) {
         this.quest = quest;
-        this.progress = progress;
         this.objectiveConfig = objectiveConfig;
+        this.progress = progress;
     }
 
     public boolean isCompleted() {
-        return progress >= objectiveConfig.getTargetAmount();
-    }
-
-    public UUID getId() {
-        return id;
+        return progress >= objectiveConfig.getTargetAmount() || status == QuestObjectiveStatus.COMPLETED;
     }
 
     public int getProgress() {
@@ -52,35 +41,11 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> {
         this.status = status;
     }
 
-    public Date getStartedAt() {
-        return startedAt;
-    }
-
-    public Date getCompletedAt() {
-        return completedAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
     public T getObjectiveConfig() {
         return objectiveConfig;
     }
 
     public String getType() {
         return objectiveConfig.getType();
-    }
-
-    public void callOnProgress() {
-        //todo call custom bukkit event
-    }
-
-    public void callOnComplete() {
-        //todo call custom bukkit event
     }
 }

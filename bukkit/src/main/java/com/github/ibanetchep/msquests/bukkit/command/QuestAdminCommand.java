@@ -3,18 +3,20 @@ package com.github.ibanetchep.msquests.bukkit.command;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.lang.Lang;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Description;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
+
+import java.util.List;
+import java.util.Map;
 
 @Command("msquests")
 @CommandPermission("msquests.admin")
@@ -50,14 +52,22 @@ public class QuestAdminCommand {
             QuestActor actor,
             QuestGroup group
     ) {
-        sender.reply(group.getName());
-        for (QuestConfig questConfig : group.getOrderedQuests()) {
-            Quest lastQuest = questRegistry.getLastQuest(actor, questConfig);
-            sender.reply(questConfig.getName() + " (" + lastQuest.getStatus() + ")");
+        Map<QuestGroup, List<Quest>> questsByGroup = actor.getQuestsByGroup();
+
+        sender.reply(Lang.QUEST_LIST_HEADER.component());
+        for(QuestGroup questGroup : questsByGroup.keySet()) {
+            sender.reply(Lang.QUEST_LIST_GROUP.component("group", questGroup.getName()));
+            for(Quest quest : questsByGroup.get(questGroup)) {
+                sender.reply(Lang.QUEST_LIST_QUEST.component(
+                        "quest", quest.getQuestConfig().getName(),
+                        "status", quest.getStatus().toString(),
+                        "description", quest.getQuestConfig().getDescription()
+                ));
+            }
         }
     }
 
-    @Subcommand("actor <actor type> <actor> start <group> <quest>")
+    @Subcommand("actor <actor type> <actor> start <group> <quest config>")
     public void startActorQuest(
             BukkitCommandActor sender,
             @QuestActorType String actorType,
@@ -68,9 +78,22 @@ public class QuestAdminCommand {
         boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
 
         if(result) {
-            sender.reply(Lang.QUEST_STARTED.component());
+            sender.reply(Lang.QUEST_STARTED.component("quest", questConfig.getName()
+            ));
         } else {
-            sender.reply(Lang.QUEST_COULD_NOT_START.component());
+            sender.reply(Lang.QUEST_COULD_NOT_START.component("quest", questConfig.getName()));
         }
+    }
+
+    @Subcommand("actor <actor type> <actor> complete <group> <quest>")
+    public void completeActorQuest(
+            BukkitCommandActor sender,
+            @QuestActorType String actorType,
+            QuestActor actor,
+            QuestGroup group,
+            Quest quest
+    ) {
+        plugin.getQuestLifecycleService().completeQuest(quest);
+        sender.reply(Lang.QUEST_FORCE_COMPLETED.component());
     }
 }
