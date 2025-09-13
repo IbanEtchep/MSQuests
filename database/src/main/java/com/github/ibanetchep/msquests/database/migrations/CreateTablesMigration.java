@@ -38,7 +38,6 @@ public class CreateTablesMigration extends Migration {
 
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_objective (
-                id CHAR(36) PRIMARY KEY,
                 objective_key VARCHAR(255) NOT NULL,
                 objective_status VARCHAR(50) NOT NULL,
                 progress INTEGER DEFAULT 0,
@@ -46,7 +45,8 @@ public class CreateTablesMigration extends Migration {
                 completed_at TIMESTAMP,
                 quest_id CHAR(36) NOT NULL REFERENCES msquests_quest(id) ON DELETE CASCADE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (objective_key, quest_id)
             )
             """);
         });

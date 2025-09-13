@@ -25,9 +25,6 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
     private final UUID questId2 = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
     private final UUID questId3 = UUID.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
-    private final UUID objectiveId1 = UUID.fromString("11111111-aaaa-1111-aaaa-111111111111");
-    private final UUID objectiveId2 = UUID.fromString("22222222-bbbb-2222-bbbb-222222222222");
-
     @BeforeEach
     void setUp() throws SQLException {
         h2Repository = new QuestSqlRepository(h2DbAccess);
@@ -49,8 +46,8 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         addFixture(questFixture);
 
         ObjectiveFixture objectiveFixture = new ObjectiveFixture()
-                .addObjective(objectiveId1, "collect_items", "IN_PROGRESS", 5, questId1)
-                .addObjective(objectiveId2, "defeat_boss", "COMPLETED", 1, questId2);
+                .addObjective("collect_items", "IN_PROGRESS", 5, questId1)
+                .addObjective("defeat_boss", "COMPLETED", 1, questId2);
         addFixture(objectiveFixture);
 
         loadFixtures();
@@ -116,10 +113,10 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertNotNull(dailyQuest);
         assertNotNull(dailyQuest.objectives());
         assertEquals(1, dailyQuest.objectives().size());
-        assertTrue(dailyQuest.objectives().containsKey(objectiveId1));
+        assertTrue(dailyQuest.objectives().containsKey("collect_items"));
 
         // Validate objective properties
-        QuestObjectiveDTO objective = dailyQuest.objectives().get(objectiveId1);
+        QuestObjectiveDTO objective = dailyQuest.objectives().get("collect_items");
         assertEquals("collect_items", objective.objectiveKey());
         assertEquals("IN_PROGRESS", objective.objectiveStatus().toString());
         assertEquals(5, objective.progress());
@@ -129,7 +126,7 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertNotNull(mainStoryQuest);
         assertNotNull(mainStoryQuest.objectives());
         assertEquals(1, mainStoryQuest.objectives().size());
-        assertTrue(mainStoryQuest.objectives().containsKey(objectiveId2));
+        assertTrue(mainStoryQuest.objectives().containsKey("defeat_boss"));
     }
 
     @Test
@@ -142,10 +139,10 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertNotNull(dailyQuest);
         assertNotNull(dailyQuest.objectives());
         assertEquals(1, dailyQuest.objectives().size());
-        assertTrue(dailyQuest.objectives().containsKey(objectiveId1));
+        assertTrue(dailyQuest.objectives().containsKey("collect_items"));
 
         // Validate objective properties
-        QuestObjectiveDTO objective = dailyQuest.objectives().get(objectiveId1);
+        QuestObjectiveDTO objective = dailyQuest.objectives().get("collect_items");
         assertEquals("collect_items", objective.objectiveKey());
         assertEquals("IN_PROGRESS", objective.objectiveStatus().toString());
         assertEquals(5, objective.progress());
@@ -155,7 +152,7 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertNotNull(mainStoryQuest);
         assertNotNull(mainStoryQuest.objectives());
         assertEquals(1, mainStoryQuest.objectives().size());
-        assertTrue(mainStoryQuest.objectives().containsKey(objectiveId2));
+        assertTrue(mainStoryQuest.objectives().containsKey("defeat_boss"));
     }
     
     @Test

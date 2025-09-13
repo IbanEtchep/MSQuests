@@ -12,10 +12,10 @@ public record QuestDTO(
         String groupKey,
         UUID actorId,
         QuestStatus status,
-        long completedAt,
-        long createdAt,
-        long updatedAt,
-        Map<UUID, QuestObjectiveDTO> objectives
+        Long completedAt,
+        Long createdAt,
+        Long updatedAt,
+        Map<String, QuestObjectiveDTO> objectives
 ) {
     public QuestDTO {
         objectives = objectives == null ? new HashMap<>() : objectives;

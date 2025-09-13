@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
+import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
@@ -16,77 +17,46 @@ import java.util.UUID;
 
 public class QuestMapper {
 
-    private final ObjectiveTypeRegistry objectiveTypeRegistry;
+    private final QuestFactory questFactory;
 
-    public QuestMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
-        this.objectiveTypeRegistry = objectiveTypeRegistry;
+    public QuestMapper(QuestFactory questFactory) {
+        this.questFactory = questFactory;
     }
 
     public Quest toEntity(QuestDTO dto, QuestActor actor, QuestConfig questConfig) {
-        Quest quest = new Quest(
-                dto.id(),
-                questConfig,
-                actor,
-                dto.status(),
-                new Date(dto.completedAt()),
-                new Date(dto.createdAt()),
-                new Date(dto.updatedAt())
-        );
+        Quest quest = questFactory.createQuest(questConfig, actor);
 
         if (dto.objectives() != null) {
-            for (Map.Entry<UUID, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
+            for (Map.Entry<String, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
                 QuestObjectiveDTO objectiveDto = entry.getValue();
+                QuestObjective<?> objective = quest.getObjective(objectiveDto.objectiveKey());
                 
                 QuestObjectiveConfig questObjectiveConfig = questConfig.getObjectives().get(objectiveDto.objectiveKey());
+
                 if (questObjectiveConfig == null) {
                     throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveKey());
                 }
 
-                String objectiveType = questObjectiveConfig.getType();
-                Class<? extends QuestObjective<?>> objectiveClass = objectiveTypeRegistry.getObjectiveClass(objectiveType);
-                if (objectiveClass == null) {
-                    throw new IllegalStateException("Objective type not found: " + objectiveType);
-                }
-
-                try {
-                    // Create a new instance of the objective with the correct values
-                    QuestObjective<?> objective = objectiveClass.getConstructor(
-                            UUID.class,
-                            Quest.class,
-                            int.class,
-                            questObjectiveConfig.getClass()
-                    ).newInstance(
-                            objectiveDto.id(),
-                            quest,
-                            objectiveDto.progress(),
-                            questObjectiveConfig
-                    );
-
-                    quest.addObjective(objective);
-                } catch (ReflectiveOperationException e) {
-                    throw new RuntimeException("Error creating objective of type " + objectiveType, e);
-                }
+                objective.setProgress(objectiveDto.progress());
+                objective.setStatus(objectiveDto.objectiveStatus());
             }
         }
+
         return quest;
     }
 
     public QuestDTO toDto(Quest entity) {
-        Map<UUID, QuestObjectiveDTO> objectiveDtos = new HashMap<>();
+        Map<String, QuestObjectiveDTO> objectiveDtos = new HashMap<>();
         
         if (entity.getObjectives() != null) {
-            for (Map.Entry<UUID, QuestObjective<?>> entry : entity.getObjectives().entrySet()) {
+            for (Map.Entry<String, QuestObjective<?>> entry : entity.getObjectives().entrySet()) {
                 QuestObjective<?> objective = entry.getValue();
                 
                 objectiveDtos.put(entry.getKey(), new QuestObjectiveDTO(
-                        objective.getId(),
                         entity.getId(),
                         objective.getObjectiveConfig().getKey(),
                         objective.getProgress(),
-                        objective.getStatus(),
-                        objective.getCompletedAt().getTime(),
-                        objective.getCreatedAt().getTime(),
-                        objective.getUpdatedAt().getTime()
+                        objective.getStatus()
                 ));
             }
         }
@@ -97,7 +67,7 @@ public class QuestMapper {
                 entity.getQuestConfig().getGroup().getKey(),
                 entity.getActor().getId(),
                 entity.getStatus(),
-                entity.getCompletedAt().getTime(),
+                entity.getCompletedAt() != null ? entity.getCompletedAt().getTime() : null,
                 entity.getCreatedAt().getTime(),
                 entity.getUpdatedAt().getTime(),
                 objectiveDtos

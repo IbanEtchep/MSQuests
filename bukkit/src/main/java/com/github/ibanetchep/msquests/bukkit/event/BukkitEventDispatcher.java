@@ -1,10 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.core.event.CancellableCoreEvent;
-import com.github.ibanetchep.msquests.core.event.CoreEvent;
-import com.github.ibanetchep.msquests.core.event.CoreQuestStartEvent;
-import com.github.ibanetchep.msquests.core.event.EventDispatcher;
+import com.github.ibanetchep.msquests.core.event.*;
+import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -22,6 +20,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
         this.plugin = plugin;
 
         handlers.put(CoreQuestStartEvent.class, e -> callQuestStart((CoreQuestStartEvent) e));
+        handlers.put(CoreQuestCompleteEvent.class, e -> callQuestComplete((CoreQuestCompleteEvent) e));
     }
 
     @Override
@@ -42,9 +41,21 @@ public class BukkitEventDispatcher implements EventDispatcher {
 
             PlayerQuestStartEvent bukkitEvent = new PlayerQuestStartEvent(player, actor, event.getQuestConfig());
             plugin.getServer().getPluginManager().callEvent(bukkitEvent);
-            if (event instanceof CancellableCoreEvent cancellable) {
-                cancellable.setCancelled(bukkitEvent.isCancelled());
+            event.setCancelled(bukkitEvent.isCancelled());
+        }
+    }
+
+    private void callQuestComplete(CoreQuestCompleteEvent event) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Quest quest = event.getQuest();
+            QuestActor actor = quest.getActor();
+
+            if(!actor.isActor(player.getUniqueId())) {
+                continue;
             }
+
+            PlayerQuestCompleteEvent bukkitEvent = new PlayerQuestCompleteEvent(player, quest);
+            plugin.getServer().getPluginManager().callEvent(bukkitEvent);
         }
     }
 

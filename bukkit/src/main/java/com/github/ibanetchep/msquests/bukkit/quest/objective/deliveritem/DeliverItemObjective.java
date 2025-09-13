@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class DeliverItemObjective extends QuestObjective<DeliverItemObjectiveConfig> {
 
-    public DeliverItemObjective(UUID id, Quest quest, int progress, DeliverItemObjectiveConfig objectiveConfig) {
-        super(id, quest, progress, objectiveConfig);
+    public DeliverItemObjective(Quest quest, DeliverItemObjectiveConfig objectiveConfig, int progress) {
+        super(quest, objectiveConfig, progress);
     }
 }

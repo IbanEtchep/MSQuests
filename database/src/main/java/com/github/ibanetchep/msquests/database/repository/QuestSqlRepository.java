@@ -29,10 +29,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                     q.started_at as q_started_at, q.completed_at as q_completed_at, 
                     q.expires_at as q_expires_at, q.created_at as q_created_at, 
                     q.updated_at as q_updated_at, q.actor_id as q_actor_id,
-                    o.id as o_id, o.objective_key as o_key, o.objective_status as o_status, 
-                    o.progress as o_progress, o.started_at as o_started_at, 
-                    o.completed_at as o_completed_at, o.quest_id as o_quest_id,
-                    o.created_at as o_created_at, o.updated_at as o_updated_at
+                    o.objective_key as o_key, o.objective_status as o_status, 
+                    o.progress as o_progress, o.quest_id as o_quest_id
                 FROM msquests_quest q
                 LEFT JOIN msquests_objective o ON q.id = o.quest_id
                 WHERE q.actor_id = :actorId
@@ -72,30 +70,19 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                 quests.put(questId, quest);
                             }
 
-                            String objIdStr = rs.getString("o_id");
-                            if (objIdStr != null) {
-                                UUID objId = UUID.fromString(objIdStr);
-                                String objKey = rs.getString("o_key");
+                            String objKey = rs.getString("o_key");
+                            if (objKey != null) {
                                 QuestObjectiveStatus objStatus = QuestObjectiveStatus.valueOf(rs.getString("o_status"));
                                 int progress = rs.getInt("o_progress");
 
-                                long objCompletedAt = rs.getTimestamp("o_completed_at") != null ? rs.getTimestamp("o_completed_at").getTime() : 0;
-
-                                long objCreatedAt = rs.getTimestamp("o_created_at").getTime();
-                                long objUpdatedAt = rs.getTimestamp("o_updated_at").getTime();
-
                                 QuestObjectiveDTO objective = new QuestObjectiveDTO(
-                                        objId,
                                         questId,
                                         objKey,
                                         progress,
-                                        objStatus,
-                                        objCompletedAt,
-                                        objCreatedAt,
-                                        objUpdatedAt
+                                        objStatus
                                 );
 
-                                quests.get(questId).objectives().put(objId, objective);
+                                quests.get(questId).objectives().put(objKey, objective);
                             }
 
                             return questId;
@@ -121,14 +108,11 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                 """;
 
         String objectiveUpsertQuery = """
-                INSERT INTO msquests_objective (id, objective_key, objective_status, progress, completed_at, quest_id, created_at, updated_at) 
-                VALUES (:id, :objectiveKey, :status, :progress, :completedAt, :questId, :createdAt, :updatedAt)
+                INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id) 
+                VALUES (:objectiveKey, :status, :progress, :questId)
                 ON DUPLICATE KEY UPDATE 
                     objective_status = :status,
                     progress = :progress,
-                    started_at = :startedAt,
-                    completed_at = :completedAt,
-                    updated_at = :updatedAt;
                 """;
 
         return runAsync(() -> getJdbi().useTransaction(handle -> {
@@ -151,14 +135,10 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
                 for (QuestObjectiveDTO objective : quest.objectives().values()) {
                     objectiveBatch
-                            .bind("id", objective.id().toString())
                             .bind("objectiveKey", objective.objectiveKey())
                             .bind("status", objective.objectiveStatus().toString())
                             .bind("progress", objective.progress())
-                            .bind("completedAt", objective.completedAt() > 0 ? new Timestamp(objective.completedAt()) : null)
                             .bind("questId", objective.questEntryId().toString())
-                            .bind("createdAt", objective.createdAt() > 0 ? new Timestamp(objective.createdAt()) : currentTime)
-                            .bind("updatedAt", objective.updatedAt() > 0 ? new Timestamp(objective.updatedAt()) : currentTime)
                             .add();
                 }
 
