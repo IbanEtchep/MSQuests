@@ -2,6 +2,8 @@ package com.github.ibanetchep.msquests.database.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
+import com.github.ibanetchep.msquests.core.quest.QuestObjectiveStatus;
+import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -170,5 +172,90 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         // Test for actor 2
         Map<UUID, QuestDTO> actor2Quests = h2Repository.getAllByActor(actorId2).get();
         assertEquals("side", actor2Quests.get(questId3).groupKey());
+    }
+
+    @Test
+    void testSaveNewQuestH2() throws ExecutionException, InterruptedException {
+        UUID newQuestId = UUID.randomUUID();
+        QuestDTO newQuest = new QuestDTO(
+                newQuestId,
+                "new_quest",
+                "event",
+                actorId1,
+                QuestStatus.IN_PROGRESS,
+                null,
+                System.currentTimeMillis(),
+                System.currentTimeMillis(),
+                Map.of()
+        );
+
+        CompletableFuture<Void> saveFuture = h2Repository.save(newQuest);
+        saveFuture.get(); // attend que l'opération soit terminée
+
+        // Vérifie que la quête est bien enregistrée
+        QuestDTO loaded = h2Repository.getAllByActor(actorId1).get().get(newQuestId);
+        assertNotNull(loaded);
+        assertEquals("new_quest", loaded.questKey());
+        assertEquals("IN_PROGRESS", loaded.status().toString());
+    }
+
+    @Test
+    void testUpdateExistingQuestH2() throws ExecutionException, InterruptedException {
+        // Récupère une quête existante
+        QuestDTO existing = h2Repository.getAllByActor(actorId1).get().get(questId1);
+
+        // Change le status
+        QuestDTO updated = new QuestDTO(
+                existing.id(),
+                existing.questKey(),
+                existing.groupKey(),
+                existing.actorId(),
+                QuestStatus.COMPLETED,
+                System.currentTimeMillis(),
+                existing.createdAt(),
+                System.currentTimeMillis(),
+                existing.objectives()
+        );
+
+        h2Repository.save(updated).get();
+
+        QuestDTO loaded = h2Repository.getAllByActor(actorId1).get().get(questId1);
+        assertNotNull(loaded);
+        assertEquals("COMPLETED", loaded.status().toString());
+        assertEquals(existing.questKey(), loaded.questKey());
+    }
+
+    @Test
+    void testSaveQuestWithObjectivesH2() throws ExecutionException, InterruptedException {
+        UUID questId = UUID.randomUUID();
+        QuestObjectiveDTO objective = new QuestObjectiveDTO(
+                questId,
+                "find_treasure",
+                0,
+                QuestObjectiveStatus.IN_PROGRESS
+                );
+
+        QuestDTO quest = new QuestDTO(
+                questId,
+                "treasure_quest",
+                "event",
+                actorId1,
+                QuestStatus.IN_PROGRESS,
+                null,
+                System.currentTimeMillis(),
+                System.currentTimeMillis(),
+                Map.of(objective.objectiveKey(), objective)
+        );
+
+        h2Repository.save(quest).get();
+
+        QuestDTO loaded = h2Repository.getAllByActor(actorId1).get().get(questId);
+        assertNotNull(loaded);
+        assertEquals(1, loaded.objectives().size());
+        assertTrue(loaded.objectives().containsKey("find_treasure"));
+
+        QuestObjectiveDTO loadedObjective = loaded.objectives().get("find_treasure");
+        assertEquals("IN_PROGRESS", loadedObjective.objectiveStatus().toString());
+        assertEquals(0, loadedObjective.progress());
     }
 }
