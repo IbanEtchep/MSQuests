@@ -36,7 +36,6 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     public QuestConfigYamlRepository(Path rootFolder) {
         this.rootFolder = rootFolder;
-        System.out.println("QuestConfigYamlRepository rootFolder: " + rootFolder);
     }
 
     @Override
