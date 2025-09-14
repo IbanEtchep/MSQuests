@@ -1,9 +1,12 @@
 package com.github.ibanetchep.msquests.core.quest;
 
-import java.util.Date;
-import java.util.UUID;
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translatable;
 
-public abstract class QuestObjective<T extends QuestObjectiveConfig> {
+import java.util.HashMap;
+import java.util.Map;
+
+public abstract class QuestObjective<T extends QuestObjectiveConfig> implements Translatable, PlaceholderProvider {
 
     protected T objectiveConfig;
 
@@ -47,5 +50,17 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> {
 
     public String getType() {
         return objectiveConfig.getType();
+    }
+
+    @Override
+    public String getTranslationKey() {
+        return objectiveConfig.getTranslationKey();
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders() {
+        Map<String, String> placeholders = new HashMap<>(objectiveConfig.getPlaceholders());
+        placeholders.put("progress", String.valueOf(progress));
+        return placeholders;
     }
 }

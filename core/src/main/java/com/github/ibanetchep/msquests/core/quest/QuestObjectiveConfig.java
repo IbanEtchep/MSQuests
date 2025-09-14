@@ -1,8 +1,11 @@
 package com.github.ibanetchep.msquests.core.quest;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translatable;
+
 import java.util.Map;
 
-public abstract class QuestObjectiveConfig {
+public abstract class QuestObjectiveConfig implements Translatable, PlaceholderProvider {
 
     protected String key;
     protected String type;
@@ -29,5 +32,17 @@ public abstract class QuestObjectiveConfig {
 
     public int getTargetAmount() {
         return amount;
+    }
+
+    @Override
+    public String getTranslationKey() {
+        return "quest.objective." + type;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders() {
+        return Map.of(
+                "amount", String.valueOf(amount)
+        );
     }
 }

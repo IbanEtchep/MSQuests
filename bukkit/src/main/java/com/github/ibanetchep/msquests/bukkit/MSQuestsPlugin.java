@@ -7,7 +7,6 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestConfigP
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
-import com.github.ibanetchep.msquests.bukkit.lang.LangManager;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
@@ -24,6 +23,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
@@ -76,7 +76,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     private QuestPersistenceService questPersistenceService;
     private QuestLifecycleService questLifecycleService;
 
-    private LangManager langManager;
+    private Translator translator;
 
     private YamlDocument config;
     private DbAccess dbAccess;
@@ -89,8 +89,14 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         foliaLib = new FoliaLib(this);
 
-        this.langManager = new LangManager(this);
-        langManager.load();
+        this.translator = new Translator(
+                new File(getDataFolder(), "lang"),
+                getConfiguration().getString("language", "en_EN"),
+                locale -> getResource("lang/" + locale + ".yml"),
+                getLogger()
+        );
+
+        translator.load();
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
@@ -242,8 +248,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return this.questLifecycleService;
     }
 
-    public LangManager getLangManager() {
-        return langManager;
+    public Translator getTranslator() {
+        return translator;
     }
 
     @Override

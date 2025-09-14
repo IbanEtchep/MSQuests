@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.registry;
 
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
@@ -18,9 +19,6 @@ public class ObjectiveTypeRegistry {
 
     private final Map<String, ObjectiveTypeEntry> registeredTypes = new HashMap<>();
     private final Map<String, QuestObjectiveHandler<?>> handlers = new HashMap<>();
-
-    public ObjectiveTypeRegistry() {
-    }
 
     /**
      * Registers a new objective type with its associated config and handler.

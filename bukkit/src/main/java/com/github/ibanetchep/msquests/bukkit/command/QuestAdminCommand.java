@@ -2,12 +2,13 @@ package com.github.ibanetchep.msquests.bukkit.command;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
-import com.github.ibanetchep.msquests.bukkit.lang.Lang;
+import com.github.ibanetchep.msquests.core.lang.TranslationKey;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Description;
@@ -23,19 +24,17 @@ import java.util.Map;
 public class QuestAdminCommand {
 
     private final MSQuestsPlugin plugin;
-    private final QuestRegistry questRegistry;
 
     public QuestAdminCommand(MSQuestsPlugin plugin) {
         this.plugin = plugin;
-        this.questRegistry = plugin.getQuestRegistry();
     }
 
     @Subcommand("reload")
     @Description("Reloads the quest configs")
     public void reload(CommandSender sender) {
-        plugin.getLangManager().load();
+        plugin.getTranslator().load();
         plugin.getQuestPersistenceService().loadQuestGroups();
-        sender.sendMessage(Lang.CONFIG_RELOADED.component());
+        sender.sendMessage(Translator.t(TranslationKey.CONFIG_RELOADED));
     }
 
     /**
@@ -54,15 +53,25 @@ public class QuestAdminCommand {
     ) {
         Map<QuestGroup, List<Quest>> questsByGroup = actor.getQuestsByGroup();
 
-        sender.reply(Lang.QUEST_LIST_HEADER.component());
+        sender.reply(Translator.t(TranslationKey.QUEST_LIST_HEADER));
         for(QuestGroup questGroup : questsByGroup.keySet()) {
-            sender.reply(Lang.QUEST_LIST_GROUP.component("group", questGroup.getName()));
+            sender.reply(Translator.t(TranslationKey.QUEST_LIST_GROUP,
+                    Map.of("group", questGroup.getName()))
+            );
             for(Quest quest : questsByGroup.get(questGroup)) {
-                sender.reply(Lang.QUEST_LIST_QUEST.component(
-                        "quest", quest.getQuestConfig().getName(),
-                        "status", quest.getStatus().toString(),
-                        "description", quest.getQuestConfig().getDescription()
+                sender.reply(Translator.t(TranslationKey.QUEST_LIST_QUEST,
+                        Map.of("quest", quest.getQuestConfig().getName(),
+                                "status", quest.getStatus().toString(),
+                                "description", quest.getQuestConfig().getDescription())
                 ));
+
+                for (QuestObjective<?> objective : quest.getObjectives().values()) {
+                    if(objective.isCompleted()) {
+                        sender.reply(Translator.t(objective));
+                    } else {
+                        sender.reply(Translator.t(objective));
+                    }
+                }
             }
         }
     }
@@ -78,10 +87,9 @@ public class QuestAdminCommand {
         boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
 
         if(result) {
-            sender.reply(Lang.QUEST_STARTED.component("quest", questConfig.getName()
-            ));
+            sender.reply(Translator.t(TranslationKey.QUEST_STARTED, Map.of("quest", questConfig.getName())));
         } else {
-            sender.reply(Lang.QUEST_COULD_NOT_START.component("quest", questConfig.getName()));
+            sender.reply(Translator.t(TranslationKey.QUEST_COULD_NOT_START, Map.of("quest", questConfig.getName())));
         }
     }
 
@@ -94,6 +102,6 @@ public class QuestAdminCommand {
             Quest quest
     ) {
         plugin.getQuestLifecycleService().completeQuest(quest);
-        sender.reply(Lang.QUEST_FORCE_COMPLETED.component());
+        sender.reply(Translator.t(TranslationKey.QUEST_FORCE_COMPLETED, Map.of("quest", quest.getQuestConfig().getName())));
     }
 }
