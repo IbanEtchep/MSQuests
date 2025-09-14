@@ -19,12 +19,20 @@ public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
     public Map<String, Object> serialize() {
         return Map.of(
                 "type", ObjectiveTypes.KILL_ENTITY,
-                "entity_type", "<lang:" + entityType.translationKey() + ">",
+                "entity_type", entityType.name(),
                 "amount", amount
         );
     }
 
     public EntityType getEntityType() {
         return entityType;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders() {
+        return Map.of(
+                "entity_type", "<lang:" + entityType.translationKey() + ">",
+                "amount", String.valueOf(amount)
+        );
     }
 }

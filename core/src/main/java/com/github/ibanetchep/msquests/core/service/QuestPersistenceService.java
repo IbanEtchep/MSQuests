@@ -65,13 +65,16 @@ public class QuestPersistenceService {
 
         actorRepository.get(actor.getId()).thenAccept(actorDTO -> {
             if (actorDTO == null) {
-                actorDTO = new QuestActorDTO(actor.getActorType(), UUID.randomUUID());
+                actorDTO = new QuestActorDTO(actor.getActorType(), actor.getId());
                 actorRepository.add(actorDTO);
             }
 
             questRegistry.registerActor(actor);
 
             loadQuests(actor);
+        }).exceptionally(e -> {
+            logger.log(Level.SEVERE, "Failed to load actor", e);
+            return null;
         });
     }
 
@@ -99,6 +102,9 @@ public class QuestPersistenceService {
     }
 
     public void saveQuest(Quest quest) {
-        questRepository.save(questMapper.toDto(quest));
+        questRepository.save(questMapper.toDto(quest)).exceptionally(e -> {
+            logger.log(Level.SEVERE, "Failed to save quest", e);
+            return null;
+        });
     }
 }
