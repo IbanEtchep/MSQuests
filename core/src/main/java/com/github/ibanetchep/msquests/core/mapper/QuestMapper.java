@@ -4,16 +4,14 @@ import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class QuestMapper {
 

@@ -6,7 +6,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
@@ -14,7 +14,6 @@ import com.github.ibanetchep.msquests.core.repository.ActorRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

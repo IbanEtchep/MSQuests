@@ -26,7 +26,7 @@ import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;

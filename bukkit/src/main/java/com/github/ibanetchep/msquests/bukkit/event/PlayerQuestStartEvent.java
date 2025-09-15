@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

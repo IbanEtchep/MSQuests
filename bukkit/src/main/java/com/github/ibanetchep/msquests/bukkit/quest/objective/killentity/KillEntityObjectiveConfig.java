@@ -1,31 +1,26 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 
-import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import org.bukkit.entity.EntityType;
 
 import java.util.Map;
 
 public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
 
-    private final EntityType entityType;
+    @ConfigField(name = "entity_type")
+    private EntityType entityType;
 
-    public KillEntityObjectiveConfig(String key, Map<String, Object> config) {
-        super(key, config);
-        this.entityType = EntityType.valueOf(config.get("entity_type").toString().toUpperCase());
+    @ConfigField(name = "amount", required = true)
+    private int amount;
+
+    public KillEntityObjectiveConfig(String key, String type, Map<String, Object> config) {
+        super(key, type, config);
     }
 
     @Override
-    public Map<String, Object> serialize() {
-        return Map.of(
-                "type", ObjectiveTypes.KILL_ENTITY,
-                "entity_type", entityType.name(),
-                "amount", amount
-        );
-    }
-
-    public EntityType getEntityType() {
-        return entityType;
+    public int getTargetAmount() {
+        return amount;
     }
 
     @Override
@@ -34,5 +29,9 @@ public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
                 "entity_type", "<lang:" + entityType.translationKey() + ">",
                 "amount", String.valueOf(amount)
         );
+    }
+
+    public EntityType getEntityType() {
+        return entityType;
     }
 }

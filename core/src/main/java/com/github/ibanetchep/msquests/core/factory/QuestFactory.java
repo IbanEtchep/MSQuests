@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;

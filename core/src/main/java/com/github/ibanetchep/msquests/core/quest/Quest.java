@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import org.jetbrains.annotations.Nullable;
 

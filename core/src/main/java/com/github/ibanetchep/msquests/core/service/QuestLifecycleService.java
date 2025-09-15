@@ -7,6 +7,7 @@ import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.*;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 
 public class QuestLifecycleService {
 
