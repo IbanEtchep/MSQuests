@@ -19,7 +19,7 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
 
     @Override
     protected String getObjectiveType() {
-        return ObjectiveTypes.BLOCK_BREAK;
+        return ObjectiveTypes.KILL_ENTITY;
     }
 
     @EventHandler

@@ -36,7 +36,7 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
 
     @Override
     public String getTranslationKey() {
-        return "quest.objective." + type;
+        return "objective." + type;
     }
 
     @Override

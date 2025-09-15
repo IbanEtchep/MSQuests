@@ -61,16 +61,28 @@ public class QuestAdminCommand {
             for(Quest quest : questsByGroup.get(questGroup)) {
                 sender.reply(Translator.t(TranslationKey.QUEST_LIST_QUEST,
                         Map.of("quest", quest.getQuestConfig().getName(),
-                                "status", quest.getStatus().toString(),
+                                "status", Translator.raw(quest.getStatus()),
                                 "description", quest.getQuestConfig().getDescription())
                 ));
 
                 for (QuestObjective<?> objective : quest.getObjectives().values()) {
+                    TranslationKey translationKey;
+
                     if(objective.isCompleted()) {
-                        sender.reply(Translator.t(objective));
+                        translationKey = TranslationKey.QUEST_LIST_OBJECTIVE_COMPLETED;
                     } else {
-                        sender.reply(Translator.t(objective));
+                        translationKey = TranslationKey.QUEST_LIST_OBJECTIVE_IN_PROGRESS;
                     }
+
+                    sender.reply(Translator.t(translationKey,
+                            Map.of(
+                                    "objective", Translator.raw(objective),
+                                    "progress", objective.getProgress() + "",
+                                    "total", objective.getObjectiveConfig().getTargetAmount() + "",
+                                    "percentage", objective.getPercentage() + "%",
+                                    "status", Translator.raw(objective.getStatus())
+                            )
+                    ));
                 }
             }
         }
