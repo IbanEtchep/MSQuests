@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupPa
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
+import com.github.ibanetchep.msquests.bukkit.listener.QuestStartListener;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
@@ -200,6 +201,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     public void registerListeners() {
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
+        pluginManager.registerEvents(new QuestStartListener(this), this);
     }
 
     private void registerObjectiveTypes() {

@@ -12,4 +12,8 @@ public enum QuestStatus implements Translatable {
     public String getTranslationKey() {
         return "quest.status." + name().toLowerCase();
     }
+
+    public String getSymbolTranslationKey() {
+        return "quest.status_symbol." + name().toLowerCase();
+    }
 }

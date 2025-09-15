@@ -9,3 +9,8 @@ database:
   name: database
   user: username
   password: password
+
+quest-notifications:
+  start:
+    show-title: true
+    show-message: true

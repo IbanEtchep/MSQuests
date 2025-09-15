@@ -2,16 +2,19 @@ package com.github.ibanetchep.msquests.core.lang;
 
 public enum TranslationKey implements Translatable{
 
-    CONFIG_RELOADED("config.reloaded"),
-    QUEST_STARTED("quest.started"),
-    QUEST_COULD_NOT_START("quest.could_not_start"),
-    QUEST_FORCE_COMPLETED("quest.force_completed"),
-    QUEST_LIST_HEADER("quest_list.header"),
-    QUEST_LIST_GROUP("quest_list.group"),
-    QUEST_LIST_QUEST("quest_list.quest"),
-    QUEST_LIST_OBJECTIVE_IN_PROGRESS("quest_list.objective_in_progress"),
-    QUEST_LIST_OBJECTIVE_COMPLETED("quest_list.objective_completed"),
-    QUEST_OBJECTIVE_PROGRESS("quest.objective.progress");
+    QUEST_ADMIN_RELOAD("quest_admin.reload"),
+    QUEST_ADMIN_STARTED("quest_admin.quest.started"),
+    QUEST_ADMIN_COULD_NOT_START("quest_admin.quest.could_not_start"),
+    QUEST_ADMIN_FORCE_COMPLETED("quest_admin.quest.force_completed"),
+    QUEST_ADMIN_LIST_HEADER("quest_admin.list.header"),
+    QUEST_ADMIN_LIST_BODY("quest_admin.list.body"),
+    QUEST_ADMIN_LIST_QUEST("quest_admin.list.quest"),
+    QUEST_ADMIN_LIST_OBJECTIVE("quest_admin.list.objective"),
+    PLAYER_QUEST_STARTED_BODY("player_quest.started.body"),
+    PLAYER_QUEST_STARTED_OBJECTIVE("player_quest.started.objective"),
+    GLOBAL_QUEST_STARTED_BODY("global_quest.started.body"),
+    GLOBAL_QUEST_STARTED_OBJECTIVE("global_quest.started.objective"),
+    ;
 
     private final String key;
 
