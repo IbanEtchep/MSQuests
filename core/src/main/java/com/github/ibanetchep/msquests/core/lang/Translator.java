@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.lang;
 
+import com.github.ibanetchep.msquests.core.quest.QuestObjectiveStatus;
+import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
@@ -51,6 +53,14 @@ public class Translator {
         return INSTANCE.component(translatable, placeholders);
     }
 
+    public static String raw(Translatable translatable) {
+        return INSTANCE.getRaw(translatable);
+    }
+
+    public static String raw(Translatable translatable, Map<String, String> placeholders) {
+        return INSTANCE.getRaw(translatable, placeholders);
+    }
+
     public void load() {
         if (!langFolder.exists() && langFolder.mkdirs()) {
             logger.info("Created lang folder.");
@@ -97,6 +107,22 @@ public class Translator {
             }
         }
 
+        for (QuestStatus status : QuestStatus.values()) {
+            String key = status.getTranslationKey();
+            if (!yamlDocument.contains(key)) {
+                yamlDocument.set(key, "__" + key.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
+            }
+        }
+
+        for (QuestObjectiveStatus status : QuestObjectiveStatus.values()) {
+            String key = status.getTranslationKey();
+            if (!yamlDocument.contains(key)) {
+                yamlDocument.set(key, "__" + key.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
+            }
+        }
+
         yamlDocument.save();
         return yamlDocument;
     }
@@ -105,28 +131,14 @@ public class Translator {
      * Returns the message Adventure Component without placeholders
      */
     public Component component(Translatable translatable) {
-        if(translatable instanceof PlaceholderProvider placeholderProvider) {
-            return component(translatable, placeholderProvider.getPlaceholders());
-        }
-
-        String raw = getRaw(translatable.getTranslationKey());
-
-        return MINI_MESSAGE.deserialize(raw);
+        return MINI_MESSAGE.deserialize(getRaw(translatable));
     }
 
     /**
      * Returns the message Adventure Component with placeholders
      */
     public Component component(Translatable translatable, Map<String, String> placeholders) {
-        String message = getRaw(translatable.getTranslationKey());
-
-        if (placeholders != null) {
-            for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-                message = message.replace("%" + entry.getKey() + "%", entry.getValue());
-            }
-        }
-
-        return MINI_MESSAGE.deserialize(message);
+        return MINI_MESSAGE.deserialize(getRaw(translatable, placeholders));
     }
 
     /**
@@ -154,8 +166,26 @@ public class Translator {
     /**
      * Returns the raw message from the YAML file
      */
-    private String getRaw(String key) {
-        return messages.getString(key, "Missing translation: " + key);
+    private String getRaw(Translatable translatable) {
+        Map<String, String> placeholders = null;
+
+        if(translatable instanceof PlaceholderProvider placeholderProvider) {
+            placeholders = placeholderProvider.getPlaceholders();
+        }
+
+        return getRaw(translatable, placeholders);
+    }
+
+    private String getRaw(Translatable translatable, Map<String, String> placeholders) {
+        String raw = messages.getString(translatable.getTranslationKey(), "Missing translation: " + translatable.getTranslationKey());
+
+        if (placeholders != null) {
+            for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+                raw = raw.replace("%" + entry.getKey() + "%", entry.getValue());
+            }
+        }
+
+        return raw;
     }
 
     /**

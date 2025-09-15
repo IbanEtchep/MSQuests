@@ -3,7 +3,6 @@ package com.github.ibanetchep.msquests.core.quest;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class QuestObjective<T extends QuestObjectiveConfig> implements Translatable, PlaceholderProvider {
@@ -30,6 +29,10 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
 
     public void setProgress(int progress) {
         this.progress = progress;
+    }
+
+    public int getPercentage() {
+        return (int) ((progress / (float) objectiveConfig.getTargetAmount()) * 100);
     }
 
     public Quest getQuest() {
@@ -59,8 +62,6 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
 
     @Override
     public Map<String, String> getPlaceholders() {
-        Map<String, String> placeholders = new HashMap<>(objectiveConfig.getPlaceholders());
-        placeholders.put("progress", String.valueOf(progress));
-        return placeholders;
+        return objectiveConfig.getPlaceholders();
     }
 }

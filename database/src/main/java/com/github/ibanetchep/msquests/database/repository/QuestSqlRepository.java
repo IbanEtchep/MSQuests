@@ -7,12 +7,11 @@ import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.database.DbAccess;
 
-import java.sql.*;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class QuestSqlRepository extends SqlRepository implements QuestRepository {
 
@@ -124,9 +123,6 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
     """;
 
         return runAsync(() -> getJdbi().useTransaction(handle -> {
-            long now = System.currentTimeMillis();
-            Timestamp currentTime = new Timestamp(now);
-
             handle.createUpdate(questUpdateQuery)
                     .bind("id", quest.id().toString())
                     .bind("status", quest.status().toString())
