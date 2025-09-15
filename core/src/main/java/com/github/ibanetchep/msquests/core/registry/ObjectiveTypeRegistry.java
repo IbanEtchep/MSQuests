@@ -1,9 +1,8 @@
 package com.github.ibanetchep.msquests.core.registry;
 
-import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 
 import java.lang.reflect.Constructor;
@@ -69,21 +68,15 @@ public class ObjectiveTypeRegistry {
      * @return the created objective config, or null if the type is not registered
      */
     @SuppressWarnings("unchecked")
-    public QuestObjectiveConfig createConfig(Map<String, Object> config) {
-        String type = (String) config.get("type");
-
-        if (type == null) {
-            throw new IllegalArgumentException("Configuration does not contain a type.");
-        }
-
+    public QuestObjectiveConfig createConfig(String key, String type, Map<String, Object> config) {
         try {
             Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
             if (configClass == null) {
                 throw new IllegalArgumentException("Type " + type + " is not registered.");
             }
 
-            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(String.class,Map.class);
-            return constructor.newInstance(type, config);
+            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(String.class, String.class, Map.class);
+            return constructor.newInstance(key, type, config);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create objective config of type " + type, e);
         }

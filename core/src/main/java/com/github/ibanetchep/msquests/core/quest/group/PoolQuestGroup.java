@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.group;
 
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;

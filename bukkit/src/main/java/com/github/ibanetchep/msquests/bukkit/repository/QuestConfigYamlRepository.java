@@ -47,7 +47,6 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 paths
                         .filter(path -> path.getFileName().toString().endsWith(".yml"))
                         .forEach(path -> {
-                            System.out.println("Found quest config file: " + path);
                             List<QuestGroupDTO> groups = loadFileGroups(path);
                             for (QuestGroupDTO group : groups) {
                                 questGroups.put(group.key(), group);
@@ -150,8 +149,9 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
             for (String objectiveKey : objectivesSection.getKeys(false)) {
                 ConfigurationSection objectiveConfig = objectivesSection.getConfigurationSection(objectiveKey);
                 if (objectiveConfig != null) {
-                    Map<String, Object> data = objectiveConfig.getValues(true);
-                    objectives.put(objectiveKey, new QuestObjectiveConfigDTO(objectiveKey, data));
+                    Map<String, Object> config = objectiveConfig.getValues(true);
+                    String type = (String) config.get("type");
+                    objectives.put(objectiveKey, new QuestObjectiveConfigDTO(objectiveKey, type, config));
                 }
             }
         }

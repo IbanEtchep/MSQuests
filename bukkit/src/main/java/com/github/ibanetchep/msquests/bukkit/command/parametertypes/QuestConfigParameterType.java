@@ -1,9 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;

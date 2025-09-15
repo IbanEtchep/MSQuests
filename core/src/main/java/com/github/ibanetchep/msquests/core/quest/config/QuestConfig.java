@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.quest;
+package com.github.ibanetchep.msquests.core.quest.config;
 
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 

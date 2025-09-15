@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ public class QuestGlobalActor extends QuestActor {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(Component message) {
         //TODO broadcast
     }
 

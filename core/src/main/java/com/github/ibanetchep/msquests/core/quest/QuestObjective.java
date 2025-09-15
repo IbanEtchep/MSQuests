@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 import java.util.Map;
 

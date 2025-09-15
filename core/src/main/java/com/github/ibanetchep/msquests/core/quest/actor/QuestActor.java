@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.core.quest.actor;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -36,7 +37,7 @@ public abstract class QuestActor {
 
     public abstract String getActorType();
     public abstract boolean isActor(UUID playerId);
-    public abstract void sendMessage(String message);
+    public abstract void sendMessage(Component message);
 
     public Map<UUID, Quest> getQuests() {
         return Collections.unmodifiableMap(quests);

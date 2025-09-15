@@ -2,14 +2,12 @@ package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.ChainedQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.group.PoolQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class QuestGroupMapper {
 

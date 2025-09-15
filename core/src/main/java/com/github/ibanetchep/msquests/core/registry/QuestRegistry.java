@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
@@ -47,6 +47,7 @@ public class QuestRegistry {
         return getActors(playerId).stream()
                 .flatMap(actor -> actor.getObjectivesByType(objectiveType).stream())
                 .map(o -> (T) o)
+                .filter(objective -> objective.getObjectiveConfig().isValid())
                 .toList();
     }
 
