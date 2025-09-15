@@ -24,7 +24,15 @@ public class QuestMapper {
     }
 
     public Quest toEntity(QuestDTO dto, QuestActor actor, QuestConfig questConfig) {
-        Quest quest = questFactory.createQuest(questConfig, actor);
+        Quest quest = questFactory.createQuest(
+                dto.id(),
+                actor,
+                questConfig,
+                dto.status(),
+                dto.completedAt() != null ? new Date(dto.completedAt()) : null,
+                dto.createdAt() != null ? new Date(dto.createdAt()) : null,
+                dto.updatedAt() != null ? new Date(dto.updatedAt()) : null
+        );
 
         if (dto.objectives() != null) {
             for (Map.Entry<String, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
