@@ -85,7 +85,9 @@ public abstract class QuestActor {
                 .toList();
     }
 
-    public Map<QuestGroup, List<Quest>> getQuestsByGroup() {
-        return quests.values().stream().collect(Collectors.groupingBy(Quest::getQuestGroup));
+    public List<Quest> getQuestsByGroup(QuestGroup questGroup) {
+        return quests.values().stream()
+                .filter(quest -> quest.getQuestGroup() == questGroup)
+                .toList();
     }
 }

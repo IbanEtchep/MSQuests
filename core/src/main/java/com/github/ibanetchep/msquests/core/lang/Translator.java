@@ -53,6 +53,10 @@ public class Translator {
         return INSTANCE.component(translatable, placeholders);
     }
 
+    public static String raw(String key) {
+        return INSTANCE.getRaw(key);
+    }
+
     public static String raw(Translatable translatable) {
         return INSTANCE.getRaw(translatable);
     }
@@ -113,6 +117,12 @@ public class Translator {
                 yamlDocument.set(key, "__" + key.toLowerCase().replace(".", "_"));
                 logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
             }
+
+            String symbolKey = status.getSymbolTranslationKey();
+            if (!yamlDocument.contains(symbolKey)) {
+                yamlDocument.set(key, "__" + symbolKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + symbolKey + " in " + locale + ".yml");
+            }
         }
 
         for (QuestObjectiveStatus status : QuestObjectiveStatus.values()) {
@@ -121,10 +131,20 @@ public class Translator {
                 yamlDocument.set(key, "__" + key.toLowerCase().replace(".", "_"));
                 logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
             }
+
+            String symbolKey = status.getSymbolTranslationKey();
+            if (!yamlDocument.contains(symbolKey)) {
+                yamlDocument.set(key, "__" + symbolKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + symbolKey + " in " + locale + ".yml");
+            }
         }
 
         yamlDocument.save();
         return yamlDocument;
+    }
+
+    public Component component(String key) {
+        return MINI_MESSAGE.deserialize(getRaw(key));
     }
 
     /**
@@ -177,7 +197,7 @@ public class Translator {
     }
 
     private String getRaw(Translatable translatable, Map<String, String> placeholders) {
-        String raw = messages.getString(translatable.getTranslationKey(), "Missing translation: " + translatable.getTranslationKey());
+        String raw = getRaw(translatable.getTranslationKey());
 
         if (placeholders != null) {
             for (Map.Entry<String, String> entry : placeholders.entrySet()) {
@@ -186,6 +206,10 @@ public class Translator {
         }
 
         return raw;
+    }
+
+    private String getRaw(String key) {
+        return messages.getString(key, "Missing translation: " + key);
     }
 
     /**

@@ -5,9 +5,9 @@ import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.Command;
@@ -16,7 +16,6 @@ import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
-import java.util.List;
 import java.util.Map;
 
 @Command("msquests")
@@ -34,7 +33,7 @@ public class QuestAdminCommand {
     public void reload(CommandSender sender) {
         plugin.getTranslator().load();
         plugin.getQuestPersistenceService().loadQuestGroups();
-        sender.sendMessage(Translator.t(TranslationKey.CONFIG_RELOADED));
+        sender.sendMessage(Translator.t(TranslationKey.QUEST_ADMIN_RELOAD));
     }
 
     /**
@@ -51,41 +50,33 @@ public class QuestAdminCommand {
             QuestActor actor,
             QuestGroup group
     ) {
-        Map<QuestGroup, List<Quest>> questsByGroup = actor.getQuestsByGroup();
+        StringBuilder questsRaw = new StringBuilder();
+        for(Quest quest : actor.getQuestsByGroup(group)) {
+            StringBuilder objectivesRaw = new StringBuilder();
 
-        sender.reply(Translator.t(TranslationKey.QUEST_LIST_HEADER));
-        for(QuestGroup questGroup : questsByGroup.keySet()) {
-            sender.reply(Translator.t(TranslationKey.QUEST_LIST_GROUP,
-                    Map.of("group", questGroup.getName()))
-            );
-            for(Quest quest : questsByGroup.get(questGroup)) {
-                sender.reply(Translator.t(TranslationKey.QUEST_LIST_QUEST,
-                        Map.of("quest", quest.getQuestConfig().getName(),
-                                "status", Translator.raw(quest.getStatus()),
-                                "description", quest.getQuestConfig().getDescription())
-                ));
-
-                for (QuestObjective<?> objective : quest.getObjectives().values()) {
-                    TranslationKey translationKey;
-
-                    if(objective.isCompleted()) {
-                        translationKey = TranslationKey.QUEST_LIST_OBJECTIVE_COMPLETED;
-                    } else {
-                        translationKey = TranslationKey.QUEST_LIST_OBJECTIVE_IN_PROGRESS;
-                    }
-
-                    sender.reply(Translator.t(translationKey,
-                            Map.of(
-                                    "objective", Translator.raw(objective),
-                                    "progress", objective.getProgress() + "",
-                                    "total", objective.getObjectiveConfig().getTargetAmount() + "",
-                                    "percentage", objective.getPercentage() + "%",
-                                    "status", Translator.raw(objective.getStatus())
-                            )
-                    ));
-                }
+            for (QuestObjective<?> objective : quest.getObjectives().values()) {
+                objectivesRaw.append(Translator.raw(TranslationKey.QUEST_ADMIN_LIST_OBJECTIVE, Map.of(
+                        "objective", Translator.raw(objective),
+                        "progress", objective.getProgress() + "",
+                        "total", objective.getObjectiveConfig().getTargetAmount() + "",
+                        "percentage", objective.getPercentage() + "%",
+                        "status", Translator.raw(objective.getStatus()),
+                        "status_symbol", Translator.raw(objective.getStatus().getSymbolTranslationKey())
+                )));
             }
+
+            questsRaw.append(Translator.raw(TranslationKey.QUEST_ADMIN_LIST_QUEST, Map.of("quest", quest.getQuestConfig().getName(),
+                    "status", Translator.raw(quest.getStatus()),
+                    "description", quest.getQuestConfig().getDescription(),
+                    "objectives", objectivesRaw.toString()
+            )));
         }
+
+        sender.reply(Translator.t(TranslationKey.QUEST_ADMIN_LIST_BODY, Map.of(
+                "group", group.getName(),
+                "quests", questsRaw.toString()
+        )));
+
     }
 
     @Subcommand("actor <actor type> <actor> start <group> <quest config>")
@@ -99,9 +90,9 @@ public class QuestAdminCommand {
         boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
 
         if(result) {
-            sender.reply(Translator.t(TranslationKey.QUEST_STARTED, Map.of("quest", questConfig.getName())));
+            sender.reply(Translator.t(TranslationKey.QUEST_ADMIN_STARTED, Map.of("quest", questConfig.getName())));
         } else {
-            sender.reply(Translator.t(TranslationKey.QUEST_COULD_NOT_START, Map.of("quest", questConfig.getName())));
+            sender.reply(Translator.t(TranslationKey.QUEST_ADMIN_COULD_NOT_START, Map.of("quest", questConfig.getName())));
         }
     }
 
@@ -114,6 +105,6 @@ public class QuestAdminCommand {
             Quest quest
     ) {
         plugin.getQuestLifecycleService().completeQuest(quest);
-        sender.reply(Translator.t(TranslationKey.QUEST_FORCE_COMPLETED, Map.of("quest", quest.getQuestConfig().getName())));
+        sender.reply(Translator.t(TranslationKey.QUEST_ADMIN_FORCE_COMPLETED, Map.of("quest", quest.getQuestConfig().getName())));
     }
 }
