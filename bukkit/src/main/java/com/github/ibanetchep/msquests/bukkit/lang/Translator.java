@@ -1,5 +1,7 @@
-package com.github.ibanetchep.msquests.core.lang;
+package com.github.ibanetchep.msquests.bukkit.lang;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import dev.dejvokep.boostedyaml.YamlDocument;

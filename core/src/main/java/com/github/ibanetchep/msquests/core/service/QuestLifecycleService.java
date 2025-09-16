@@ -28,7 +28,7 @@ public class QuestLifecycleService {
     public boolean startQuest(QuestActor actor, QuestConfig questConfig) {
         Quest currentQuest = actor.getQuestByKey(questConfig.getKey());
 
-        if(currentQuest != null) {
+        if(currentQuest != null && currentQuest.isActive()) {
             return false;
         }
 
@@ -69,6 +69,10 @@ public class QuestLifecycleService {
     }
 
     public void completeQuest(Quest quest) {
+        for (QuestObjective<?> objective : quest.getObjectives().values()) {
+            objective.setStatus(QuestObjectiveStatus.COMPLETED);
+        }
+
         CoreQuestCompleteEvent event = new CoreQuestCompleteEvent(quest);
         dispatcher.dispatch(event);
         quest.setStatus(QuestStatus.COMPLETED);

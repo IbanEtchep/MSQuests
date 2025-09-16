@@ -6,6 +6,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Event triggered when a quest is completed, for each player that is part of the quest.
+ */
 public class PlayerQuestCompleteEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();

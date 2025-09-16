@@ -3,12 +3,10 @@ package com.github.ibanetchep.msquests.core.quest.actor;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public abstract class QuestActor {
 
@@ -37,7 +35,6 @@ public abstract class QuestActor {
 
     public abstract String getActorType();
     public abstract boolean isActor(UUID playerId);
-    public abstract void sendMessage(Component message);
 
     public Map<UUID, Quest> getQuests() {
         return Collections.unmodifiableMap(quests);
@@ -85,9 +82,17 @@ public abstract class QuestActor {
                 .toList();
     }
 
-    public List<Quest> getQuestsByGroup(QuestGroup questGroup) {
+    public List<Quest> getQuestsByGroup(QuestGroup questGroup, int page) {
         return quests.values().stream()
                 .filter(quest -> quest.getQuestGroup() == questGroup)
+                .skip((page - 1) * 10L)
+                .limit(10)
                 .toList();
+    }
+
+    public int getQuestsByGroupCount(QuestGroup questGroup) {
+        return (int) quests.values().stream()
+                .filter(quest -> quest.getQuestGroup() == questGroup)
+                .count();
     }
 }

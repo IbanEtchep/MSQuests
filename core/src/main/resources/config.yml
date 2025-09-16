@@ -10,7 +10,28 @@ database:
   user: username
   password: password
 
-quest-notifications:
-  start:
-    show-title: true
-    show-message: true
+player_quest:
+  notification:
+    start:
+      show_action_bar: true
+      show_title: true
+      show_message: true
+    progress:
+      show_action_bar: true
+    complete:
+      show_action_bar: true
+      show_title: true
+      show_message: true
+
+global_quest:
+  notification:
+    start:
+      show_action_bar: true
+      show_title: true
+      show_message: true
+    progress:
+      show_action_bar: true
+    complete:
+      show_action_bar: true
+      show_title: true
+      show_message: true

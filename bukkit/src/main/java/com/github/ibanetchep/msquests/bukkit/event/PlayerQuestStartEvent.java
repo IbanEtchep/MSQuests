@@ -8,7 +8,10 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class PlayerQuestStartEvent extends Event implements Cancellable {
+/**
+ * Event triggered when a quest starts, for each player that is part of the quest.
+ */
+public class PlayerQuestStartEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
@@ -33,16 +36,6 @@ public class PlayerQuestStartEvent extends Event implements Cancellable {
 
     public QuestConfig getQuestConfig() {
         return questConfig;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
     }
 
     @Override
