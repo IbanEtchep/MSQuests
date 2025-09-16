@@ -14,6 +14,8 @@ import com.github.ibanetchep.msquests.core.repository.ActorRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,18 +47,22 @@ public class QuestPersistenceService {
         this.questMapper = questMapper;
     }
 
-    public void loadQuestGroups() {
+    public CompletableFuture<Void> loadQuestGroups() {
         questRegistry.clearQuestGroups();
-        questConfigRepository.getAllGroups().thenAccept(questGroupDtos -> {
-            for (QuestGroupDTO questGroupDTO : questGroupDtos.values()) {
-                QuestGroup questGroup = questGroupMapper.toEntity(questGroupDTO);
-                questRegistry.registerQuestGroup(questGroup);
-                logger.info("Loaded group " + questGroup.getKey() + " with " + questGroup.getQuestConfigs().size() + " quests.");
-            }
-        }).exceptionally(e -> {
-            logger.log(Level.SEVERE, "Failed to load quest groups", e);
-            return null;
-        });
+
+        return questConfigRepository.getAllGroups()
+                .thenAccept(questGroupDtos -> {
+                    for (QuestGroupDTO questGroupDTO : questGroupDtos.values()) {
+                        QuestGroup questGroup = questGroupMapper.toEntity(questGroupDTO);
+                        questRegistry.registerQuestGroup(questGroup);
+                        logger.info("Loaded group " + questGroup.getKey() + " with "
+                                + questGroup.getQuestConfigs().size() + " quests.");
+                    }
+                })
+                .exceptionally(e -> {
+                    logger.log(Level.SEVERE, "Failed to load quest groups", e);
+                    return null;
+                });
     }
 
     public void loadActor(QuestActor actor) {
@@ -77,28 +83,39 @@ public class QuestPersistenceService {
         });
     }
 
-    private void loadQuests(QuestActor actor) {
-        questRepository.getAllByActor(actor.getId()).thenAccept(questEntryDtos -> {
-            for (QuestDTO questDTO : questEntryDtos.values()) {
-                QuestGroup questGroup = questRegistry.getQuestGroups().get(questDTO.groupKey());
+    public CompletableFuture<Void> reloadActorsQuests() {
+        List<CompletableFuture<Void>> futures = questRegistry.getActors().values().stream()
+                .map(this::loadQuests)
+                .toList();
 
-                if (questGroup == null) {
-                    logger.warning("Could not find group " + questDTO.groupKey() + " for quest " + questDTO.questKey());
-                    continue;
-                }
-
-                QuestConfig questConfig = questGroup.getQuestConfigs().get(questDTO.questKey());
-
-                if (questConfig == null) {
-                    logger.warning("Could not find config for quest " + questDTO.questKey() + " in group " + questDTO.groupKey());
-                    continue;
-                }
-
-                Quest quest = questMapper.toEntity(questDTO, actor, questConfig);
-                actor.addQuest(quest);
-            }
-        });
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
+
+
+    private CompletableFuture<Void> loadQuests(QuestActor actor) {
+        return questRepository.getAllByActor(actor.getId())
+                .thenAccept(questEntryDtos -> {
+                    for (QuestDTO questDTO : questEntryDtos.values()) {
+                        QuestGroup questGroup = questRegistry.getQuestGroups().get(questDTO.groupKey());
+
+                        if (questGroup == null) {
+                            logger.warning("Could not find group " + questDTO.groupKey() + " for quest " + questDTO.questKey());
+                            continue;
+                        }
+
+                        QuestConfig questConfig = questGroup.getQuestConfigs().get(questDTO.questKey());
+                        if (questConfig == null) {
+                            logger.warning("Could not find config for quest " + questDTO.questKey()
+                                    + " in group " + questDTO.groupKey());
+                            continue;
+                        }
+
+                        Quest quest = questMapper.toEntity(questDTO, actor, questConfig);
+                        actor.addQuest(quest);
+                    }
+                });
+    }
+
 
     public void saveQuest(Quest quest) {
         questRepository.save(questMapper.toDto(quest)).exceptionally(e -> {

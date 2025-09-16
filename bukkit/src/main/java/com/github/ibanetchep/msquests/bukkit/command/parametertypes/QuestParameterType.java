@@ -28,7 +28,7 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
         QuestGroup questGroup = executionContext.getResolvedArgument("group");
         Quest quest = questActor.getQuestByKey(value);
 
-        if(quest == null) {
+        if(quest == null || !quest.isActive()) {
             throw new IllegalArgumentException("Could not find quest " + value);
         }
 
@@ -39,9 +39,12 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
         return (context) -> {
             QuestActor questActor = context.getResolvedArgument("actor");
+            QuestGroup questGroup = context.getResolvedArgument("group");
 
             return questActor.getQuests().values().stream()
+                    .filter(Quest::isActive)
                     .map(Quest::getQuestConfig)
+                    .filter(questConfig -> questConfig.getGroup().equals(questGroup))
                     .map(QuestConfig::getKey)
                     .toList();
         };

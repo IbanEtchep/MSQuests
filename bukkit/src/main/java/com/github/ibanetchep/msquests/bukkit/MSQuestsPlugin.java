@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupPa
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
+import com.github.ibanetchep.msquests.bukkit.listener.QuestCompleteListener;
 import com.github.ibanetchep.msquests.bukkit.listener.QuestStartListener;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
@@ -22,9 +23,10 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
+import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerActorService;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
-import com.github.ibanetchep.msquests.core.lang.Translator;
+import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
@@ -76,6 +78,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private QuestPersistenceService questPersistenceService;
     private QuestLifecycleService questLifecycleService;
+    private QuestPlayerActorService questPlayerActorService;
 
     private Translator translator;
 
@@ -125,11 +128,14 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         );
 
         questLifecycleService = new QuestLifecycleService(eventDispatcher, questPersistenceService, questFactory);
+        questPlayerActorService = new QuestPlayerActorService(this);
 
         registerListeners();
         registerCommands();
 
         questPersistenceService.loadQuestGroups();
+
+        Bukkit.getOnlinePlayers().forEach(player -> questPlayerActorService.loadPlayerActor(player));
     }
 
     @Override
@@ -202,6 +208,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
         pluginManager.registerEvents(new QuestStartListener(this), this);
+        pluginManager.registerEvents(new QuestCompleteListener(this), this);
     }
 
     private void registerObjectiveTypes() {
@@ -237,7 +244,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     @Override
     public EventDispatcher getEventDispatcher() {
-        return null;
+        return eventDispatcher;
     }
 
     @Override
@@ -248,6 +255,10 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     @Override
     public QuestLifecycleService getQuestLifecycleService() {
         return this.questLifecycleService;
+    }
+
+    public QuestPlayerActorService getQuestPlayerActorService() {
+        return this.questPlayerActorService;
     }
 
     public Translator getTranslator() {

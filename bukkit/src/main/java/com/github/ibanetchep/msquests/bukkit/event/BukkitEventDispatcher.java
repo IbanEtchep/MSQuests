@@ -32,24 +32,35 @@ public class BukkitEventDispatcher implements EventDispatcher {
     }
 
     private void callQuestStart(CoreQuestStartEvent event) {
+        QuestActor actor = event.getActor();
+
+        QuestStartEvent startEvent = new QuestStartEvent(actor, event.getQuestConfig());
+        plugin.getServer().getPluginManager().callEvent(startEvent);
+        event.setCancelled(startEvent.isCancelled());
+
+        if(event.isCancelled()) {
+            return;
+        }
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            QuestActor actor = event.getActor();
 
             if(!actor.isActor(player.getUniqueId())) {
                 continue;
             }
 
-            PlayerQuestStartEvent bukkitEvent = new PlayerQuestStartEvent(player, actor, event.getQuestConfig());
-            plugin.getServer().getPluginManager().callEvent(bukkitEvent);
-            event.setCancelled(bukkitEvent.isCancelled());
+            PlayerQuestStartEvent playerEvent = new PlayerQuestStartEvent(player, actor, event.getQuestConfig());
+            plugin.getServer().getPluginManager().callEvent(playerEvent);
         }
     }
 
     private void callQuestComplete(CoreQuestCompleteEvent event) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Quest quest = event.getQuest();
-            QuestActor actor = quest.getActor();
+        Quest quest = event.getQuest();
+        QuestActor actor = quest.getActor();
 
+        QuestCompleteEvent completeEvent = new QuestCompleteEvent(quest);
+        plugin.getServer().getPluginManager().callEvent(completeEvent);
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
             if(!actor.isActor(player.getUniqueId())) {
                 continue;
             }

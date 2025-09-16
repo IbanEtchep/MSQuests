@@ -7,22 +7,16 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Event triggered when a quest is completed, for each player that is part of the quest.
+ * Event triggered when a quest is completed.
  */
-public class PlayerQuestCompleteEvent extends Event {
+public class QuestCompleteEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private Player player;
     private final Quest quest;
 
-    public PlayerQuestCompleteEvent(Player player, Quest quest) {
-        this.player = player;
+    public QuestCompleteEvent(Quest quest) {
         this.quest = quest;
-    }
-
-    public Player getPlayer() {
-        return player;
     }
 
     public Quest getQuest() {
