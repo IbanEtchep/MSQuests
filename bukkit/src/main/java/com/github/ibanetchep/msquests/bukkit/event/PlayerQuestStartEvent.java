@@ -15,10 +15,9 @@ public class PlayerQuestStartEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private Player player;
+    private final Player player;
     private final QuestActor actor;
     private final QuestConfig questConfig;
-    private boolean cancelled;
 
     public PlayerQuestStartEvent(Player player, QuestActor actor, QuestConfig questConfig) {
         this.player = player;

@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
@@ -19,8 +20,21 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
     @ConfigField(name = "amount", required = true)
     private int amount = 1;
 
-    public DeliverItemObjectiveConfig(String key, String type, Map<String, Object> config) {
-        super(key, type, config);
+    public DeliverItemObjectiveConfig(QuestObjectiveConfigDTO dto) {
+        super(dto);
+    }
+
+    @Override
+    public QuestObjectiveConfigDTO toDTO() {
+        return new QuestObjectiveConfigDTO(
+                getKey(),
+                getType(),
+                Map.of(
+                        "amount", amount,
+                        "material", material.name(),
+                        "itemKey", itemKey
+                )
+        );
     }
 
     @Override

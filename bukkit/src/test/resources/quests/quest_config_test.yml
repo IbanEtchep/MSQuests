@@ -9,8 +9,13 @@ group_1:
         - "tag1"
         - "tag2"
       rewards:
-        - "reward1"
-        - "reward2"
+        - type: "command"
+          name: "Command Reward"
+          command: "give @p diamond 1"
+        - type: "item"
+          name: "Item Reward"
+          item: "diamond"
+          amount: 10
       objectives:
         objective_1:
           type: "block_break"
@@ -28,7 +33,9 @@ group_1:
       tags:
         - "tag3"
       rewards:
-        - "reward3"
+        - type: "command"
+          name: "Command Reward"
+          command: "give @p diamond"
       objectives:
         objective_1:
           type: "explore"

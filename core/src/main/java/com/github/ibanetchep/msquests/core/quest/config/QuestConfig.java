@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.config;
 
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.reward.Reward;
 
 import java.util.*;
 
@@ -12,7 +13,7 @@ public class QuestConfig {
     private Set<String> tags;
     private final Map<String, QuestObjectiveConfig> objectives;
     private long duration; // max in seconds
-    private List<String> rewards;
+    private List<Reward> rewards;
     private QuestGroup group;
 
     public QuestConfig(String key, String name, String description, long duration) {
@@ -81,12 +82,12 @@ public class QuestConfig {
         tags.remove(tag);
     }
 
-    public List<String> getRewards() {
+    public List<Reward> getRewards() {
         return rewards;
     }
 
-    public void setRewards(List<String> rewards) {
-        this.rewards = rewards;
+    public void addReward(Reward reward) {
+        rewards.add(reward);
     }
 
     public void setGroup(QuestGroup group) {

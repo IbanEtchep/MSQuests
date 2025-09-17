@@ -2,10 +2,14 @@ package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.RewardDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.reward.Reward;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
+import com.github.ibanetchep.msquests.core.registry.RewardTypeRegistry;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +17,11 @@ import java.util.Map;
 public class QuestConfigMapper {
 
     private final ObjectiveTypeRegistry objectiveTypeRegistry;
+    private final RewardTypeRegistry rewardTypeRegistry;
 
-    public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry) {
+    public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry, RewardTypeRegistry rewardTypeRegistry) {
         this.objectiveTypeRegistry = objectiveTypeRegistry;
+        this.rewardTypeRegistry = rewardTypeRegistry;
     }
 
     public QuestConfigDTO toDto(QuestConfig entity) {
@@ -24,8 +30,14 @@ public class QuestConfigMapper {
         if (entity.getObjectives() != null) {
             for (Map.Entry<String, QuestObjectiveConfig> entry : entity.getObjectives().entrySet()) {
                 QuestObjectiveConfig objective = entry.getValue();
-                Map<String, Object> config = objective.serialize();
-                objectiveDtos.put(entry.getKey(), new QuestObjectiveConfigDTO(entry.getKey(), objective.getType(), config));
+                objectiveDtos.put(entry.getKey(), objective.toDTO());
+            }
+        }
+
+        List<RewardDTO> rewards = new ArrayList<>();
+        if (entity.getRewards() != null) {
+            for (Reward reward : entity.getRewards()) {
+                rewards.add(reward.toDTO());
             }
         }
 
@@ -36,7 +48,7 @@ public class QuestConfigMapper {
                 entity.getDescription(),
                 entity.getDuration(),
                 List.copyOf(entity.getTags()),
-                List.copyOf(entity.getRewards()),
+                rewards,
                 objectiveDtos
         );
     }
@@ -51,17 +63,15 @@ public class QuestConfigMapper {
         }
 
         if (dto.rewards() != null) {
-            questConfig.getRewards().addAll(dto.rewards());
+            for (RewardDTO rewardDto : dto.rewards()) {
+                Reward reward = rewardTypeRegistry.createReward(rewardDto);
+                questConfig.addReward(reward);
+            }
         }
 
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();
-            QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(
-                    objectiveDto.key(),
-                    objectiveDto.type(),
-                    objectiveDto.config()
-            );
-
+            QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(objectiveDto);
             questConfig.addObjective(objective);
         }
 

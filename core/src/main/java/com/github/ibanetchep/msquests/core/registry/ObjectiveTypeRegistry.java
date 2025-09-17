@@ -1,122 +1,76 @@
 package com.github.ibanetchep.msquests.core.registry;
 
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
-import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
-/**
- * Registry for managing objective types and their associated classes.
- * Provides functionality to register objective types and instantiate objectives.
- */
 public class ObjectiveTypeRegistry {
 
-    private final Map<String, ObjectiveTypeEntry> registeredTypes = new HashMap<>();
+    // Stores factory functions to create QuestObjectiveConfig from DTO
+    private final Map<String, Function<QuestObjectiveConfigDTO, QuestObjectiveConfig>> registeredTypes = new HashMap<>();
+
+    // Stores handlers for each objective type
     private final Map<String, QuestObjectiveHandler<?>> handlers = new HashMap<>();
 
+    // Stores the actual QuestObjective class for each type
+    private final Map<String, Class<? extends QuestObjective<?>>> objectiveClasses = new HashMap<>();
+
     /**
-     * Registers a new objective type with its associated config and handler.
+     * Registers an objective type with a config factory, its objective class, and a handler.
      *
-     * @param type the objective type key
-     * @param configClass the objective config class
-     * @param objectiveClass the corresponding objective class
-     * @param handler the handler for this objective type
-     * @throws IllegalArgumentException if the config class is not annotated with ObjectiveType
+     * @param type The unique objective type key
+     * @param configFactory Factory function that converts a DTO into the objective config
+     * @param objectiveClass The QuestObjective implementation class
+     * @param handler The handler for this objective type
      */
-    public <D extends QuestObjectiveConfig, O extends QuestObjective<D>> void registerType(
+    public <C extends QuestObjectiveConfig, O extends QuestObjective<C>> void registerType(
             String type,
-            Class<D> configClass,
+            Function<QuestObjectiveConfigDTO, C> configFactory,
             Class<O> objectiveClass,
             QuestObjectiveHandler<O> handler
     ) {
-        registeredTypes.put(type, new ObjectiveTypeEntry(configClass, objectiveClass));
+        registeredTypes.put(type, dto -> configFactory.apply(dto));
+        objectiveClasses.put(type, objectiveClass);
         handlers.put(type, handler);
     }
 
-
     /**
-     * Gets the objective config class by its type name.
+     * Creates a QuestObjectiveConfig from a DTO using the registered factory.
      *
-     * @param name the objective type name
-     * @return the objective config class, or null if not found
+     * @param dto The DTO containing the config data
+     * @return The instantiated QuestObjectiveConfig
      */
-    public Class<? extends QuestObjectiveConfig> getConfigClass(String name) {
-        ObjectiveTypeEntry entry = registeredTypes.get(name);
-        return entry != null ? entry.configClass() : null;
+    public QuestObjectiveConfig createConfig(QuestObjectiveConfigDTO dto) {
+        Function<QuestObjectiveConfigDTO, QuestObjectiveConfig> factory = registeredTypes.get(dto.type());
+        if (factory == null) throw new IllegalArgumentException("Unknown objective type: " + dto.type());
+        return factory.apply(dto);
     }
 
     /**
-     * Gets the objective class by its type name.
+     * Instantiates a QuestObjective and adds it to the given quest.
      *
-     * @param name the objective type name
-     * @return the objective class, or null if not found
+     * @param quest The quest to attach the objective to
+     * @param config The objective configuration
+     * @param progress The current progress for the objective
      */
-    public Class<? extends QuestObjective<?>> getObjectiveClass(String name) {
-        ObjectiveTypeEntry entry = registeredTypes.get(name);
-        return entry != null ? entry.objectiveClass() : null;
-    }
-
-    /**
-     * Creates a new objective config instance from configuration.
-     *
-     * @param config the configuration map for the objective
-     * @return the created objective config, or null if the type is not registered
-     */
-    @SuppressWarnings("unchecked")
-    public QuestObjectiveConfig createConfig(String key, String type, Map<String, Object> config) {
-        try {
-            Class<? extends QuestObjectiveConfig> configClass = getConfigClass(type);
-            if (configClass == null) {
-                throw new IllegalArgumentException("Type " + type + " is not registered.");
-            }
-
-            Constructor<? extends QuestObjectiveConfig> constructor = configClass.getConstructor(String.class, String.class, Map.class);
-            return constructor.newInstance(key, type, config);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create objective config of type " + type, e);
-        }
-    }
-
-    /**
-     * Gets all registered objective types.
-     *
-     * @return a map of all registered objective types with their entries
-     */
-    public Map<String, ObjectiveTypeEntry> getRegisteredTypes() {
-        return Map.copyOf(registeredTypes);
-    }
-
-    /**
-     * Creates a new objective instance from configuration.
-     *
-     * @param quest
-     * @param questObjectiveConfig
-     * @param progress
-     */
-    public void createObjective(Quest quest, QuestObjectiveConfig questObjectiveConfig, int progress) {
-        String type = questObjectiveConfig.getType();
-
-        Class<? extends QuestObjective<?>> objectiveClass = getObjectiveClass(type);
-        if (objectiveClass == null) {
-            throw new IllegalStateException("Objective type not found: " + type);
-        }
+    public void createObjective(Quest quest, QuestObjectiveConfig config, int progress) {
+        String type = config.getType();
+        Class<? extends QuestObjective<?>> objectiveClass = objectiveClasses.get(type);
+        if (objectiveClass == null) throw new IllegalStateException("Objective type not found: " + type);
 
         try {
-            // Create a new instance of the objective with the correct values
             QuestObjective<?> objective = objectiveClass.getConstructor(
                     Quest.class,
-                    questObjectiveConfig.getClass(),
+                    config.getClass(),
                     int.class
-            ).newInstance(
-                    quest,
-                    questObjectiveConfig,
-                    progress
-            );
+            ).newInstance(quest, config, progress);
 
             quest.addObjective(objective);
         } catch (ReflectiveOperationException e) {
@@ -125,14 +79,8 @@ public class ObjectiveTypeRegistry {
     }
 
     /**
-     * Internal class representing an entry in the objective type registry.
-     * Contains both the config class and the objective class.
+     * Returns an unmodifiable map of all registered handlers.
      */
-    public record ObjectiveTypeEntry(
-            Class<? extends QuestObjectiveConfig> configClass,
-            Class<? extends QuestObjective<?>> objectiveClass
-    ) {}
-
     public Map<String, QuestObjectiveHandler<?>> getHandlers() {
         return Collections.unmodifiableMap(handlers);
     }

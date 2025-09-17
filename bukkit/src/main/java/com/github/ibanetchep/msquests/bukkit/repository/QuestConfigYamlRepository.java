@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.repository;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.RewardDTO;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroupType;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QuestConfigYamlRepository implements QuestConfigRepository {
@@ -85,6 +87,8 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 if (questSection == null) continue;
 
                 Map<String, QuestObjectiveConfigDTO> objectives = parseObjectives(questSection);
+                List<RewardDTO> rewards = parseRewards(questSection);
+
                 QuestConfigDTO questConfig = new QuestConfigDTO(
                         questKey,
                         groupKey,
@@ -92,7 +96,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                         questSection.getString("description"),
                         questSection.getLong("duration"),
                         questSection.getStringList("tags"),
-                        questSection.getStringList("rewards"),
+                        rewards,
                         objectives
                 );
 
@@ -157,5 +161,26 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
         }
 
         return objectives;
+    }
+
+    private List<RewardDTO> parseRewards(ConfigurationSection questSection) {
+        List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");
+        List<RewardDTO> rewards = new ArrayList<>();
+
+        for (Map<?, ?> map : rewardsList) {
+            Map<String, Object> config = map.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> e.getKey().toString(),
+                            Map.Entry::getValue
+                    ));
+            String type = (String) config.get("type");
+            String name = (String) config.get("name");
+
+            if (type == null) continue;
+
+            rewards.add(new RewardDTO(type, name, config));
+        }
+
+        return rewards;
     }
 }
