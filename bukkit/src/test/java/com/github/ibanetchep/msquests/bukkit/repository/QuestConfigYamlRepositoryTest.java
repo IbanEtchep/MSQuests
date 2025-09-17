@@ -60,7 +60,9 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("This is the first quest", quest1.description());
         assertEquals(120, quest1.duration());
         assertEquals(List.of("tag1", "tag2"), quest1.tags());
-        assertEquals(List.of("reward1", "reward2"), quest1.rewards());
+        assertEquals(2, quest1.rewards().size());
+        assertEquals("Command Reward", quest1.rewards().getFirst().name());
+        assertEquals("Item Reward", quest1.rewards().get(1).name());
 
         Map<String, QuestObjectiveConfigDTO> objectives1 = quest1.objectives();
         assertEquals(2, objectives1.size());
@@ -77,7 +79,8 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("This is the second quest", quest2.description());
         assertEquals(180, quest2.duration());
         assertEquals(List.of("tag3"), quest2.tags());
-        assertEquals(List.of("reward3"), quest2.rewards());
+        assertEquals(1, quest2.rewards().size());
+        assertEquals("Command Reward", quest2.rewards().getFirst().name());
 
         Map<String, QuestObjectiveConfigDTO> objectives2 = quest2.objectives();
         assertEquals(1, objectives2.size());

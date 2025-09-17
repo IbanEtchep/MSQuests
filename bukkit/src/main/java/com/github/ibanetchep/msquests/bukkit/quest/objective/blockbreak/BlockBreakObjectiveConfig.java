@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import org.bukkit.Material;
@@ -14,8 +15,8 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
     @ConfigField(name = "amount", required = true)
     private int amount;
 
-    public BlockBreakObjectiveConfig(String key, String type, Map<String, Object> config) {
-        super(key, type, config);
+    public BlockBreakObjectiveConfig(QuestObjectiveConfigDTO dto) {
+        super(dto);
     }
 
     @Override
@@ -32,6 +33,18 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
         return Map.of(
                 "material", "<lang:" + material.translationKey() + ">",
                 "amount", String.valueOf(amount)
+        );
+    }
+
+    @Override
+    public QuestObjectiveConfigDTO toDTO() {
+        return new QuestObjectiveConfigDTO(
+                getKey(),
+                getType(),
+                Map.of(
+                        "material", material.name(),
+                        "amount", amount
+                )
         );
     }
 }

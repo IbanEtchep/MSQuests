@@ -22,6 +22,8 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.Deliver
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.reward.CommandReward;
+import com.github.ibanetchep.msquests.bukkit.quest.reward.ItemReward;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerActorService;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
@@ -29,6 +31,7 @@ import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
@@ -38,6 +41,7 @@ import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
+import com.github.ibanetchep.msquests.core.registry.RewardTypeRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
 import com.github.ibanetchep.msquests.core.service.QuestPersistenceService;
 import com.github.ibanetchep.msquests.database.DbAccess;
@@ -74,6 +78,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
+    private RewardTypeRegistry rewardTypeRegistry;
     private QuestRegistry questRegistry;
 
     private QuestPersistenceService questPersistenceService;
@@ -104,15 +109,15 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         actorRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
+        rewardTypeRegistry = new RewardTypeRegistry();
         questFactory = new QuestFactory(objectiveTypeRegistry);
         eventDispatcher = new BukkitEventDispatcher(this);
 
         registerObjectiveTypes();
+        registerRewardTypes();
+        registerActorTypes();
 
-        actorRegistry.registerActorType("player", QuestPlayerActor.class);
-        actorRegistry.registerActorType("global", QuestGlobalActor.class);
-
-        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry);
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry, rewardTypeRegistry);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
         QuestMapper questEntryMapper = new QuestMapper(questFactory);
 
@@ -214,28 +219,38 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     private void registerObjectiveTypes() {
         objectiveTypeRegistry.registerType(
                 ObjectiveTypes.BLOCK_BREAK,
-                BlockBreakObjectiveConfig.class,
+                BlockBreakObjectiveConfig::new,
                 BlockBreakObjective.class,
                 new BlockBreakObjectiveHandler(this)
         );
         objectiveTypeRegistry.registerType(
                 ObjectiveTypes.DELIVER_ITEM,
-                DeliverItemObjectiveConfig.class,
+                DeliverItemObjectiveConfig::new,
                 DeliverItemObjective.class,
                 new DeliverItemObjectiveHandler(this)
         );
         objectiveTypeRegistry.registerType(
                 ObjectiveTypes.KILL_ENTITY,
-                KillEntityObjectiveConfig.class,
+                KillEntityObjectiveConfig::new,
                 KillEntityObjective.class,
                 new KillEntityObjectiveHandler(this)
         );
 
-        for (var handler : objectiveTypeRegistry.getHandlers().values()) {
+        for (QuestObjectiveHandler<?> handler : objectiveTypeRegistry.getHandlers().values()) {
             if(handler instanceof Listener listener) {
                 getServer().getPluginManager().registerEvents(listener, this);
             }
         }
+    }
+
+    public void registerRewardTypes() {
+        rewardTypeRegistry.registerType("command", CommandReward::new);
+        rewardTypeRegistry.registerType("item", ItemReward::new);
+    }
+
+    public void registerActorTypes() {
+        actorRegistry.registerType("player", QuestPlayerActor.class);
+        actorRegistry.registerType("global", QuestGlobalActor.class);
     }
 
     public QuestRegistry getQuestRegistry() {

@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.config;
 
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
@@ -16,12 +17,13 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
     protected final String type;
     protected boolean valid = false;
 
-    protected QuestObjectiveConfig(String key, String type, Map<String, Object> config) {
-        this.key = key;
-        this.type = type;
-        loadConfig(config);
+    protected QuestObjectiveConfig(QuestObjectiveConfigDTO dto) {
+        this.key = dto.key();
+        this.type = dto.type();
+        loadConfig(dto.config());
     }
 
+    public abstract QuestObjectiveConfigDTO toDTO();
     public abstract int getTargetAmount();
 
 
@@ -107,27 +109,6 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
         if (type == String.class) return rawValue.toString();
         if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(rawValue.toString());
         return rawValue;
-    }
-
-    public Map<String, Object> serialize() {
-        Map<String, Object> out = new LinkedHashMap<>();
-        for (Field field : this.getClass().getDeclaredFields()) {
-            ConfigField annotation = field.getAnnotation(ConfigField.class);
-            if (annotation == null) continue;
-
-            try {
-                field.setAccessible(true);
-                Object value = field.get(this);
-                if (value instanceof Enum<?> e) {
-                    out.put(annotation.name(), e.name());
-                } else {
-                    out.put(annotation.name(), value);
-                }
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return out;
     }
 
     public String getKey() {

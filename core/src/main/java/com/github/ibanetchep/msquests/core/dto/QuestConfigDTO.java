@@ -10,6 +10,6 @@ public record QuestConfigDTO(
         String description,
         long duration,
         List<String> tags,
-        List<String> rewards,
+        List<RewardDTO> rewards,
         Map<String, QuestObjectiveConfigDTO> objectives
 ) {}

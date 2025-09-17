@@ -15,7 +15,7 @@ public class ActorTypeRegistry {
      * @param key the key of the actor type.
      * @param actorClass the class type of the actor.
      */
-    public void registerActorType(String key, Class<? extends QuestActor> actorClass) {
+    public void registerType(String key, Class<? extends QuestActor> actorClass) {
         actorTypes.put(key, actorClass);
     }
 
