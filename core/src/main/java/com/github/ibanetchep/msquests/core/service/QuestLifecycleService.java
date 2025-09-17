@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.*;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.reward.Reward;
 
 public class QuestLifecycleService {
 
@@ -75,6 +76,11 @@ public class QuestLifecycleService {
 
         CoreQuestCompleteEvent event = new CoreQuestCompleteEvent(quest);
         dispatcher.dispatch(event);
+
+        for (Reward reward : quest.getQuestConfig().getRewards()) {
+            reward.give(quest.getActor());
+        }
+
         quest.setStatus(QuestStatus.COMPLETED);
         persistenceService.saveQuest(quest);
     }
