@@ -2,12 +2,12 @@ package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.RewardDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
-import com.github.ibanetchep.msquests.core.quest.reward.Reward;
+import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.RewardTypeRegistry;
+import com.github.ibanetchep.msquests.core.registry.ActionTypeRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,9 +17,9 @@ import java.util.Map;
 public class QuestConfigMapper {
 
     private final ObjectiveTypeRegistry objectiveTypeRegistry;
-    private final RewardTypeRegistry rewardTypeRegistry;
+    private final ActionTypeRegistry rewardTypeRegistry;
 
-    public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry, RewardTypeRegistry rewardTypeRegistry) {
+    public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry, ActionTypeRegistry rewardTypeRegistry) {
         this.objectiveTypeRegistry = objectiveTypeRegistry;
         this.rewardTypeRegistry = rewardTypeRegistry;
     }
@@ -34,10 +34,10 @@ public class QuestConfigMapper {
             }
         }
 
-        List<RewardDTO> rewards = new ArrayList<>();
+        List<QuestActionDTO> rewards = new ArrayList<>();
         if (entity.getRewards() != null) {
-            for (Reward reward : entity.getRewards()) {
-                rewards.add(reward.toDTO());
+            for (QuestAction questAction : entity.getRewards()) {
+                rewards.add(questAction.toDTO());
             }
         }
 
@@ -63,9 +63,9 @@ public class QuestConfigMapper {
         }
 
         if (dto.rewards() != null) {
-            for (RewardDTO rewardDto : dto.rewards()) {
-                Reward reward = rewardTypeRegistry.createReward(rewardDto);
-                questConfig.addReward(reward);
+            for (QuestActionDTO rewardDto : dto.rewards()) {
+                QuestAction questAction = rewardTypeRegistry.createAction(rewardDto);
+                questConfig.addReward(questAction);
             }
         }
 

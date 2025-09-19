@@ -32,7 +32,7 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
         this.progress = progress;
     }
 
-    public int getPercentage() {
+    public int getProgressPercent() {
         return (int) ((progress / (float) objectiveConfig.getTargetAmount()) * 100);
     }
 

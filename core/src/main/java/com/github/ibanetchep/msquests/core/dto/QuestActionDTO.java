@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public record RewardDTO(
+public record QuestActionDTO(
         String type,
         @Nullable String name,
         Map<String, Object> config

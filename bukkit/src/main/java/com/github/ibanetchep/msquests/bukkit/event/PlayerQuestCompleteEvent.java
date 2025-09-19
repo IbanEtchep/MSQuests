@@ -13,7 +13,7 @@ public class PlayerQuestCompleteEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private Player player;
+    private final Player player;
     private final Quest quest;
 
     public PlayerQuestCompleteEvent(Player player, Quest quest) {

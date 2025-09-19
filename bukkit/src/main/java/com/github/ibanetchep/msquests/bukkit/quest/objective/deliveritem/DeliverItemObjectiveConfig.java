@@ -18,7 +18,7 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
     private String itemKey;
 
     @ConfigField(name = "amount", required = true)
-    private int amount = 1;
+    private final int amount = 1;
 
     public DeliverItemObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);

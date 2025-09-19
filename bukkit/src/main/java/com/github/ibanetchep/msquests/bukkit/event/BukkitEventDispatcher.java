@@ -32,9 +32,10 @@ public class BukkitEventDispatcher implements EventDispatcher {
     }
 
     private void callQuestStart(CoreQuestStartEvent event) {
-        QuestActor actor = event.getActor();
+        Quest quest = event.getQuest();
+        QuestActor actor = quest.getActor();
 
-        QuestStartEvent startEvent = new QuestStartEvent(actor, event.getQuestConfig());
+        QuestStartEvent startEvent = new QuestStartEvent(event.getQuest());
         plugin.getServer().getPluginManager().callEvent(startEvent);
         event.setCancelled(startEvent.isCancelled());
 
@@ -48,7 +49,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
                 continue;
             }
 
-            PlayerQuestStartEvent playerEvent = new PlayerQuestStartEvent(player, actor, event.getQuestConfig());
+            PlayerQuestStartEvent playerEvent = new PlayerQuestStartEvent(player, quest);
             plugin.getServer().getPluginManager().callEvent(playerEvent);
         }
     }

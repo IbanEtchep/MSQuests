@@ -53,9 +53,10 @@ public abstract class QuestActor {
         quest.getObjectives().values().forEach(this::removeObjective);
     }
 
-    public @Nullable Quest getQuestByKey(String key) {
+    public @Nullable Quest getActiveQuestByKey(String key) {
         return quests.values().stream()
                 .filter(quest -> quest.getQuestConfig().getKey().equals(key))
+                .filter(Quest::isActive)
                 .findFirst()
                 .orElse(null);
     }
