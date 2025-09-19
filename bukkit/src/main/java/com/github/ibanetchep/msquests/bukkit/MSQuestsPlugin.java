@@ -6,10 +6,13 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorPa
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestConfigParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
+import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
+import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.listener.QuestCompleteListener;
 import com.github.ibanetchep.msquests.bukkit.listener.QuestStartListener;
+import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
@@ -22,26 +25,24 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.Deliver
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
-import com.github.ibanetchep.msquests.bukkit.quest.reward.CommandReward;
-import com.github.ibanetchep.msquests.bukkit.quest.reward.ItemReward;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
+import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerActorService;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
-import com.github.ibanetchep.msquests.bukkit.lang.Translator;
+import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
+import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
+import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
-import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
-import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
-import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
-import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.registry.ActionTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
 import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.RewardTypeRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
 import com.github.ibanetchep.msquests.core.service.QuestPersistenceService;
 import com.github.ibanetchep.msquests.database.DbAccess;
@@ -50,25 +51,17 @@ import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
-import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.bukkit.BukkitLampConfig;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Objects;
 
 public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
@@ -78,21 +71,32 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private ActorTypeRegistry actorRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
-    private RewardTypeRegistry rewardTypeRegistry;
+    private ActionTypeRegistry actionTypeRegistry;
     private QuestRegistry questRegistry;
 
     private QuestPersistenceService questPersistenceService;
     private QuestLifecycleService questLifecycleService;
     private QuestPlayerActorService questPlayerActorService;
 
+    private GlobalConfig globalConfig;
+
     private Translator translator;
 
-    private YamlDocument config;
     private DbAccess dbAccess;
     private FoliaLib foliaLib;
 
+
     @Override
     public void onEnable() {
+        actorRegistry = new ActorTypeRegistry();
+        objectiveTypeRegistry = new ObjectiveTypeRegistry();
+        actionTypeRegistry = new ActionTypeRegistry();
+        questFactory = new QuestFactory(objectiveTypeRegistry);
+
+        registerObjectiveTypes();
+        registerActionTypes();
+        registerActorTypes();
+
         loadConfig();
         loadDatabase();
 
@@ -100,24 +104,16 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         this.translator = new Translator(
                 new File(getDataFolder(), "lang"),
-                getConfiguration().getString("language", "en_EN"),
+                getGlobalConfig().language(),
                 locale -> getResource("lang/" + locale + ".yml"),
                 getLogger()
         );
 
         translator.load();
 
-        actorRegistry = new ActorTypeRegistry();
-        objectiveTypeRegistry = new ObjectiveTypeRegistry();
-        rewardTypeRegistry = new RewardTypeRegistry();
-        questFactory = new QuestFactory(objectiveTypeRegistry);
         eventDispatcher = new BukkitEventDispatcher(this);
 
-        registerObjectiveTypes();
-        registerRewardTypes();
-        registerActorTypes();
-
-        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry, rewardTypeRegistry);
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry, actionTypeRegistry);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
         QuestMapper questEntryMapper = new QuestMapper(questFactory);
 
@@ -148,33 +144,21 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         dbAccess.closePool();
     }
 
-    private void loadConfig() {
-        try {
-            config = YamlDocument.create(
-                    new File(getDataFolder(), "config.yml"),
-                    Objects.requireNonNull(getResource("config.yml")),
-                    GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build(),
-                    LoaderSettings.DEFAULT,
-                    DumperSettings.DEFAULT,
-                    UpdaterSettings.DEFAULT
-            );
-            config.update();
-            config.save();
-        } catch (IOException e) {
-            getLogger().severe("Failed to load configuration file, disabling plugin.");
-            e.printStackTrace();
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
+    public void loadConfig() {
+        GlobalConfigLoaderService globalConfigLoaderService = new GlobalConfigLoaderService(this);
+        globalConfig = globalConfigLoaderService.load();
     }
 
-    public void loadDatabase() {
+    private void loadDatabase() {
+        var databaseConfig = globalConfig.databaseConfig();
+
         var dbCredentials = new DbCredentials(
-                config.getString("database.type", "mysql"),
-                config.getString("database.host"),
-                config.getString("database.user"),
-                config.getString("database.password"),
-                config.getString("database.name"),
-                config.getInt("database.port"),
+                databaseConfig.type(),
+                databaseConfig.host(),
+                databaseConfig.user(),
+                databaseConfig.password(),
+                databaseConfig.name(),
+                databaseConfig.port(),
                 getDataFolder()
         );
 
@@ -243,9 +227,13 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         }
     }
 
-    public void registerRewardTypes() {
-        rewardTypeRegistry.registerType("command", CommandReward::new);
-        rewardTypeRegistry.registerType("item", ItemReward::new);
+    public void registerActionTypes() {
+        actionTypeRegistry.registerType("command", CommandAction::new);
+        actionTypeRegistry.registerType("player_command", PlayerCommandAction::new);
+        actionTypeRegistry.registerType("give_item", GiveItemAction::new);
+        actionTypeRegistry.registerType("message", PlayerMessageAction::new);
+        actionTypeRegistry.registerType("action_bar", PlayerActionBarAction::new);
+        actionTypeRegistry.registerType("title", PlayerTitleAction::new);
     }
 
     public void registerActorTypes() {
@@ -290,9 +278,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return objectiveTypeRegistry;
     }
 
-    @NotNull
-    public YamlDocument getConfiguration() {
-        return config;
+    public ActionTypeRegistry getActionTypeRegistry() {
+        return actionTypeRegistry;
+    }
+
+    public GlobalConfig getGlobalConfig() {
+        return globalConfig;
     }
 
     public PlatformScheduler getScheduler() {

@@ -17,7 +17,7 @@ public abstract class SqlRepository {
 
     public Jdbi getJdbi() {
         return dbAccess.getJdbi();
-    };
+    }
 
     protected <T> CompletableFuture<T> supplyAsync(Callable<T> supplier) {
         return CompletableFuture.supplyAsync(() -> {

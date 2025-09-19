@@ -1,4 +1,4 @@
-config-version: 1
+config_version: 1
 
 language: en_EN
 
@@ -10,28 +10,42 @@ database:
   user: username
   password: password
 
-player_quest:
-  notification:
-    start:
-      show_action_bar: true
-      show_title: true
-      show_message: true
-    progress:
-      show_action_bar: true
-    complete:
-      show_action_bar: true
-      show_title: true
-      show_message: true
-
-global_quest:
-  notification:
-    start:
-      show_action_bar: true
-      show_title: true
-      show_message: true
-    progress:
-      show_action_bar: true
-    complete:
-      show_action_bar: true
-      show_title: true
-      show_message: true
+actor_type:
+  player:
+    start_actions:
+      - type: message
+        message_key: player_quest.started.message.body
+        objective_key: player_quest.started.message.objective
+      - type: title
+        title_key: player_quest.started.title.title
+        subtitle_key: player_quest.started.title.subtitle
+      - type: action_bar
+        message_key: player_quest.started.action_bar
+    progress_actions:
+      - type: action_bar
+        message_key: player_quest.progress.action_bar
+    complete_actions:
+      - type: message
+        message_key: player_quest.complete.message.body
+      - type: title
+        title_key: player_quest.complete.title.title
+        subtitle_key: player_quest.complete.title.subtitle
+  global:
+    start_actions:
+      - type: message
+        message_key: global_quest.started.message.body
+        objective_key: global_quest.started.message.objective
+      - type: title
+        title_key: global_quest.started.title.title
+        subtitle_key: global_quest.started.title.subtitle
+      - type: action_bar
+        message_key: global_quest.started.action_bar
+    progress_actions:
+      - type: action_bar
+        message_key: global_quest.progress.action_bar
+    complete_actions:
+      - type: message
+        message_key: global_quest.complete.message.body
+      - type: title
+        title_key: global_quest.complete.title.title
+        subtitle_key: global_quest.complete.title.subtitle

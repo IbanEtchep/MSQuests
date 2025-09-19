@@ -26,9 +26,9 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
         String value = input.readString();
         QuestActor questActor = executionContext.getResolvedArgument("actor");
         QuestGroup questGroup = executionContext.getResolvedArgument("group");
-        Quest quest = questActor.getQuestByKey(value);
+        Quest quest = questActor.getActiveQuestByKey(value);
 
-        if(quest == null || !quest.isActive()) {
+        if(quest == null) {
             throw new IllegalArgumentException("Could not find quest " + value);
         }
 

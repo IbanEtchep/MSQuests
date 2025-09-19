@@ -8,7 +8,7 @@ import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.*;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.reward.Reward;
+import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 
 public class QuestLifecycleService {
 
@@ -27,22 +27,22 @@ public class QuestLifecycleService {
     }
 
     public boolean startQuest(QuestActor actor, QuestConfig questConfig) {
-        Quest currentQuest = actor.getQuestByKey(questConfig.getKey());
+        Quest currentQuest = actor.getActiveQuestByKey(questConfig.getKey());
 
-        if(currentQuest != null && currentQuest.isActive()) {
+        if(currentQuest != null) {
             return false;
         }
 
-        CoreQuestStartEvent event = new CoreQuestStartEvent(actor, questConfig);
+        Quest quest = questFactory.createQuest(questConfig, actor);
+
+        CoreQuestStartEvent event = new CoreQuestStartEvent(quest);
         dispatcher.dispatch(event);
 
         if(event.isCancelled()) {
             return false;
         }
 
-        Quest quest = questFactory.createQuest(questConfig, actor);
         actor.addQuest(quest);
-
         persistenceService.saveQuest(quest);
 
         return true;
@@ -77,8 +77,8 @@ public class QuestLifecycleService {
         CoreQuestCompleteEvent event = new CoreQuestCompleteEvent(quest);
         dispatcher.dispatch(event);
 
-        for (Reward reward : quest.getQuestConfig().getRewards()) {
-            reward.give(quest.getActor());
+        for (QuestAction questAction : quest.getQuestConfig().getRewards()) {
+            questAction.execute(quest);
         }
 
         quest.setStatus(QuestStatus.COMPLETED);

@@ -11,7 +11,7 @@ group_1:
       rewards:
         - type: "command"
           name: "Command Reward"
-          command: "give @p diamond 1"
+          command: "give %actor_name% diamond 1"
         - type: "item"
           name: "Item Reward"
           item: "diamond"
@@ -25,7 +25,6 @@ group_1:
           type: "kill"
           mob: "zombie"
           amount: 5
-
     quest_2:
       name: "Second Quest"
       description: "This is the second quest"
@@ -35,7 +34,7 @@ group_1:
       rewards:
         - type: "command"
           name: "Command Reward"
-          command: "give @p diamond"
+          command: "give %actor_name% diamond"
       objectives:
         objective_1:
           type: "explore"

@@ -5,14 +5,13 @@ import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
+import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.common.ScalarStyle;
+import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.nodes.Tag;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,10 +29,6 @@ public class Translator {
     private final Logger logger;
     private YamlDocument messages;
 
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-    private static final PlainTextComponentSerializer PLAIN_SERIALIZER = PlainTextComponentSerializer.plainText();
-    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
-
     private static Translator INSTANCE;
 
     public Translator(File langFolder,
@@ -45,14 +40,6 @@ public class Translator {
         this.defaultLangProvider = defaultLangProvider;
         this.logger = logger;
         INSTANCE = this;
-    }
-
-    public static Component t(Translatable translatable) {
-        return INSTANCE.component(translatable);
-    }
-
-    public static Component t(Translatable translatable, Map<String, String> placeholders) {
-        return INSTANCE.component(translatable, placeholders);
     }
 
     public static String raw(String key) {
@@ -85,24 +72,38 @@ public class Translator {
 
         YamlDocument yamlDocument;
 
+        DumperSettings dumperSettings = DumperSettings.builder()
+                .setScalarFormatter((tag, value, role, def) -> {
+                    if(tag != Tag.STR) return def;
+
+                    if(value.contains("\n")) return ScalarStyle.LITERAL;
+
+                    return def;
+                })
+                .build();
+
+        UpdaterSettings updaterSettings = UpdaterSettings.builder().setVersioning(new BasicVersioning("file_version")).build();
+
         if (defaultLangFile != null) {
             yamlDocument = YamlDocument.create(
                     langFile,
                     defaultLangFile,
                     GeneralSettings.DEFAULT,
                     LoaderSettings.DEFAULT,
-                    DumperSettings.DEFAULT,
-                    UpdaterSettings.DEFAULT
+                    dumperSettings,
+                    updaterSettings
             );
         } else {
             yamlDocument = YamlDocument.create(
                     langFile,
                     GeneralSettings.DEFAULT,
                     LoaderSettings.DEFAULT,
-                    DumperSettings.DEFAULT,
-                    UpdaterSettings.DEFAULT
+                    dumperSettings,
+                    updaterSettings
             );
         }
+
+        yamlDocument.update();
 
         // Ajout des clés manquantes
         for (TranslationKey translationKey : TranslationKey.values()) {
@@ -145,45 +146,6 @@ public class Translator {
         return yamlDocument;
     }
 
-    public Component component(String key) {
-        return MINI_MESSAGE.deserialize(getRaw(key));
-    }
-
-    /**
-     * Returns the message Adventure Component without placeholders
-     */
-    public Component component(Translatable translatable) {
-        return MINI_MESSAGE.deserialize(getRaw(translatable));
-    }
-
-    /**
-     * Returns the message Adventure Component with placeholders
-     */
-    public Component component(Translatable translatable, Map<String, String> placeholders) {
-        return MINI_MESSAGE.deserialize(getRaw(translatable, placeholders));
-    }
-
-    /**
-     * Returns the message as a plain text string
-     */
-    public String plainText(Translatable translatable) {
-        return PLAIN_SERIALIZER.serialize(component(translatable));
-    }
-
-    public String plainText(Translatable translatable, Map<String, String> placeholders) {
-        return PLAIN_SERIALIZER.serialize(component(translatable, placeholders));
-    }
-
-    /**
-     * Returns the message as a legacy string
-     */
-    public String toString(Translatable translatable) {
-        return LEGACY_SERIALIZER.serialize(component(translatable));
-    }
-
-    public String toString(Translatable translatable, Map<String, String> placeholders) {
-        return LEGACY_SERIALIZER.serialize(component(translatable, placeholders));
-    }
 
     /**
      * Returns the raw message from the YAML file
@@ -212,19 +174,5 @@ public class Translator {
 
     private String getRaw(String key) {
         return messages.getString(key, "Missing translation: " + key);
-    }
-
-    /**
-     * Registers a key if it is missing in the YAML file
-     */
-    public void registerKeyIfMissing(String key) {
-        if (!messages.contains(key)) {
-            try {
-                messages.set(key, "__" + key.toLowerCase().replace(".", "_"));
-                messages.save();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
+import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.bukkit.entity.Player;
@@ -16,25 +17,19 @@ public class PlayerQuestStartEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final Player player;
-    private final QuestActor actor;
-    private final QuestConfig questConfig;
+    private final Quest quest;
 
-    public PlayerQuestStartEvent(Player player, QuestActor actor, QuestConfig questConfig) {
+    public PlayerQuestStartEvent(Player player, Quest quest) {
         this.player = player;
-        this.actor = actor;
-        this.questConfig = questConfig;
+        this.quest = quest;
     }
 
     public Player getPlayer() {
         return player;
     }
 
-    public QuestActor getActor() {
-        return actor;
-    }
-
-    public QuestConfig getQuestConfig() {
-        return questConfig;
+    public Quest getQuest() {
+        return quest;
     }
 
     @Override

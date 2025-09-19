@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.repository;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.RewardDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.group.QuestGroupType;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
@@ -87,7 +87,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 if (questSection == null) continue;
 
                 Map<String, QuestObjectiveConfigDTO> objectives = parseObjectives(questSection);
-                List<RewardDTO> rewards = parseRewards(questSection);
+                List<QuestActionDTO> rewards = parseRewards(questSection);
 
                 QuestConfigDTO questConfig = new QuestConfigDTO(
                         questKey,
@@ -163,9 +163,9 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
         return objectives;
     }
 
-    private List<RewardDTO> parseRewards(ConfigurationSection questSection) {
+    private List<QuestActionDTO> parseRewards(ConfigurationSection questSection) {
         List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");
-        List<RewardDTO> rewards = new ArrayList<>();
+        List<QuestActionDTO> rewards = new ArrayList<>();
 
         for (Map<?, ?> map : rewardsList) {
             Map<String, Object> config = map.entrySet().stream()
@@ -178,7 +178,7 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
             if (type == null) continue;
 
-            rewards.add(new RewardDTO(type, name, config));
+            rewards.add(new QuestActionDTO(type, name, config));
         }
 
         return rewards;
