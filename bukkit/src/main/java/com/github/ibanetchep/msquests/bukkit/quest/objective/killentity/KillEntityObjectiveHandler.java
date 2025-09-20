@@ -34,7 +34,7 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
         for (KillEntityObjective objective : getQuestObjectives(player.getUniqueId())) {
             QuestActor actor = objective.getQuest().getActor();
 
-            if (!actor.isActor(player.getUniqueId())) {
+            if (!actor.isMember(player.getUniqueId())) {
                 return;
             }
 

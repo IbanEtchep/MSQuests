@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +18,13 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective<?>> {
     protected abstract String getObjectiveType();
 
     public List<T> getQuestObjectives(UUID playerId) {
-        return platform.getQuestRegistry().getObjectivesByType(playerId, getObjectiveType());
+        PlayerProfile profile = platform.getPlayerProfileRegistry().getPlayerProfile(playerId);
+
+        if (profile == null) {
+            return List.of();
+        }
+
+        return profile.getObjectivesByType(getObjectiveType());
     }
 
     /**

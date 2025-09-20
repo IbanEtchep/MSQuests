@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -10,7 +10,7 @@ import revxrsal.commands.parameter.ParameterType;
 import revxrsal.commands.parameter.PrioritySpec;
 import revxrsal.commands.stream.MutableStringStream;
 
-public class QuestGroupParameterType implements ParameterType<BukkitCommandActor, QuestGroup> {
+public class QuestGroupParameterType implements ParameterType<BukkitCommandActor, QuestGroupConfig> {
 
     private final MSQuestsPlugin plugin;
 
@@ -19,15 +19,15 @@ public class QuestGroupParameterType implements ParameterType<BukkitCommandActor
     }
 
     @Override
-    public QuestGroup parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
+    public QuestGroupConfig parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
 
-        return plugin.getQuestRegistry().getQuestGroups().get(value);
+        return plugin.getQuestRegistry().getQuestGroupConfigs().get(value);
     }
 
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
-        return (context) -> plugin.getQuestRegistry().getQuestGroups().keySet();
+        return (context) -> plugin.getQuestRegistry().getQuestGroupConfigs().keySet();
     }
 
     @Override

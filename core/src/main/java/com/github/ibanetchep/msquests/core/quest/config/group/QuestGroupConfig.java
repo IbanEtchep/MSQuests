@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.quest.group;
+package com.github.ibanetchep.msquests.core.quest.config.group;
 
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class QuestGroup {
+public abstract class QuestGroupConfig {
 
     private final String key;
     private final String name;
@@ -21,7 +21,7 @@ public abstract class QuestGroup {
     private final Instant startAt;
     private final Instant endAt;
 
-    public QuestGroup(String key, String name, String description, Instant startAt, Instant endAt) {
+    public QuestGroupConfig(String key, String name, String description, Instant startAt, Instant endAt) {
         this.key = key;
         this.name = name;
         this.description = description;

@@ -13,12 +13,12 @@ import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 public class QuestLifecycleService {
 
     private final EventDispatcher dispatcher;
-    private final QuestPersistenceService persistenceService;
+    private final QuestService persistenceService;
     private final QuestFactory questFactory;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
-            QuestPersistenceService persistenceService,
+            QuestService persistenceService,
             QuestFactory questFactory
     ) {
         this.dispatcher = dispatcher;

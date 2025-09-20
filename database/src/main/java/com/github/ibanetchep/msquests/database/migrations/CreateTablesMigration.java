@@ -13,7 +13,7 @@ public class CreateTablesMigration extends Migration {
     public void migrate() {
         jdbi.useHandle(handle -> {
             handle.execute("""
-            CREATE TABLE IF NOT EXISTS msquests_player (
+            CREATE TABLE IF NOT EXISTS msquests_player_profile (
                 id CHAR(36) PRIMARY KEY,
                 tracked_quest_id CHAR(36) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

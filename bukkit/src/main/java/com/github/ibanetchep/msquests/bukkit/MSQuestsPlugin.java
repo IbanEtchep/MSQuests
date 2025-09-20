@@ -27,7 +27,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
-import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerActorService;
+import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
@@ -38,16 +38,14 @@ import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
-import com.github.ibanetchep.msquests.core.registry.ActionTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
-import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
-import com.github.ibanetchep.msquests.core.service.QuestPersistenceService;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.registry.*;
+import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
+import com.github.ibanetchep.msquests.core.service.*;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
+import com.github.ibanetchep.msquests.database.repository.PlayerProfileSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
@@ -69,14 +67,19 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private QuestFactory questFactory;
 
-    private ActorTypeRegistry actorRegistry;
+    private PlayerProfileRegistry playerProfileRegistry;
+    private ActorTypeRegistry actorTypeRegistry;
     private ObjectiveTypeRegistry objectiveTypeRegistry;
     private ActionTypeRegistry actionTypeRegistry;
-    private QuestRegistry questRegistry;
+    private QuestConfigRegistry questRegistry;
+    private QuestActorRegistry questActorRegistry;
 
-    private QuestPersistenceService questPersistenceService;
+    private QuestConfigService questConfigService;
+    private PlayerProfileService playerProfileService;
+    private QuestService questService;
+    private QuestActorService questActorService;
     private QuestLifecycleService questLifecycleService;
-    private QuestPlayerActorService questPlayerActorService;
+    private QuestPlayerService questPlayerService;
 
     private GlobalConfig globalConfig;
 
@@ -88,10 +91,15 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     @Override
     public void onEnable() {
-        actorRegistry = new ActorTypeRegistry();
+        foliaLib = new FoliaLib(this);
+        eventDispatcher = new BukkitEventDispatcher(this);
+
+        questRegistry = new QuestConfigRegistry();
+        actorTypeRegistry = new ActorTypeRegistry();
         objectiveTypeRegistry = new ObjectiveTypeRegistry();
         actionTypeRegistry = new ActionTypeRegistry();
-        questFactory = new QuestFactory(objectiveTypeRegistry);
+        playerProfileRegistry = new PlayerProfileRegistry();
+        questActorRegistry = new QuestActorRegistry();
 
         registerObjectiveTypes();
         registerActionTypes();
@@ -99,44 +107,33 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         loadConfig();
         loadDatabase();
+        loadTranslator();
 
-        foliaLib = new FoliaLib(this);
+        questFactory = new QuestFactory(objectiveTypeRegistry);
 
-        this.translator = new Translator(
-                new File(getDataFolder(), "lang"),
-                getGlobalConfig().language(),
-                locale -> getResource("lang/" + locale + ".yml"),
-                getLogger()
-        );
-
-        translator.load();
-
-        eventDispatcher = new BukkitEventDispatcher(this);
+        QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"));
+        ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
+        QuestSqlRepository questRepository = new QuestSqlRepository(dbAccess);
+        PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry, actionTypeRegistry);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
         QuestMapper questEntryMapper = new QuestMapper(questFactory);
 
-        questRegistry = new QuestRegistry();
-        questPersistenceService = new QuestPersistenceService(
-                getLogger(),
-                questRegistry,
-                new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests")),
-                new ActorSqlRepository(dbAccess),
-                new QuestSqlRepository(dbAccess),
-                questGroupMapper,
-                questEntryMapper
-        );
+        questService = new QuestService(getLogger(), questRegistry, actorRepository, questRepository, questEntryMapper);
+        questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
+        questConfigService = new QuestConfigService(getLogger(), questRegistry, questConfigRepository, questGroupMapper);
+        playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questPersistenceService, questFactory);
-        questPlayerActorService = new QuestPlayerActorService(this);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory);
+        questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();
         registerCommands();
 
-        questPersistenceService.loadQuestGroups();
+        questConfigService.loadQuestGroups();
 
-        Bukkit.getOnlinePlayers().forEach(player -> questPlayerActorService.loadPlayerActor(player));
+        Bukkit.getOnlinePlayers().forEach(player -> questPlayerService.loadPlayer(player));
     }
 
     @Override
@@ -147,6 +144,17 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     public void loadConfig() {
         GlobalConfigLoaderService globalConfigLoaderService = new GlobalConfigLoaderService(this);
         globalConfig = globalConfigLoaderService.load();
+    }
+
+    public void loadTranslator() {
+        this.translator = new Translator(
+                new File(getDataFolder(), "lang"),
+                getGlobalConfig().language(),
+                locale -> getResource("lang/" + locale + ".yml"),
+                getLogger()
+        );
+
+        translator.load();
     }
 
     private void loadDatabase() {
@@ -177,13 +185,13 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
                 .parameterTypes(builder ->
                         builder
                                 .addParameterType(QuestActor.class, new QuestActorParameterType(this))
-                                .addParameterType(QuestGroup.class, new QuestGroupParameterType(this))
+                                .addParameterType(QuestGroupConfig.class, new QuestGroupParameterType(this))
                                 .addParameterType(Quest.class, new QuestParameterType(this))
                                 .addParameterType(QuestConfig.class, new QuestConfigParameterType(this))
                 )
                 .suggestionProviders(providers -> {
                     providers.addProviderForAnnotation(QuestActorType.class, actorType -> {
-                        return context -> actorRegistry.getAllActorTypes().keySet();
+                        return context -> actorTypeRegistry.getAllActorTypes().keySet();
                     });
                 })
                 .build();
@@ -237,12 +245,17 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     public void registerActorTypes() {
-        actorRegistry.registerType("player", QuestPlayerActor.class);
-        actorRegistry.registerType("global", QuestGlobalActor.class);
+        actorTypeRegistry.registerType("player", QuestPlayerActor.class);
+        actorTypeRegistry.registerType("global", QuestGlobalActor.class);
     }
 
-    public QuestRegistry getQuestRegistry() {
+    public QuestConfigRegistry getQuestRegistry() {
         return questRegistry;
+    }
+
+    @Override
+    public PlayerProfileRegistry getPlayerProfileRegistry() {
+        return playerProfileRegistry;
     }
 
     @Override
@@ -250,9 +263,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return eventDispatcher;
     }
 
-    @Override
-    public QuestPersistenceService getQuestPersistenceService() {
-        return questPersistenceService;
+    public QuestService getQuestService() {
+        return questService;
+    }
+
+    public QuestActorService getQuestActorService() {
+        return questActorService;
     }
 
     @Override
@@ -260,8 +276,21 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return this.questLifecycleService;
     }
 
-    public QuestPlayerActorService getQuestPlayerActorService() {
-        return this.questPlayerActorService;
+    @Override
+    public QuestActorRegistry getQuestActorRegistry() {
+        return questActorRegistry;
+    }
+
+    public QuestPlayerService getQuestPlayerService() {
+        return this.questPlayerService;
+    }
+
+    public QuestConfigService getQuestConfigService() {
+        return this.questConfigService;
+    }
+
+    public PlayerProfileService getPlayerProfileService() {
+        return this.playerProfileService;
     }
 
     public Translator getTranslator() {
@@ -269,8 +298,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     @Override
-    public ActorTypeRegistry getActorRegistry() {
-        return actorRegistry;
+    public ActorTypeRegistry getActorTypeRegistry() {
+        return actorTypeRegistry;
     }
 
     @Override

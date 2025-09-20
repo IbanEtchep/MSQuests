@@ -16,7 +16,7 @@ public class QuestPlayerActor extends QuestActor {
     }
 
     @Override
-    public boolean isActor(UUID playerId) {
+    public boolean isMember(UUID playerId) {
         return playerId.equals(id);
     }
 

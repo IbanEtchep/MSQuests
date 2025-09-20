@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * ActionBar message that supports direct message or lang key.
  */
-public class PlayerActionBarAction extends QuestAction {
+public class PlayerActionBarAction extends BukkitQuestAction {
 
     private final String message;
     private final String messageKey;
@@ -26,8 +26,8 @@ public class PlayerActionBarAction extends QuestAction {
 
     @Override
     public void execute(Quest quest) {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            if (quest.getActor().isActor(player.getUniqueId())) {
+        getOnlinePlayers(quest).forEach(player -> {
+            if (quest.getActor().isMember(player.getUniqueId())) {
                 player.sendActionBar(resolveMessage().applyPlaceholderResolver(quest)
                         .applyPlaceholderResolver(player).toComponent());
             }

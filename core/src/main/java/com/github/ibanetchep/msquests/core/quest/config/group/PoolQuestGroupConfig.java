@@ -1,11 +1,11 @@
-package com.github.ibanetchep.msquests.core.quest.group;
+package com.github.ibanetchep.msquests.core.quest.config.group;
 
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 
-public class PoolQuestGroup extends QuestGroup {
+public class PoolQuestGroupConfig extends QuestGroupConfig {
 
     @Nullable
     private final String periodSwitchCron;
@@ -14,7 +14,7 @@ public class PoolQuestGroup extends QuestGroup {
     @Nullable
     protected Integer maxPerPeriod = 1;
 
-    public PoolQuestGroup(
+    public PoolQuestGroupConfig(
             String key,
             String name,
             String description,

@@ -16,7 +16,7 @@ import java.util.Objects;
 /**
  * Message that is sent to each online player that is actor of the quest.
  */
-public class PlayerMessageAction extends QuestAction {
+public class PlayerMessageAction extends BukkitQuestAction {
 
     private final @Nullable String message;
     private final @Nullable String messageKey;
@@ -37,7 +37,6 @@ public class PlayerMessageAction extends QuestAction {
         MessageBuilder messageBuilder = MessageBuilder.raw(resolveMessage())
                 .applyPlaceholderResolver(quest);
 
-        System.out.println(resolveObjectiveTemplate());
         if(resolveObjectiveTemplate() != null) {
             List<QuestObjective<?>> objectiveList = quest.getObjectives().values().stream().toList();
             String template = resolveObjectiveTemplate();
@@ -45,10 +44,10 @@ public class PlayerMessageAction extends QuestAction {
                     MessageBuilder.raw(template).applyPlaceholderResolver(objective).toStringRaw());
         }
 
-        Bukkit.getOnlinePlayers().forEach(player -> {
+        getOnlinePlayers(quest).forEach(player -> {
             messageBuilder.applyPlaceholderResolver(player);
 
-            if(quest.getActor().isActor(player.getUniqueId())) {
+            if(quest.getActor().isMember(player.getUniqueId())) {
                 player.sendMessage(messageBuilder.toComponent());
             }
         });
@@ -58,12 +57,12 @@ public class PlayerMessageAction extends QuestAction {
     public void execute(QuestObjective<?> objective) {
         Quest quest = objective.getQuest();
 
-        Bukkit.getOnlinePlayers().forEach(player -> {
+        getOnlinePlayers(quest).forEach(player -> {
             MessageBuilder messageBuilder = MessageBuilder.raw(resolveMessage())
                     .applyPlaceholderResolver(objective)
                     .applyPlaceholderResolver(player);
 
-            if(quest.getActor().isActor(player.getUniqueId())) {
+            if(quest.getActor().isMember(player.getUniqueId())) {
                 player.sendMessage(messageBuilder.toComponent());
             }
         });

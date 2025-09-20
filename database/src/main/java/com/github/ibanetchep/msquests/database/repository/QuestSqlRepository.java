@@ -95,65 +95,55 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
     @Override
     public CompletableFuture<Void> save(QuestDTO quest) {
-
-        String questUpdateQuery = """
-        UPDATE msquests_quest
-        SET quest_status = :status, completed_at = :completedAt
-        WHERE id = :id;
-    """;
-        String questInsertQuery = """
-        INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, actor_id)
-        SELECT :id, :questKey, :groupKey, :status, :actorId
-        WHERE NOT EXISTS (SELECT 1 FROM msquests_quest WHERE id = :id);
-    """;
-
-        String objectiveUpdateQuery = """
-        UPDATE msquests_objective
-        SET objective_status = :status, progress = :progress
-        WHERE quest_id = :questId AND objective_key = :objectiveKey;
-    """;
-
-        String objectiveInsertQuery = """
-        INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id)
-        SELECT :objectiveKey, :status, :progress, :questId
-        WHERE NOT EXISTS (
-            SELECT 1 FROM msquests_objective 
-            WHERE quest_id = :questId AND objective_key = :objectiveKey
-        );
-    """;
-
         return runAsync(() -> getJdbi().useTransaction(handle -> {
-            handle.createUpdate(questUpdateQuery)
-                    .bind("id", quest.id().toString())
+            String questId = quest.id().toString();
+
+            int updatedQuest = handle.createUpdate(
+                            "UPDATE msquests_quest SET quest_status = :status, completed_at = :completedAt WHERE id = :id")
+                    .bind("id", questId)
                     .bind("status", quest.status().toString())
                     .bind("completedAt", quest.completedAt() != null ? new Timestamp(quest.completedAt()) : null)
                     .execute();
 
-            handle.createUpdate(questInsertQuery)
-                    .bind("id", quest.id().toString())
-                    .bind("questKey", quest.questKey())
-                    .bind("groupKey", quest.groupKey())
-                    .bind("status", quest.status().toString())
-                    .bind("actorId", quest.actorId().toString())
-                    .execute();
+            if (updatedQuest == 0) {
+                handle.createUpdate(
+                                "INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, actor_id) " +
+                                        "VALUES (:id, :questKey, :groupKey, :status, :actorId)")
+                        .bind("id", questId)
+                        .bind("questKey", quest.questKey())
+                        .bind("groupKey", quest.groupKey())
+                        .bind("status", quest.status().toString())
+                        .bind("actorId", quest.actorId().toString())
+                        .execute();
+            }
 
-            if (quest.objectives() != null && !quest.objectives().isEmpty()) {
-                for (QuestObjectiveDTO objective : quest.objectives().values()) {
-                    handle.createUpdate(objectiveUpdateQuery)
-                            .bind("objectiveKey", objective.objectiveKey())
-                            .bind("status", objective.objectiveStatus().toString())
-                            .bind("progress", objective.progress())
-                            .bind("questId", objective.questEntryId().toString())
+            if (quest.objectives() != null) {
+                for (QuestObjectiveDTO obj : quest.objectives().values()) {
+                    String objectiveKey = obj.objectiveKey();
+                    String questEntryId = obj.questEntryId().toString();
+
+                    int updatedObj = handle.createUpdate(
+                                    "UPDATE msquests_objective SET objective_status = :status, progress = :progress " +
+                                            "WHERE quest_id = :questId AND objective_key = :objectiveKey")
+                            .bind("objectiveKey", objectiveKey)
+                            .bind("status", obj.objectiveStatus().toString())
+                            .bind("progress", obj.progress())
+                            .bind("questId", questEntryId)
                             .execute();
 
-                    handle.createUpdate(objectiveInsertQuery)
-                            .bind("objectiveKey", objective.objectiveKey())
-                            .bind("status", objective.objectiveStatus().toString())
-                            .bind("progress", objective.progress())
-                            .bind("questId", objective.questEntryId().toString())
-                            .execute();
+                    if (updatedObj == 0) {
+                        handle.createUpdate(
+                                        "INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id) " +
+                                                "VALUES (:objectiveKey, :status, :progress, :questId)")
+                                .bind("objectiveKey", objectiveKey)
+                                .bind("status", obj.objectiveStatus().toString())
+                                .bind("progress", obj.progress())
+                                .bind("questId", questEntryId)
+                                .execute();
+                    }
                 }
             }
         }));
     }
+
 }

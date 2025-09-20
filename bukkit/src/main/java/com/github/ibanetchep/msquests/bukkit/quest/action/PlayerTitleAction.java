@@ -3,10 +3,8 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +13,7 @@ import java.util.Objects;
 /**
  * Title message that supports direct text or lang key for title and subtitle.
  */
-public class PlayerTitleAction extends QuestAction {
+public class PlayerTitleAction extends BukkitQuestAction {
 
     private final String title;
     private final String titleKey;
@@ -35,8 +33,8 @@ public class PlayerTitleAction extends QuestAction {
         Component titleComponent = resolveTitle().applyPlaceholderResolver(quest).toComponent();
         Component subtitleComponent = resolveSubtitle().applyPlaceholderResolver(quest).toComponent();
 
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            if (quest.getActor().isActor(player.getUniqueId())) {
+        getOnlinePlayers(quest).forEach(player -> {
+            if (quest.getActor().isMember(player.getUniqueId())) {
                 player.showTitle(Title.title(titleComponent, subtitleComponent));
             }
         });

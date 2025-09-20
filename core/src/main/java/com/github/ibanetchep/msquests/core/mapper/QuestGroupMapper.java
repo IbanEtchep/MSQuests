@@ -3,9 +3,9 @@ package com.github.ibanetchep.msquests.core.mapper;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.ChainedQuestGroup;
-import com.github.ibanetchep.msquests.core.quest.group.PoolQuestGroup;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.ChainedQuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.PoolQuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class QuestGroupMapper {
      * @param entity The QuestGroup entity to convert
      * @return The converted QuestGroupDTO
      */
-    public QuestGroupDTO toDto(QuestGroup entity) {
+    public QuestGroupDTO toDto(QuestGroupConfig entity) {
         if (entity == null) {
             return null;
         }
@@ -35,7 +35,7 @@ public class QuestGroupMapper {
         int maxPerPeriod = 0;
         String periodSwitchCron = null;
 
-        if (entity instanceof PoolQuestGroup pool) {
+        if (entity instanceof PoolQuestGroupConfig pool) {
             maxActiveQuests = pool.getMaxActiveQuests();
             maxPerPeriod = pool.getMaxPerPeriod();
             periodSwitchCron = pool.getPeriodSwitchCron();
@@ -60,16 +60,16 @@ public class QuestGroupMapper {
      * @param dto The QuestGroupDTO to convert
      * @return The converted QuestGroup entity
      */
-    public QuestGroup toEntity(QuestGroupDTO dto) {
+    public QuestGroupConfig toEntity(QuestGroupDTO dto) {
         if (dto == null) {
             return null;
         }
 
-        QuestGroup questGroup;
+        QuestGroupConfig questGroupConfig;
 
         switch (dto.type()) {
             case POOL:
-                questGroup = new PoolQuestGroup(
+                questGroupConfig = new PoolQuestGroupConfig(
                         dto.key(),
                         dto.name(),
                         dto.description(),
@@ -81,7 +81,7 @@ public class QuestGroupMapper {
                 );
                 break;
             case CHAINED:
-                questGroup = new ChainedQuestGroup(
+                questGroupConfig = new ChainedQuestGroupConfig(
                         dto.key(),
                         dto.name(),
                         dto.description(),
@@ -95,9 +95,9 @@ public class QuestGroupMapper {
 
         for (QuestConfigDTO questConfigDTO : dto.quests()) {
             QuestConfig questConfig = questConfigMapper.toEntity(questConfigDTO);
-            questGroup.addQuest(questConfig);
+            questGroupConfig.addQuest(questConfig);
         }
 
-        return questGroup;
+        return questGroupConfig;
     }
 }

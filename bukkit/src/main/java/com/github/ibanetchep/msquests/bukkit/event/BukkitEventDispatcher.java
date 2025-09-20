@@ -45,7 +45,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
 
-            if(!actor.isActor(player.getUniqueId())) {
+            if(!actor.isMember(player.getUniqueId())) {
                 continue;
             }
 
@@ -62,7 +62,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
         plugin.getServer().getPluginManager().callEvent(completeEvent);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if(!actor.isActor(player.getUniqueId())) {
+            if(!actor.isMember(player.getUniqueId())) {
                 continue;
             }
 

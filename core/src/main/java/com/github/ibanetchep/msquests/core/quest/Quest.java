@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.core.quest;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
@@ -100,7 +100,7 @@ public class Quest {
         return this.objectives.get(key);
     }
 
-    public QuestGroup getQuestGroup() {
+    public QuestGroupConfig getQuestGroup() {
         return questConfig.getGroup();
     }
 }
