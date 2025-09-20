@@ -29,7 +29,7 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
         for (BlockBreakObjective objective : getQuestObjectives(player.getUniqueId())) {
             QuestActor actor = objective.getQuest().getActor();
 
-            if (!actor.isActor(player.getUniqueId())) {
+            if (!actor.isMember(player.getUniqueId())) {
                 return;
             }
 

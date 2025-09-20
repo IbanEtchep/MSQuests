@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -22,8 +22,8 @@ public class QuestConfigParameterType implements ParameterType<BukkitCommandActo
     @Override
     public QuestConfig parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
-        QuestGroup questGroup = executionContext.getResolvedArgument("group");
-        QuestConfig questConfig = questGroup.getQuestConfigs().get(value);
+        QuestGroupConfig questGroupConfig = executionContext.getResolvedArgument("group");
+        QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(value);
 
         if(questConfig == null) {
             throw new IllegalArgumentException("Could not find quest config " + value);
@@ -35,9 +35,9 @@ public class QuestConfigParameterType implements ParameterType<BukkitCommandActo
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
         return (context) -> {
-            QuestGroup questGroup = context.getResolvedArgument("group");
+            QuestGroupConfig questGroupConfig = context.getResolvedArgument("group");
 
-            return questGroup.getQuestConfigs().keySet();
+            return questGroupConfig.getQuestConfigs().keySet();
         };
     }
 

@@ -1,0 +1,66 @@
+package com.github.ibanetchep.msquests.core.quest.player;
+
+import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class PlayerProfile {
+
+    private final UUID id;
+    private final Map<UUID, QuestActor> actors = new HashMap<>();
+    private @Nullable UUID trackedQuestId;
+
+    public PlayerProfile(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public @Nullable Quest getTrackedQuest() {
+        return getQuests().get(trackedQuestId);
+    }
+
+    public @Nullable UUID getTrackedQuestId() {
+        return trackedQuestId;
+    }
+
+    public void setTrackedQuestId(@Nullable UUID trackedQuestId) {
+        this.trackedQuestId = trackedQuestId;
+    }
+
+    public void addActor(QuestActor actor) {
+        actors.put(actor.getId(), actor);
+        actor.addProfile(this);
+    }
+
+    public void removeActor(QuestActor actor) {
+        actor.removeProfile(this);
+        actors.remove(id);
+    }
+
+    public Map<UUID, QuestActor> getActors() {
+        return actors;
+    }
+
+    public Map<UUID, Quest> getQuests() {
+        return actors.values().stream()
+                .flatMap(actor -> actor.getQuests().values().stream())
+                .collect(Collectors.toMap(Quest::getId, Function.identity()));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends QuestObjective<?>> List<T> getObjectivesByType(String objectiveType) {
+        return getActors().values().stream()
+                .flatMap(actor -> actor.getObjectivesByType(objectiveType).stream())
+                .map(o -> (T) o)
+                .filter(objective -> objective.getObjectiveConfig().isValid())
+                .toList();
+    }
+}

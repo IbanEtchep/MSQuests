@@ -1,10 +1,9 @@
 package com.github.ibanetchep.msquests.core.dto;
 
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroupType;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupType;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 public record QuestGroupDTO(
         String key,

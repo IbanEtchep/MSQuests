@@ -3,7 +3,6 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import org.bukkit.Bukkit;
 
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.logging.Level;
 /**
  * Reward that executes a command once.
  */
-public class CommandAction extends QuestAction {
+public class CommandAction extends BukkitQuestAction {
 
     private final String commandTemplate;
 

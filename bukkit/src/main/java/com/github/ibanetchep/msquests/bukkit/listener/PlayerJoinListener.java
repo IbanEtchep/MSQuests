@@ -18,7 +18,7 @@ public class PlayerJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        plugin.getQuestPlayerActorService().loadPlayerActor(player);
+        plugin.getQuestPlayerService().loadPlayer(player);
     }
 
 }

@@ -4,7 +4,7 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -25,7 +25,7 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
     public Quest parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
         QuestActor questActor = executionContext.getResolvedArgument("actor");
-        QuestGroup questGroup = executionContext.getResolvedArgument("group");
+        QuestGroupConfig questGroupConfig = executionContext.getResolvedArgument("group");
         Quest quest = questActor.getActiveQuestByKey(value);
 
         if(quest == null) {
@@ -39,12 +39,12 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
         return (context) -> {
             QuestActor questActor = context.getResolvedArgument("actor");
-            QuestGroup questGroup = context.getResolvedArgument("group");
+            QuestGroupConfig questGroupConfig = context.getResolvedArgument("group");
 
             return questActor.getQuests().values().stream()
                     .filter(Quest::isActive)
                     .map(Quest::getQuestConfig)
-                    .filter(questConfig -> questConfig.getGroup().equals(questGroup))
+                    .filter(questConfig -> questConfig.getGroup().equals(questGroupConfig))
                     .map(QuestConfig::getKey)
                     .toList();
         };

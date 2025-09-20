@@ -3,22 +3,18 @@ package com.github.ibanetchep.msquests.bukkit.command;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.lang.TranslationKey;
-import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
-import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.bukkit.command.CommandSender;
-import org.bukkit.scoreboard.Objective;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 @Command("msquests")
 @CommandPermission("msquests.admin")
@@ -36,9 +32,9 @@ public class QuestAdminCommand {
         plugin.loadConfig();
         plugin.getTranslator().load();
 
-        plugin.getQuestPersistenceService()
+        plugin.getQuestConfigService()
                 .loadQuestGroups()
-                .thenCompose(v -> plugin.getQuestPersistenceService().reloadActorsQuests())
+                .thenCompose(v -> plugin.getQuestActorService().reloadActors())
                 .thenRun(() -> sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_RELOAD).toComponent()))
                 .exceptionally(e -> {
                     sender.sendMessage("<red>Failed to reload quests. Check console for details.</red>");
@@ -52,7 +48,7 @@ public class QuestAdminCommand {
             BukkitCommandActor sender,
             @QuestActorType String actorType,
             QuestActor actor,
-            QuestGroup group,
+            QuestGroupConfig group,
             @Default("1") @Range(min = 1) @Named("page") int page
     ) {
         int lastPage = actor.getQuestsByGroupCount(group) / 10 + 1;
@@ -101,7 +97,7 @@ public class QuestAdminCommand {
             BukkitCommandActor sender,
             @QuestActorType String actorType,
             QuestActor actor,
-            QuestGroup group,
+            QuestGroupConfig group,
             QuestConfig questConfig
     ) {
         boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
@@ -122,7 +118,7 @@ public class QuestAdminCommand {
             BukkitCommandActor sender,
             @QuestActorType String actorType,
             QuestActor actor,
-            QuestGroup group,
+            QuestGroupConfig group,
             Quest quest
     ) {
         plugin.getQuestLifecycleService().completeQuest(quest);

@@ -23,7 +23,7 @@ public class QuestActorParameterType implements ParameterType<BukkitCommandActor
         String value = input.readString();
         String actorType = executionContext.getResolvedArgument("actor type");
 
-        return plugin.getQuestRegistry().getActorsByType(actorType).stream()
+        return plugin.getQuestActorRegistry().getActorsByType(actorType).stream()
                 .filter(actor -> actor.getName().equals(value))
                 .findFirst()
                 .orElse(null);
@@ -34,7 +34,7 @@ public class QuestActorParameterType implements ParameterType<BukkitCommandActor
         return (context) -> {
             String[] args = context.input().source().split(" ");
             String actorType = args[2];
-            return plugin.getQuestRegistry().getActorsByType(actorType).stream().map(QuestActor::getName).toList();
+            return plugin.getQuestActorRegistry().getActorsByType(actorType).stream().map(QuestActor::getName).toList();
         };
     }
 

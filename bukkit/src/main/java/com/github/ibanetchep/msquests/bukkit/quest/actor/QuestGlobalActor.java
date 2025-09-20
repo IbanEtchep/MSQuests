@@ -14,7 +14,7 @@ public class QuestGlobalActor extends QuestActor {
     }
 
     @Override
-    public boolean isActor(UUID playerId) {
+    public boolean isMember(UUID playerId) {
         return true;
     }
 

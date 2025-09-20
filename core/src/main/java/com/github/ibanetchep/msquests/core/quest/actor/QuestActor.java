@@ -2,7 +2,8 @@ package com.github.ibanetchep.msquests.core.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.group.QuestGroup;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -13,6 +14,7 @@ public abstract class QuestActor {
     protected UUID id;
     protected String name;
     protected final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
+    protected final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
 
     protected final Map<String, Set<QuestObjective<?>>> objectivesByType = new ConcurrentHashMap<>();
 
@@ -34,7 +36,7 @@ public abstract class QuestActor {
     }
 
     public abstract String getActorType();
-    public abstract boolean isActor(UUID playerId);
+    public abstract boolean isMember(UUID playerId);
 
     public Map<UUID, Quest> getQuests() {
         return Collections.unmodifiableMap(quests);
@@ -83,17 +85,29 @@ public abstract class QuestActor {
                 .toList();
     }
 
-    public List<Quest> getQuestsByGroup(QuestGroup questGroup, int page) {
+    public List<Quest> getQuestsByGroup(QuestGroupConfig questGroupConfig, int page) {
         return quests.values().stream()
-                .filter(quest -> quest.getQuestGroup() == questGroup)
+                .filter(quest -> quest.getQuestGroup() == questGroupConfig)
                 .skip((page - 1) * 10L)
                 .limit(10)
                 .toList();
     }
 
-    public int getQuestsByGroupCount(QuestGroup questGroup) {
+    public int getQuestsByGroupCount(QuestGroupConfig questGroupConfig) {
         return (int) quests.values().stream()
-                .filter(quest -> quest.getQuestGroup() == questGroup)
+                .filter(quest -> quest.getQuestGroup() == questGroupConfig)
                 .count();
+    }
+
+    public Collection<PlayerProfile> getProfiles() {
+        return profiles.values();
+    }
+
+    public void addProfile(PlayerProfile playerProfile) {
+        profiles.put(playerProfile.getId(), playerProfile);
+    }
+
+    public void removeProfile(PlayerProfile playerProfile) {
+        profiles.remove(playerProfile.getId());
     }
 }
