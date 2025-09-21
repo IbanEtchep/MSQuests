@@ -1,7 +1,8 @@
-package com.github.ibanetchep.msquests.core.quest;
+package com.github.ibanetchep.msquests.core.quest.objective;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
+import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 import java.util.Map;
@@ -11,7 +12,6 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
     protected T objectiveConfig;
 
     protected int progress;
-    protected QuestObjectiveStatus status = QuestObjectiveStatus.IN_PROGRESS;
     protected Quest quest;
 
     public QuestObjective(Quest quest,T objectiveConfig, int progress) {
@@ -21,7 +21,7 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
     }
 
     public boolean isCompleted() {
-        return progress >= objectiveConfig.getTargetAmount() || status == QuestObjectiveStatus.COMPLETED;
+        return progress >= objectiveConfig.getTargetAmount();
     }
 
     public int getProgress() {
@@ -33,6 +33,10 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
     }
 
     public int getProgressPercent() {
+        if (objectiveConfig.getTargetAmount() == 0 || getStatus() == QuestObjectiveStatus.COMPLETED) {
+            return 100;
+        }
+
         return (int) ((progress / (float) objectiveConfig.getTargetAmount()) * 100);
     }
 
@@ -41,11 +45,16 @@ public abstract class QuestObjective<T extends QuestObjectiveConfig> implements 
     }
 
     public QuestObjectiveStatus getStatus() {
-        return status;
-    }
+        if (isCompleted()) {
+            return QuestObjectiveStatus.COMPLETED;
+        }
 
-    public void setStatus(QuestObjectiveStatus status) {
-        this.status = status;
+        if(quest.getQuestConfig().getFlow() == Flow.SEQUENTIAL) {
+            QuestObjective<?> firstActiveObjective = quest.getFirstActiveObjective();
+            return firstActiveObjective == this ? QuestObjectiveStatus.IN_PROGRESS : QuestObjectiveStatus.PENDING;
+        }
+
+        return QuestObjectiveStatus.IN_PROGRESS;
     }
 
     public T getObjectiveConfig() {

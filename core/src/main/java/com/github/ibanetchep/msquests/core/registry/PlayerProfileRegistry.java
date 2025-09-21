@@ -12,7 +12,7 @@ public class PlayerProfileRegistry {
     private final Map<UUID, PlayerProfile> playerProfiles = new ConcurrentHashMap<>();
 
     public PlayerProfile getPlayerProfile(UUID playerId) {
-        return playerProfiles.get(playerId);
+        return playerProfiles.getOrDefault(playerId, new PlayerProfile(playerId));
     }
 
     public void registerPlayerProfile(PlayerProfile playerProfile) {

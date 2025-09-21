@@ -1,11 +1,10 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
+import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
-import org.bukkit.Bukkit;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,8 +23,8 @@ public class PlayerMessageAction extends BukkitQuestAction {
     private final @Nullable String objectiveTemplate;
     private final @Nullable String objectiveTemplateKey;
 
-    public PlayerMessageAction(QuestActionDTO dto) {
-        super(dto);
+    public PlayerMessageAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+        super(dto, plugin);
         this.message = (String) dto.config().get("message");
         this.messageKey = (String) dto.config().get("message_key");
         this.objectiveTemplate = (String) dto.config().get("objective_template");

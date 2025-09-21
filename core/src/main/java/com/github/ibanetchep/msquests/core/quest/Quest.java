@@ -3,12 +3,12 @@ package com.github.ibanetchep.msquests.core.quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.objective.Flow;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Quest {
 
@@ -16,7 +16,7 @@ public class Quest {
     private QuestConfig questConfig;
     private QuestStatus status;
     private QuestActor actor;
-    private final Map<String, QuestObjective<?>> objectives = new HashMap<>();
+    private final Map<String, QuestObjective<?>> objectives = new LinkedHashMap<>();
     @Nullable
     private Date completedAt;
     private Date createdAt;
@@ -102,5 +102,33 @@ public class Quest {
 
     public QuestGroupConfig getQuestGroup() {
         return questConfig.getGroup();
+    }
+
+    public List<QuestObjective<?>> getActiveObjectives() {
+        Flow flow = questConfig.getFlow();
+
+        if (flow == Flow.PARALLEL) {
+            return objectives.values().stream()
+                    .filter(o -> o.getObjectiveConfig().isValid())
+                    .filter(o -> o.getStatus() != QuestObjectiveStatus.COMPLETED)
+                    .toList();
+        }
+
+        var firstActiveObjective = getFirstActiveObjective();
+        if (flow == Flow.SEQUENTIAL && firstActiveObjective != null && firstActiveObjective.getObjectiveConfig().isValid()) {
+            return List.of(firstActiveObjective);
+        }
+
+        return List.of();
+    }
+
+    public @Nullable QuestObjective<?> getFirstActiveObjective() {
+        return objectives.values().stream()
+                .filter(o -> o.getStatus() != QuestObjectiveStatus.COMPLETED)
+                .findFirst().orElse(null);
+    }
+
+    public  void handleObjectiveCompletion(QuestObjective<?> objective) {
+
     }
 }

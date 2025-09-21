@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
+import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
@@ -18,8 +19,8 @@ public class PlayerActionBarAction extends BukkitQuestAction {
     private final String message;
     private final String messageKey;
 
-    public PlayerActionBarAction(QuestActionDTO dto) {
-        super(dto);
+    public PlayerActionBarAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+        super(dto, plugin);
         this.message = (String) dto.config().get("message");
         this.messageKey = (String) dto.config().get("message_key");
     }

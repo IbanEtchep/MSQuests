@@ -4,8 +4,8 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +20,11 @@ public class BukkitEventDispatcher implements EventDispatcher {
         this.plugin = plugin;
 
         handlers.put(CoreQuestStartEvent.class, e -> callQuestStart((CoreQuestStartEvent) e));
-        handlers.put(CoreQuestCompleteEvent.class, e -> callQuestComplete((CoreQuestCompleteEvent) e));
+        handlers.put(CoreQuestStartedEvent.class, e -> callQuestStarted((CoreQuestStartedEvent) e));
+        handlers.put(CoreQuestCompletedEvent.class, e -> callQuestComplete((CoreQuestCompletedEvent) e));
+        handlers.put(CoreQuestObjectiveProgressEvent.class, e -> callQuestObjectiveProgress((CoreQuestObjectiveProgressEvent) e));
+        handlers.put(CoreQuestObjectiveCompleteEvent.class, e -> callQuestObjectiveComplete((CoreQuestObjectiveCompleteEvent) e));
+        handlers.put(CoreQuestObjectiveProgressedEvent.class, e -> callQuestObjectiveProgressed((CoreQuestObjectiveProgressedEvent) e));
     }
 
     @Override
@@ -32,43 +36,43 @@ public class BukkitEventDispatcher implements EventDispatcher {
     }
 
     private void callQuestStart(CoreQuestStartEvent event) {
-        Quest quest = event.getQuest();
-        QuestActor actor = quest.getActor();
-
         QuestStartEvent startEvent = new QuestStartEvent(event.getQuest());
         plugin.getServer().getPluginManager().callEvent(startEvent);
         event.setCancelled(startEvent.isCancelled());
-
-        if(event.isCancelled()) {
-            return;
-        }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-
-            if(!actor.isMember(player.getUniqueId())) {
-                continue;
-            }
-
-            PlayerQuestStartEvent playerEvent = new PlayerQuestStartEvent(player, quest);
-            plugin.getServer().getPluginManager().callEvent(playerEvent);
-        }
     }
 
-    private void callQuestComplete(CoreQuestCompleteEvent event) {
-        Quest quest = event.getQuest();
-        QuestActor actor = quest.getActor();
+    private void callQuestStarted(CoreQuestStartedEvent event) {
+        QuestStartedEvent startedEvent = new QuestStartedEvent(event.getQuest());
+        plugin.getServer().getPluginManager().callEvent(startedEvent);
+    }
 
-        QuestCompleteEvent completeEvent = new QuestCompleteEvent(quest);
+    private void callQuestComplete(CoreQuestCompletedEvent event) {
+        QuestCompleteEvent completeEvent = new QuestCompleteEvent(event.getQuest());
         plugin.getServer().getPluginManager().callEvent(completeEvent);
+    }
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if(!actor.isMember(player.getUniqueId())) {
-                continue;
-            }
+    private void callQuestObjectiveProgress(CoreQuestObjectiveProgressEvent event) {
+        QuestObjective<?> objective = event.getObjective();
+        PlayerProfile profile = event.getPlayerProfile();
 
-            PlayerQuestCompleteEvent bukkitEvent = new PlayerQuestCompleteEvent(player, quest);
-            plugin.getServer().getPluginManager().callEvent(bukkitEvent);
-        }
+        ObjectiveProgressEvent progressEvent = new ObjectiveProgressEvent(objective, profile);
+        plugin.getServer().getPluginManager().callEvent(progressEvent);
+        event.setCancelled(progressEvent.isCancelled());
+    }
+
+    private void callQuestObjectiveComplete(CoreQuestObjectiveCompleteEvent event) {
+        QuestObjective<?> objective = event.getObjective();
+        PlayerProfile profile = event.getPlayerProfile();
+
+        ObjectiveCompletedEvent completeEvent = new ObjectiveCompletedEvent(objective, profile);
+        plugin.getServer().getPluginManager().callEvent(completeEvent);
+    }
+
+    private void callQuestObjectiveProgressed(CoreQuestObjectiveProgressedEvent event) {
+        QuestObjective<?> objective = event.getObjective();
+        PlayerProfile profile = event.getPlayerProfile();
+        ObjectiveProgressedEvent progressedEvent = new ObjectiveProgressedEvent(objective, profile);
+        plugin.getServer().getPluginManager().callEvent(progressedEvent);
     }
 
 }

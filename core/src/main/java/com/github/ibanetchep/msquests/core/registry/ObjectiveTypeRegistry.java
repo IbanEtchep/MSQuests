@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 import java.util.Collections;

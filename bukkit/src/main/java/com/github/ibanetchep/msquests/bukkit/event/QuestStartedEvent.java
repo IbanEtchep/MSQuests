@@ -1,28 +1,23 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Event triggered when a quest is completed, for each player that is part of the quest.
+ * Event triggered when a quest starts.
  */
-public class PlayerQuestCompleteEvent extends Event {
+public class QuestStartedEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final Player player;
-    private final Quest quest;
+    private Quest quest;
+    private boolean cancelled;
 
-    public PlayerQuestCompleteEvent(Player player, Quest quest) {
-        this.player = player;
+    public QuestStartedEvent(Quest quest) {
         this.quest = quest;
-    }
-
-    public Player getPlayer() {
-        return player;
     }
 
     public Quest getQuest() {

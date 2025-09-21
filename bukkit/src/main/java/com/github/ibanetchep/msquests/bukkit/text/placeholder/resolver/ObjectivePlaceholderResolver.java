@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.text.placeholder.resolver;
 
 import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderResolver;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 
 public class ObjectivePlaceholderResolver implements PlaceholderResolver<QuestObjective<?>> {
 

@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
+import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
@@ -20,8 +21,8 @@ public class PlayerTitleAction extends BukkitQuestAction {
     private final String subtitle;
     private final String subtitleKey;
 
-    public PlayerTitleAction(QuestActionDTO dto) {
-        super(dto);
+    public PlayerTitleAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+        super(dto, plugin);
         this.title = (String) dto.config().get("title");
         this.titleKey = (String) dto.config().get("title_key");
         this.subtitle = (String) dto.config().get("subtitle");

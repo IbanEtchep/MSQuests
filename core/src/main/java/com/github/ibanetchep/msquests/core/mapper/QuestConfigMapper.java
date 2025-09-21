@@ -47,6 +47,7 @@ public class QuestConfigMapper {
                 entity.getName(),
                 entity.getDescription(),
                 entity.getDuration(),
+                entity.getFlow(),
                 List.copyOf(entity.getTags()),
                 rewards,
                 objectiveDtos
@@ -55,7 +56,7 @@ public class QuestConfigMapper {
 
     public QuestConfig toEntity(QuestConfigDTO dto) {
         QuestConfig questConfig = new QuestConfig(
-                dto.key(), dto.name(), dto.description(), dto.duration()
+                dto.key(), dto.name(), dto.description(), dto.duration(), dto.flow()
         );
 
         if (dto.tags() != null) {

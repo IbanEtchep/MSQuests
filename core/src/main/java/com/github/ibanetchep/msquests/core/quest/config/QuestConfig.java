@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.config;
 
+import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 
@@ -10,17 +11,19 @@ public class QuestConfig {
     private String key;
     private String name;
     private String description;
+    private Flow flow = Flow.PARALLEL;
     private Set<String> tags;
     private final Map<String, QuestObjectiveConfig> objectives;
     private long duration; // max in seconds
     private final List<QuestAction> rewards;
     private QuestGroupConfig group;
 
-    public QuestConfig(String key, String name, String description, long duration) {
+    public QuestConfig(String key, String name, String description, long duration, Flow flow) {
         this.key = key;
         this.name = name;
         this.description = description;
         this.duration = duration;
+        this.flow = flow;
         this.tags = new HashSet<>();
         this.objectives = new HashMap<>();
         this.rewards = new ArrayList<>();
@@ -96,5 +99,13 @@ public class QuestConfig {
 
     public QuestGroupConfig getGroup() {
         return group;
+    }
+
+    public Flow getFlow() {
+        return flow;
+    }
+
+    public void setObjectiveCompletionType(Flow flow) {
+        this.flow = flow;
     }
 }

@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupType;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
@@ -89,12 +90,20 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 Map<String, QuestObjectiveConfigDTO> objectives = parseObjectives(questSection);
                 List<QuestActionDTO> rewards = parseRewards(questSection);
 
+                Flow flow = Flow.PARALLEL;
+                if (questSection.contains("flow")) {
+                    flow = Flow.valueOf(questSection.getString("flow"));
+                }
+
+                questSection.getString("flow");
+
                 QuestConfigDTO questConfig = new QuestConfigDTO(
                         questKey,
                         groupKey,
                         questSection.getString("name"),
                         questSection.getString("description"),
                         questSection.getLong("duration"),
+                        flow,
                         questSection.getStringList("tags"),
                         rewards,
                         objectives

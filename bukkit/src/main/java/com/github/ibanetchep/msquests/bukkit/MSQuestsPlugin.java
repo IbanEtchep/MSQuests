@@ -11,6 +11,7 @@ import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.Translator;
 import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
 import com.github.ibanetchep.msquests.bukkit.listener.QuestCompleteListener;
+import com.github.ibanetchep.msquests.bukkit.listener.QuestProgressListener;
 import com.github.ibanetchep.msquests.bukkit.listener.QuestStartListener;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
@@ -35,7 +36,7 @@ import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
@@ -206,6 +207,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
         pluginManager.registerEvents(new QuestStartListener(this), this);
         pluginManager.registerEvents(new QuestCompleteListener(this), this);
+        pluginManager.registerEvents(new QuestProgressListener(this), this);
     }
 
     private void registerObjectiveTypes() {
@@ -236,12 +238,13 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     public void registerActionTypes() {
-        actionTypeRegistry.registerType("command", CommandAction::new);
-        actionTypeRegistry.registerType("player_command", PlayerCommandAction::new);
-        actionTypeRegistry.registerType("give_item", GiveItemAction::new);
-        actionTypeRegistry.registerType("message", PlayerMessageAction::new);
-        actionTypeRegistry.registerType("action_bar", PlayerActionBarAction::new);
-        actionTypeRegistry.registerType("title", PlayerTitleAction::new);
+        actionTypeRegistry.registerType("command", dto -> new CommandAction(dto, this));
+        actionTypeRegistry.registerType("player_command", dto -> new PlayerCommandAction(dto, this));
+        actionTypeRegistry.registerType("give_item", dto -> new GiveItemAction(dto, this));
+        actionTypeRegistry.registerType("message", dto -> new PlayerMessageAction(dto, this));
+        actionTypeRegistry.registerType("action_bar", dto -> new PlayerActionBarAction(dto, this));
+        actionTypeRegistry.registerType("title", dto -> new PlayerTitleAction(dto, this));
+        actionTypeRegistry.registerType("boss_bar", dto -> new PlayerBossBarAction(dto, this));
     }
 
     public void registerActorTypes() {
