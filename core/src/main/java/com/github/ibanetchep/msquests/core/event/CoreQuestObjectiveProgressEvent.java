@@ -4,12 +4,12 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.jetbrains.annotations.Nullable;
 
-public class CoreQuestObjectiveCompleteEvent extends CoreEvent {
+public class CoreQuestObjectiveProgressEvent extends CancellableCoreEvent {
 
     private final QuestObjective<?> objective;
     private final @Nullable PlayerProfile profile;
 
-    public CoreQuestObjectiveCompleteEvent(QuestObjective<?> objective, @Nullable PlayerProfile profile) {
+    public CoreQuestObjectiveProgressEvent(QuestObjective<?> objective, @Nullable PlayerProfile profile) {
         this.objective = objective;
         this.profile = profile;
     }

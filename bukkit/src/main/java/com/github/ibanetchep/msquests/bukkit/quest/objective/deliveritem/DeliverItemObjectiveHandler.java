@@ -3,7 +3,8 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.event.PlayerQuestHandleEvent;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveHandler;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,9 +23,10 @@ public class DeliverItemObjectiveHandler extends QuestObjectiveHandler<DeliverIt
     @EventHandler
     public void onHandle(PlayerQuestHandleEvent event) {
         Player player = event.getPlayer();
+        PlayerProfile profile = getPlayerProfile(player.getUniqueId());
 
-        for (DeliverItemObjective objective : getQuestObjectives(player.getUniqueId())) {
-            // Check if player has item
+        for (DeliverItemObjective objective : getQuestObjectives(profile)) {
+
         }
     }
 

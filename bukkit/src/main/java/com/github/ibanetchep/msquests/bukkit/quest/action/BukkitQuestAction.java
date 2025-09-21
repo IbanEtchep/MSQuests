@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
+import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
@@ -12,8 +13,11 @@ import java.util.stream.Collectors;
 
 public abstract class BukkitQuestAction extends QuestAction {
 
-    public BukkitQuestAction(QuestActionDTO rewardDto) {
+    protected final MSQuestsPlugin plugin;
+
+    public BukkitQuestAction(QuestActionDTO rewardDto, MSQuestsPlugin plugin) {
         super(rewardDto);
+        this.plugin = plugin;
     }
 
     protected Set<Player> getOnlinePlayers(Quest quest) {

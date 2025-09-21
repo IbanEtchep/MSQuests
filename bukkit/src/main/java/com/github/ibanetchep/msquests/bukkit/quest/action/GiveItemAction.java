@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
+import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
@@ -18,8 +19,8 @@ public class GiveItemAction extends BukkitQuestAction {
     private final Material item;
     private final int amount;
 
-    public GiveItemAction(QuestActionDTO dto) {
-        super(dto);
+    public GiveItemAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+        super(dto, plugin);
         this.item = Material.valueOf(((String) dto.config().get("item")).toUpperCase());
         this.amount = (int) dto.config().get("amount");
     }

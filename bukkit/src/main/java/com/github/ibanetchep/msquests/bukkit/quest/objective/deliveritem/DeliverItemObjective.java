@@ -1,9 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
-
-import java.util.UUID;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 
 public class DeliverItemObjective extends QuestObjective<DeliverItemObjectiveConfig> {
 

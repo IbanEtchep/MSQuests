@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.dto;
 
-import com.github.ibanetchep.msquests.core.quest.QuestObjectiveStatus;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 
 import java.util.UUID;
 

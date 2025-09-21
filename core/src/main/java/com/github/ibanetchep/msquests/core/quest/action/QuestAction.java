@@ -4,7 +4,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;

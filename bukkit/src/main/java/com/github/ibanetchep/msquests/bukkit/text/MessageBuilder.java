@@ -5,6 +5,8 @@ import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -131,7 +133,7 @@ public class MessageBuilder {
      * @return The message in legacy format with § color codes
      */
     public String toLegacyString() {
-        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(toComponent());
+        return LegacyComponentSerializer.legacySection().serialize(toComponent());
     }
 
     /**
@@ -140,6 +142,6 @@ public class MessageBuilder {
      * @return The message as plain text with all formatting removed
      */
     public String toPlainText() {
-        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(toComponent());
+        return PlainTextComponentSerializer.plainText().serialize(toComponent());
     }
 }

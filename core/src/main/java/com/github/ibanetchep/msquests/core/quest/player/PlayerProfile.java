@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.player;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,11 +56,10 @@ public class PlayerProfile {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends QuestObjective<?>> List<T> getObjectivesByType(String objectiveType) {
+    public <T extends QuestObjective<?>> List<T> getActiveObjectivesByType(String objectiveType) {
         return getActors().values().stream()
-                .flatMap(actor -> actor.getObjectivesByType(objectiveType).stream())
+                .flatMap(actor -> actor.getActiveObjectivesByType(objectiveType).stream())
                 .map(o -> (T) o)
-                .filter(objective -> objective.getObjectiveConfig().isValid())
                 .toList();
     }
 }

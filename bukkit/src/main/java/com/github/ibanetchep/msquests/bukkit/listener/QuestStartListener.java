@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.listener;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
-import com.github.ibanetchep.msquests.bukkit.event.QuestStartEvent;
+import com.github.ibanetchep.msquests.bukkit.event.QuestStartedEvent;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
@@ -18,7 +18,7 @@ public class QuestStartListener implements Listener {
     }
 
     @EventHandler
-    public void onStart(QuestStartEvent event) {
+    public void onStart(QuestStartedEvent event) {
         Quest quest = event.getQuest();
         QuestActor actor = event.getQuest().getActor();
 
