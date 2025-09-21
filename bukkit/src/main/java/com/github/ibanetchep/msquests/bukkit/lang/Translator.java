@@ -121,10 +121,16 @@ public class Translator {
                 logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
             }
 
-            String symbolKey = status.getSymbolTranslationKey();
-            if (!yamlDocument.contains(symbolKey)) {
-                yamlDocument.set(key, "__" + symbolKey.toLowerCase().replace(".", "_"));
-                logger.warning("Missing translation for key: " + symbolKey + " in " + locale + ".yml");
+            String prefixKey = status.getPrefixTranslationKey();
+            if (!yamlDocument.contains(prefixKey)) {
+                yamlDocument.set(key, "__" + prefixKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + prefixKey + " in " + locale + ".yml");
+            }
+
+            String suffixKey = status.getSuffixTranslationKey();
+            if (!yamlDocument.contains(suffixKey)) {
+                yamlDocument.set(key, "__" + suffixKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + suffixKey + " in " + locale + ".yml");
             }
         }
 
@@ -135,10 +141,16 @@ public class Translator {
                 logger.warning("Missing translation for key: " + key + " in " + locale + ".yml");
             }
 
-            String symbolKey = status.getSymbolTranslationKey();
-            if (!yamlDocument.contains(symbolKey)) {
-                yamlDocument.set(key, "__" + symbolKey.toLowerCase().replace(".", "_"));
-                logger.warning("Missing translation for key: " + symbolKey + " in " + locale + ".yml");
+            String prefixKey = status.getPrefixTranslationKey();
+            if (!yamlDocument.contains(prefixKey)) {
+                yamlDocument.set(key, "__" + prefixKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + prefixKey + " in " + locale + ".yml");
+            }
+
+            String suffixKey = status.getSuffixTranslationKey();
+            if (!yamlDocument.contains(suffixKey)) {
+                yamlDocument.set(key, "__" + suffixKey.toLowerCase().replace(".", "_"));
+                logger.warning("Missing translation for key: " + suffixKey + " in " + locale + ".yml");
             }
         }
 

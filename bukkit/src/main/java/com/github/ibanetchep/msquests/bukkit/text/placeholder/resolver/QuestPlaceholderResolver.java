@@ -16,7 +16,9 @@ public class QuestPlaceholderResolver implements PlaceholderResolver<Quest> {
         template = PlaceholderEngine.getInstance().apply(template, quest.getActor());
 
         return template
+                .replace("%quest_id%", quest.getId().toString())
                 .replace("%quest_status%", Translator.raw(quest.getStatus()))
-                .replace("%quest_status_symbol%", Translator.raw(quest.getStatus().getSymbolTranslationKey()));
+                .replace("%quest_status_prefix%", Translator.raw(quest.getStatus().getPrefixTranslationKey()))
+                .replace("%quest_status_suffix%", Translator.raw(quest.getStatus().getSuffixTranslationKey()));
     }
 }

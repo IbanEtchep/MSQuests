@@ -11,7 +11,8 @@ public class ObjectivePlaceholderResolver implements PlaceholderResolver<QuestOb
         return template
                 .replace("%objective_name%", Translator.raw(objective))
                 .replace("%objective_status%", Translator.raw(objective.getStatus()))
-                .replace("%objective_status_symbol%", Translator.raw(objective.getStatus().getSymbolTranslationKey()))
+                .replace("%objective_status_prefix%", Translator.raw(objective.getStatus().getPrefixTranslationKey()))
+                .replace("%objective_status_suffix%", Translator.raw(objective.getStatus().getSuffixTranslationKey()))
                 .replace("%objective_progress%", String.valueOf(objective.getProgress()))
                 .replace("%objective_progress_percent%", String.valueOf(objective.getProgressPercent()))
                 .replace("%objective_total%", String.valueOf(objective.getObjectiveConfig().getTargetAmount()));
