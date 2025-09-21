@@ -110,7 +110,7 @@ public class Quest {
         if (flow == Flow.PARALLEL) {
             return objectives.values().stream()
                     .filter(o -> o.getObjectiveConfig().isValid())
-                    .filter(o -> o.getStatus() != QuestObjectiveStatus.COMPLETED)
+                    .filter(o -> !o.isCompleted())
                     .toList();
         }
 
@@ -124,7 +124,7 @@ public class Quest {
 
     public @Nullable QuestObjective<?> getFirstActiveObjective() {
         return objectives.values().stream()
-                .filter(o -> o.getStatus() != QuestObjectiveStatus.COMPLETED)
+                .filter(o -> !o.isCompleted())
                 .findFirst().orElse(null);
     }
 

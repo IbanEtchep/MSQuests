@@ -13,7 +13,11 @@ public enum QuestStatus implements Translatable {
         return "quest.status." + name().toLowerCase();
     }
 
-    public String getSymbolTranslationKey() {
-        return "quest.status_symbol." + name().toLowerCase();
+    public String getPrefixTranslationKey() {
+        return "objective.status_prefix." + name().toLowerCase();
+    }
+
+    public String getSuffixTranslationKey() {
+        return "objective.status_suffix." + name().toLowerCase();
     }
 }

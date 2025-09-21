@@ -14,7 +14,11 @@ public enum QuestObjectiveStatus implements Translatable {
         return "objective.status." + name().toLowerCase();
     }
 
-    public String getSymbolTranslationKey() {
-        return "objective.status_symbol." + name().toLowerCase();
+    public String getPrefixTranslationKey() {
+        return "objective.status_prefix." + name().toLowerCase();
+    }
+
+    public String getSuffixTranslationKey() {
+        return "objective.status_suffix." + name().toLowerCase();
     }
 }
