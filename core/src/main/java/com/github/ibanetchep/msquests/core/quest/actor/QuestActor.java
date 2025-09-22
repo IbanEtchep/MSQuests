@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,8 +15,6 @@ public abstract class QuestActor {
     protected String name;
     protected final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
     protected final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
-
-    protected final Map<String, Set<QuestObjective<?>>> objectivesByType = new ConcurrentHashMap<>();
 
     public QuestActor(UUID id, String name) {
         this.id = id;
@@ -45,14 +43,10 @@ public abstract class QuestActor {
     public void addQuest(Quest quest) {
         quests.put(quest.getId(), quest);
         quest.setActor(this);
-
-        quest.getObjectives().values().forEach(this::addObjective);
     }
 
     public void removeQuest(Quest quest) {
         quests.remove(quest.getId());
-
-        quest.getObjectives().values().forEach(this::removeObjective);
     }
 
     public @Nullable Quest getActiveQuestByKey(String key) {
@@ -63,24 +57,10 @@ public abstract class QuestActor {
                 .orElse(null);
     }
 
-    private void addObjective(QuestObjective<?> objective) {
-        objectivesByType.computeIfAbsent(objective.getType(), k -> ConcurrentHashMap.newKeySet())
-                .add(objective);
-    }
-
-    private void removeObjective(QuestObjective<?> objective) {
-        Set<QuestObjective<?>> set = objectivesByType.get(objective.getType());
-        if (set != null) {
-            set.remove(objective);
-            if (set.isEmpty()) {
-                objectivesByType.remove(objective.getType());
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    public <T extends QuestObjective<?>> List<T> getActiveObjectivesByType(String objectiveType) {
+    public <T extends QuestObjective> List<T> getActiveObjectivesByType(String objectiveType) {
         return quests.values().stream()
+                .filter(Quest::isActive)
                 .flatMap(quest -> quest.getActiveObjectives().stream())
                 .filter(objective -> objective.getType().equals(objectiveType))
                 .map(o -> (T) o)

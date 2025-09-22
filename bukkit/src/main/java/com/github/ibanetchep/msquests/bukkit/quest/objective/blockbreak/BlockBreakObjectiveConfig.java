@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Material;
 
 import java.util.Map;
@@ -19,13 +19,12 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
         super(dto);
     }
 
-    @Override
-    public int getTargetAmount() {
-        return amount;
-    }
-
     public Material getMaterial() {
         return material;
+    }
+
+    public int getAmount() {
+        return amount;
     }
 
     @Override

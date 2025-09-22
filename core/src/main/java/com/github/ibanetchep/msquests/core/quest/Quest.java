@@ -1,14 +1,16 @@
 package com.github.ibanetchep.msquests.core.quest;
 
+import com.github.ibanetchep.msquests.core.dto.QuestDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Quest {
 
@@ -16,7 +18,7 @@ public class Quest {
     private QuestConfig questConfig;
     private QuestStatus status;
     private QuestActor actor;
-    private final Map<String, QuestObjective<?>> objectives = new LinkedHashMap<>();
+    private final Map<String, QuestObjective> objectives = new LinkedHashMap<>();
     @Nullable
     private Date completedAt;
     private Date createdAt;
@@ -88,15 +90,15 @@ public class Quest {
         this.questConfig = questConfig;
     }
 
-    public Map<String, QuestObjective<?>> getObjectives() {
+    public Map<String, QuestObjective> getObjectives() {
         return objectives;
     }
 
-    public void addObjective(QuestObjective<?> objective) {
+    public void addObjective(QuestObjective objective) {
         this.objectives.put(objective.getObjectiveConfig().getKey(), objective);
     }
 
-    public QuestObjective<?> getObjective(String key) {
+    public QuestObjective getObjective(String key) {
         return this.objectives.get(key);
     }
 
@@ -104,7 +106,7 @@ public class Quest {
         return questConfig.getGroup();
     }
 
-    public List<QuestObjective<?>> getActiveObjectives() {
+    public List<QuestObjective> getActiveObjectives() {
         Flow flow = questConfig.getFlow();
 
         if (flow == Flow.PARALLEL) {
@@ -122,13 +124,30 @@ public class Quest {
         return List.of();
     }
 
-    public @Nullable QuestObjective<?> getFirstActiveObjective() {
+    public @Nullable QuestObjective getFirstActiveObjective() {
         return objectives.values().stream()
                 .filter(o -> !o.isCompleted())
                 .findFirst().orElse(null);
     }
 
-    public  void handleObjectiveCompletion(QuestObjective<?> objective) {
+    public QuestDTO toDTO() {
+        Map<String, QuestObjectiveDTO> objectiveDtos = objectives.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().toDTO()
+                ));
 
+        return new QuestDTO(
+                id,
+                questConfig.getKey(),
+                questConfig.getGroup().getKey(),
+                actor.getId(),
+                status,
+                completedAt != null ? completedAt.getTime() : null,
+                createdAt.getTime(),
+                updatedAt.getTime(),
+                objectiveDtos
+        );
     }
+
 }

@@ -1,7 +1,11 @@
 package com.github.ibanetchep.msquests.core.platform;
 
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
-import com.github.ibanetchep.msquests.core.registry.*;
+import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
+import com.github.ibanetchep.msquests.core.registry.ActorTypeRegistry;
+import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
 import com.github.ibanetchep.msquests.core.service.QuestService;
 
@@ -14,9 +18,9 @@ public interface MSQuestsPlatform {
     QuestService getQuestService();
     QuestLifecycleService getQuestLifecycleService();
     QuestActorRegistry getQuestActorRegistry();
-    QuestConfigRegistry getQuestRegistry();
+    QuestConfigRegistry getQuestConfigRegistry();
     PlayerProfileRegistry getPlayerProfileRegistry();
     ActorTypeRegistry getActorTypeRegistry();
-    ObjectiveTypeRegistry getObjectiveTypeRegistry();
+    QuestObjectiveFactory getObjectiveTypeRegistry();
 
 }

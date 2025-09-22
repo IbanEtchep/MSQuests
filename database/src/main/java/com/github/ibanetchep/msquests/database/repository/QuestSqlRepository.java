@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.database.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.database.DbAccess;
 
@@ -29,7 +29,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                     q.expires_at as q_expires_at, q.created_at as q_created_at, 
                     q.updated_at as q_updated_at, q.actor_id as q_actor_id,
                     o.objective_key as o_key, o.objective_status as o_status, 
-                    o.progress as o_progress, o.quest_id as o_quest_id
+                    o.progress_tracker as o_progress_tracker, o.quest_id as o_quest_id
                 FROM msquests_quest q
                 LEFT JOIN msquests_objective o ON q.id = o.quest_id
                 WHERE q.actor_id = :actorId
@@ -63,7 +63,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         completedAt,
                                         createdAt,
                                         updatedAt,
-                                        new HashMap<>()  // map mutable ici
+                                        new HashMap<>()
                                 );
 
                                 quests.put(questId, quest);
@@ -72,13 +72,13 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                             String objKey = rs.getString("o_key");
                             if (objKey != null) {
                                 QuestObjectiveStatus objStatus = QuestObjectiveStatus.valueOf(rs.getString("o_status"));
-                                int progress = rs.getInt("o_progress");
+                                String progressJson = rs.getString("o_progress_tracker");
 
                                 QuestObjectiveDTO objective = new QuestObjectiveDTO(
                                         questId,
                                         objKey,
-                                        progress,
-                                        objStatus
+                                        objStatus,
+                                        progressJson
                                 );
 
                                 quests.get(questId).objectives().put(objKey, objective);
@@ -123,21 +123,22 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                     String questEntryId = obj.questEntryId().toString();
 
                     int updatedObj = handle.createUpdate(
-                                    "UPDATE msquests_objective SET objective_status = :status, progress = :progress " +
+                                    "UPDATE msquests_objective " +
+                                            "SET objective_status = :status, progress_tracker = :progress_tracker " +
                                             "WHERE quest_id = :questId AND objective_key = :objectiveKey")
                             .bind("objectiveKey", objectiveKey)
                             .bind("status", obj.objectiveStatus().toString())
-                            .bind("progress", obj.progress())
+                            .bind("progress_tracker", obj.progressTrackerJson())
                             .bind("questId", questEntryId)
                             .execute();
 
                     if (updatedObj == 0) {
                         handle.createUpdate(
-                                        "INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id) " +
-                                                "VALUES (:objectiveKey, :status, :progress, :questId)")
+                                        "INSERT INTO msquests_objective (objective_key, objective_status, progress_tracker, quest_id) " +
+                                                "VALUES (:objectiveKey, :status, :progress_tracker, :questId)")
                                 .bind("objectiveKey", objectiveKey)
                                 .bind("status", obj.objectiveStatus().toString())
-                                .bind("progress", obj.progress())
+                                .bind("progress_tracker", obj.progressTrackerJson())
                                 .bind("questId", questEntryId)
                                 .execute();
                     }

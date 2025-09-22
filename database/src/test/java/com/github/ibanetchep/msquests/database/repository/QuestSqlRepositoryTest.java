@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.database.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,8 +48,8 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         addFixture(questFixture);
 
         ObjectiveFixture objectiveFixture = new ObjectiveFixture()
-                .addObjective("collect_items", "IN_PROGRESS", 5, questId1)
-                .addObjective("defeat_boss", "COMPLETED", 1, questId2);
+                .addObjective("collect_items", "IN_PROGRESS", "5", questId1)
+                .addObjective("defeat_boss", "COMPLETED", "1", questId2);
         addFixture(objectiveFixture);
 
         loadFixtures();
@@ -121,7 +121,6 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         QuestObjectiveDTO objective = dailyQuest.objectives().get("collect_items");
         assertEquals("collect_items", objective.objectiveKey());
         assertEquals("IN_PROGRESS", objective.objectiveStatus().toString());
-        assertEquals(5, objective.progress());
 
         // Check that questId2 has objectiveId2
         QuestDTO mainStoryQuest = actorQuests.get(questId2);
@@ -147,7 +146,6 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         QuestObjectiveDTO objective = dailyQuest.objectives().get("collect_items");
         assertEquals("collect_items", objective.objectiveKey());
         assertEquals("IN_PROGRESS", objective.objectiveStatus().toString());
-        assertEquals(5, objective.progress());
 
         // Check that questId2 has objectiveId2
         QuestDTO mainStoryQuest = actorQuests.get(questId2);
@@ -156,19 +154,19 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         assertEquals(1, mainStoryQuest.objectives().size());
         assertTrue(mainStoryQuest.objectives().containsKey("defeat_boss"));
     }
-    
+
     @Test
     void testQuestGroupKeyIsLoaded() throws ExecutionException, InterruptedException {
         // Test H2
         Map<UUID, QuestDTO> h2Quests = h2Repository.getAllByActor(actorId1).get();
         assertEquals("daily", h2Quests.get(questId1).groupKey());
         assertEquals("story", h2Quests.get(questId2).groupKey());
-        
+
         // Test MySQL
         Map<UUID, QuestDTO> mysqlQuests = mysqlRepository.getAllByActor(actorId1).get();
         assertEquals("daily", mysqlQuests.get(questId1).groupKey());
         assertEquals("story", mysqlQuests.get(questId2).groupKey());
-        
+
         // Test for actor 2
         Map<UUID, QuestDTO> actor2Quests = h2Repository.getAllByActor(actorId2).get();
         assertEquals("side", actor2Quests.get(questId3).groupKey());
@@ -231,9 +229,9 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         QuestObjectiveDTO objective = new QuestObjectiveDTO(
                 questId,
                 "find_treasure",
-                0,
-                QuestObjectiveStatus.IN_PROGRESS
-                );
+                QuestObjectiveStatus.IN_PROGRESS,
+                ""
+        );
 
         QuestDTO quest = new QuestDTO(
                 questId,
@@ -256,6 +254,5 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
 
         QuestObjectiveDTO loadedObjective = loaded.objectives().get("find_treasure");
         assertEquals("IN_PROGRESS", loadedObjective.objectiveStatus().toString());
-        assertEquals(0, loadedObjective.progress());
     }
 }

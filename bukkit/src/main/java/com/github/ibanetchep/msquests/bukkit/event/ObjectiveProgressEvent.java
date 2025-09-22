@@ -15,7 +15,7 @@ public class ObjectiveProgressEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final QuestObjective<?> objective;
+    private final QuestObjective objective;
     private final @Nullable PlayerProfile profile;
     private boolean cancelled;
 
@@ -23,12 +23,12 @@ public class ObjectiveProgressEvent extends Event implements Cancellable {
      * @param objective - progressed objective
      * @param profile - profile who triggered the progress
      */
-    public ObjectiveProgressEvent(QuestObjective<?> objective, @Nullable PlayerProfile profile) {
+    public ObjectiveProgressEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
         this.objective = objective;
         this.profile = profile;
     }
 
-    public QuestObjective<?> getObjective() {
+    public QuestObjective getObjective() {
         return  objective;
     }
 

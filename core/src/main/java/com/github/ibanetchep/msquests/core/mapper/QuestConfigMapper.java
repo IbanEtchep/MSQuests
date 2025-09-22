@@ -1,13 +1,13 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
+import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
+import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
+import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
-import com.github.ibanetchep.msquests.core.registry.ObjectiveTypeRegistry;
-import com.github.ibanetchep.msquests.core.registry.ActionTypeRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,11 +16,11 @@ import java.util.Map;
 
 public class QuestConfigMapper {
 
-    private final ObjectiveTypeRegistry objectiveTypeRegistry;
-    private final ActionTypeRegistry rewardTypeRegistry;
+    private final QuestObjectiveFactory questObjectiveFactory;
+    private final QuestActionFactory rewardTypeRegistry;
 
-    public QuestConfigMapper(ObjectiveTypeRegistry objectiveTypeRegistry, ActionTypeRegistry rewardTypeRegistry) {
-        this.objectiveTypeRegistry = objectiveTypeRegistry;
+    public QuestConfigMapper(QuestObjectiveFactory questObjectiveFactory, QuestActionFactory rewardTypeRegistry) {
+        this.questObjectiveFactory = questObjectiveFactory;
         this.rewardTypeRegistry = rewardTypeRegistry;
     }
 
@@ -72,7 +72,7 @@ public class QuestConfigMapper {
 
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();
-            QuestObjectiveConfig objective = objectiveTypeRegistry.createConfig(objectiveDto);
+            QuestObjectiveConfig objective = questObjectiveFactory.createConfig(objectiveDto);
             questConfig.addObjective(objective);
         }
 

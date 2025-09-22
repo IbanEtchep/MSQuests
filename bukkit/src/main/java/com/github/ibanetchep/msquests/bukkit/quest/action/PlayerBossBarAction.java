@@ -62,7 +62,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestObjective<?> objective) {
+    public void execute(QuestObjective objective) {
         double progress = objective.getProgressPercent() / 100.0;
 
         Component text = MessageBuilder.raw(resolveMessage())
