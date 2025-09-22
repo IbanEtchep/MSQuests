@@ -49,7 +49,7 @@ public class CreateTablesMigration extends Migration {
             CREATE TABLE IF NOT EXISTS msquests_objective (
                 objective_key VARCHAR(255) NOT NULL,
                 objective_status VARCHAR(50) NOT NULL,
-                progress INTEGER DEFAULT 0,
+                progress_tracker TEXT,
                 started_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 quest_id CHAR(36) NOT NULL REFERENCES msquests_quest(id) ON DELETE CASCADE,

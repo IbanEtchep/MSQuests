@@ -1,11 +1,11 @@
 package com.github.ibanetchep.msquests.bukkit.repository;
 
+import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupType;
+import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;

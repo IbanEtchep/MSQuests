@@ -14,19 +14,19 @@ public class ObjectiveCompletedEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final QuestObjective<?> objective;
+    private final QuestObjective objective;
     private final @Nullable PlayerProfile profile;
 
     /**
      * @param objective - progressed objective
      * @param profile - profile who triggered the progress
      */
-    public ObjectiveCompletedEvent(QuestObjective<?> objective, @Nullable PlayerProfile profile) {
+    public ObjectiveCompletedEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
         this.objective = objective;
         this.profile = profile;
     }
 
-    public QuestObjective<?> getObjective() {
+    public QuestObjective getObjective() {
         return  objective;
     }
 

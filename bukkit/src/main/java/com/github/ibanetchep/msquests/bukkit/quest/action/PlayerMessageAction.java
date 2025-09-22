@@ -37,7 +37,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
                 .applyPlaceholderResolver(quest);
 
         if(resolveObjectiveTemplate() != null) {
-            List<QuestObjective<?>> objectiveList = quest.getObjectives().values().stream().toList();
+            List<QuestObjective> objectiveList = quest.getObjectives().values().stream().toList();
             String template = resolveObjectiveTemplate();
             messageBuilder.listPlaceholder("objectives", objectiveList, objective ->
                     MessageBuilder.raw(template).applyPlaceholderResolver(objective).toStringRaw());
@@ -53,7 +53,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestObjective<?> objective) {
+    public void execute(QuestObjective objective) {
         Quest quest = objective.getQuest();
 
         getOnlinePlayers(quest).forEach(player -> {

@@ -31,8 +31,7 @@ public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
         );
     }
 
-    @Override
-    public int getTargetAmount() {
+    public int getAmount() {
         return amount;
     }
 

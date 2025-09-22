@@ -1,9 +1,9 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
-import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import org.bukkit.Material;
 
 import java.util.Map;
@@ -37,8 +37,7 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
         );
     }
 
-    @Override
-    public int getTargetAmount() {
+    public int getAmount() {
         return amount;
     }
 
@@ -48,10 +47,6 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
 
     public String getItemKey() {
         return itemKey;
-    }
-
-    public int getAmount() {
-        return amount;
     }
 
     @Override

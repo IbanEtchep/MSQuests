@@ -20,7 +20,7 @@ public class QuestProgressListener implements Listener {
 
     @EventHandler
     public void onStart(ObjectiveProgressedEvent event) {
-        QuestObjective<?> objective = event.getObjective();
+        QuestObjective objective = event.getObjective();
         Quest quest = objective.getQuest();
         QuestActor actor = quest.getActor();
 

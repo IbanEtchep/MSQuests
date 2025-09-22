@@ -22,12 +22,12 @@ public class QuestGroupParameterType implements ParameterType<BukkitCommandActor
     public QuestGroupConfig parse(@NotNull MutableStringStream input, @NotNull ExecutionContext<BukkitCommandActor> executionContext) {
         String value = input.readString();
 
-        return plugin.getQuestRegistry().getQuestGroupConfigs().get(value);
+        return plugin.getQuestConfigRegistry().getQuestGroupConfigs().get(value);
     }
 
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
-        return (context) -> plugin.getQuestRegistry().getQuestGroupConfigs().keySet();
+        return (context) -> plugin.getQuestConfigRegistry().getQuestGroupConfigs().keySet();
     }
 
     @Override

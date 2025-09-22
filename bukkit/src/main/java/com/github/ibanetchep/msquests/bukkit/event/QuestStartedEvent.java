@@ -1,7 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

@@ -27,13 +27,13 @@ import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepositor
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
+import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
+import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
-import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
@@ -48,7 +48,6 @@ import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.Lamp;
@@ -58,19 +57,21 @@ import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private EventDispatcher eventDispatcher;
 
     private QuestFactory questFactory;
+    private QuestObjectiveFactory questObjectiveFactory;
+    private QuestActionFactory questActionFactory;
 
     private PlayerProfileRegistry playerProfileRegistry;
     private ActorTypeRegistry actorTypeRegistry;
-    private ObjectiveTypeRegistry objectiveTypeRegistry;
-    private ActionTypeRegistry actionTypeRegistry;
-    private QuestConfigRegistry questRegistry;
+    private QuestConfigRegistry questConfigRegistry;
     private QuestActorRegistry questActorRegistry;
+    private QuestRegistry questRegistry;
 
     private QuestConfigService questConfigService;
     private PlayerProfileService playerProfileService;
@@ -92,10 +93,11 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         foliaLib = new FoliaLib(this);
         eventDispatcher = new BukkitEventDispatcher(this);
 
-        questRegistry = new QuestConfigRegistry();
+        questConfigRegistry = new QuestConfigRegistry();
+        questRegistry = new QuestRegistry();
         actorTypeRegistry = new ActorTypeRegistry();
-        objectiveTypeRegistry = new ObjectiveTypeRegistry();
-        actionTypeRegistry = new ActionTypeRegistry();
+        questObjectiveFactory = new QuestObjectiveFactory();
+        questActionFactory = new QuestActionFactory();
         playerProfileRegistry = new PlayerProfileRegistry();
         questActorRegistry = new QuestActorRegistry();
 
@@ -107,27 +109,28 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         loadDatabase();
         loadTranslator();
 
-        questFactory = new QuestFactory(objectiveTypeRegistry);
+        questFactory = new QuestFactory(questObjectiveFactory);
 
         QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"));
         ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
         QuestSqlRepository questRepository = new QuestSqlRepository(dbAccess);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
 
-        QuestConfigMapper questConfigMapper = new QuestConfigMapper(objectiveTypeRegistry, actionTypeRegistry);
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
-        QuestMapper questEntryMapper = new QuestMapper(questFactory);
 
-        questService = new QuestService(getLogger(), questRegistry, actorRepository, questRepository, questEntryMapper);
+        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
-        questConfigService = new QuestConfigService(getLogger(), questRegistry, questConfigRepository, questGroupMapper);
+        questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();
         registerCommands();
+
+        getScheduler().runTimer(() -> questService.saveDirtyQuests(), 30, 30, TimeUnit.SECONDS);
     }
 
     @Override
@@ -205,40 +208,35 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     private void registerObjectiveTypes() {
-        objectiveTypeRegistry.registerType(
+        questObjectiveFactory.registerType(
                 ObjectiveTypes.BLOCK_BREAK,
                 BlockBreakObjectiveConfig::new,
-                BlockBreakObjective.class,
-                new BlockBreakObjectiveHandler(this)
+                BlockBreakObjective::new
         );
-        objectiveTypeRegistry.registerType(
+        questObjectiveFactory.registerType(
                 ObjectiveTypes.DELIVER_ITEM,
                 DeliverItemObjectiveConfig::new,
-                DeliverItemObjective.class,
-                new DeliverItemObjectiveHandler(this)
+                DeliverItemObjective::new
         );
-        objectiveTypeRegistry.registerType(
+        questObjectiveFactory.registerType(
                 ObjectiveTypes.KILL_ENTITY,
                 KillEntityObjectiveConfig::new,
-                KillEntityObjective.class,
-                new KillEntityObjectiveHandler(this)
+                KillEntityObjective::new
         );
 
-        for (QuestObjectiveHandler<?> handler : objectiveTypeRegistry.getHandlers().values()) {
-            if(handler instanceof Listener listener) {
-                getServer().getPluginManager().registerEvents(listener, this);
-            }
-        }
+        getServer().getPluginManager().registerEvents(new BlockBreakObjectiveHandler(this), this);
+        getServer().getPluginManager().registerEvents(new DeliverItemObjectiveHandler(this), this);
+        getServer().getPluginManager().registerEvents(new KillEntityObjectiveHandler(this), this);
     }
 
     public void registerActionTypes() {
-        actionTypeRegistry.registerType("command", dto -> new CommandAction(dto, this));
-        actionTypeRegistry.registerType("player_command", dto -> new PlayerCommandAction(dto, this));
-        actionTypeRegistry.registerType("give_item", dto -> new GiveItemAction(dto, this));
-        actionTypeRegistry.registerType("message", dto -> new PlayerMessageAction(dto, this));
-        actionTypeRegistry.registerType("action_bar", dto -> new PlayerActionBarAction(dto, this));
-        actionTypeRegistry.registerType("title", dto -> new PlayerTitleAction(dto, this));
-        actionTypeRegistry.registerType("boss_bar", dto -> new PlayerBossBarAction(dto, this));
+        questActionFactory.registerType("command", dto -> new CommandAction(dto, this));
+        questActionFactory.registerType("player_command", dto -> new PlayerCommandAction(dto, this));
+        questActionFactory.registerType("give_item", dto -> new GiveItemAction(dto, this));
+        questActionFactory.registerType("message", dto -> new PlayerMessageAction(dto, this));
+        questActionFactory.registerType("action_bar", dto -> new PlayerActionBarAction(dto, this));
+        questActionFactory.registerType("title", dto -> new PlayerTitleAction(dto, this));
+        questActionFactory.registerType("boss_bar", dto -> new PlayerBossBarAction(dto, this));
     }
 
     public void registerActorTypes() {
@@ -246,8 +244,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         actorTypeRegistry.registerType("global", QuestGlobalActor.class);
     }
 
-    public QuestConfigRegistry getQuestRegistry() {
-        return questRegistry;
+    public QuestConfigRegistry getQuestConfigRegistry() {
+        return questConfigRegistry;
     }
 
     @Override
@@ -300,12 +298,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     @Override
-    public ObjectiveTypeRegistry getObjectiveTypeRegistry() {
-        return objectiveTypeRegistry;
+    public QuestObjectiveFactory getObjectiveTypeRegistry() {
+        return questObjectiveFactory;
     }
 
-    public ActionTypeRegistry getActionTypeRegistry() {
-        return actionTypeRegistry;
+    public QuestActionFactory getQuestActionFactory() {
+        return questActionFactory;
     }
 
     public GlobalConfig getGlobalConfig() {

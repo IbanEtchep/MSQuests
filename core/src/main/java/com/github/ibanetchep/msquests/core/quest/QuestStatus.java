@@ -14,10 +14,10 @@ public enum QuestStatus implements Translatable {
     }
 
     public String getPrefixTranslationKey() {
-        return "objective.status_prefix." + name().toLowerCase();
+        return "quest.status_prefix." + name().toLowerCase();
     }
 
     public String getSuffixTranslationKey() {
-        return "objective.status_suffix." + name().toLowerCase();
+        return "quest.status_suffix." + name().toLowerCase();
     }
 }

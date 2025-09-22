@@ -1,11 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 

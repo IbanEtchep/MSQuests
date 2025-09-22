@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.registry;
+package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class ActionTypeRegistry {
+public class QuestActionFactory {
 
     private final Map<String, Function<QuestActionDTO, QuestAction>> registeredTypes = new HashMap<>();
 

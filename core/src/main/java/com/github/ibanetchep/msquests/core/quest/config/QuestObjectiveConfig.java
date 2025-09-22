@@ -24,8 +24,6 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
     }
 
     public abstract QuestObjectiveConfigDTO toDTO();
-    public abstract int getTargetAmount();
-
 
     protected void loadConfig(Map<String, Object> config) {
         for (Field field : this.getClass().getDeclaredFields()) {
@@ -126,12 +124,5 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
     @Override
     public String getTranslationKey() {
         return "objective." + type;
-    }
-
-    @Override
-    public Map<String, String> getPlaceholders() {
-        return Map.of(
-                "amount", String.valueOf(getTargetAmount())
-        );
     }
 }

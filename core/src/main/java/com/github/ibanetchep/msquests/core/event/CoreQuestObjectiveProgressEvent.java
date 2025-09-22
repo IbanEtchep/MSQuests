@@ -6,15 +6,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class CoreQuestObjectiveProgressEvent extends CancellableCoreEvent {
 
-    private final QuestObjective<?> objective;
+    private final QuestObjective objective;
     private final @Nullable PlayerProfile profile;
 
-    public CoreQuestObjectiveProgressEvent(QuestObjective<?> objective, @Nullable PlayerProfile profile) {
+    public CoreQuestObjectiveProgressEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
         this.objective = objective;
         this.profile = profile;
     }
 
-    public QuestObjective<?> getObjective() {
+    public QuestObjective getObjective() {
         return objective;
     }
 

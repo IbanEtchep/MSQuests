@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.database.repository;
 
-import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
+import com.github.ibanetchep.msquests.database.DbAccess;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

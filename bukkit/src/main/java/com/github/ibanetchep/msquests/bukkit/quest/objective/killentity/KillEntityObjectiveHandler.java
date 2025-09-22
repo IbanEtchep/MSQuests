@@ -3,7 +3,6 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
-import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -35,15 +34,11 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
 
         for (KillEntityObjective objective : getQuestObjectives(profile)) {
-            QuestActor actor = objective.getQuest().getActor();
-
-            if (!actor.isMember(player.getUniqueId())) {
-                return;
-            }
-
             EntityType entityType = entity.getType();
+
             if(entityType == objective.getObjectiveConfig().getEntityType() && !objective.isCompleted()) {
-                updateProgress(objective, 1, profile);
+                Runnable progressAction = () -> objective.getProgressTracker().incrementProgress(1);
+                platform.getQuestLifecycleService().updateObjectiveProgress(objective, progressAction, profile);
             }
         }
     }

@@ -5,10 +5,10 @@ import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -68,7 +68,7 @@ public class QuestAdminCommand {
                         actor.getQuestsByGroup(group, page),
                         quest -> {
                             StringBuilder objectivesBuilder = new StringBuilder();
-                            for (QuestObjective<?> obj : quest.getObjectives().values()) {
+                            for (QuestObjective obj : quest.getObjectives().values()) {
                                 String rendered = MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_LIST_OBJECTIVE_TEMPLATE)
                                         .applyPlaceholderResolver(obj)
                                         .toStringRaw();

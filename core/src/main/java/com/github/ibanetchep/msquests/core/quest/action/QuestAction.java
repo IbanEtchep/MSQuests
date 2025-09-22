@@ -32,7 +32,7 @@ public abstract class QuestAction implements Translatable, PlaceholderProvider {
 
     public abstract void execute(Quest quest);
 
-    public void execute(QuestObjective<?> objective) {
+    public void execute(QuestObjective objective) {
         execute(objective.getQuest());
     }
 

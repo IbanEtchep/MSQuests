@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
-import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import org.bukkit.event.Cancellable;
@@ -15,15 +14,21 @@ public class QuestStartEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private Quest quest;
+    private final QuestActor actor;
+    private final QuestConfig questConfig;
     private boolean cancelled;
 
-    public QuestStartEvent(Quest quest) {
-        this.quest = quest;
+    public QuestStartEvent(QuestActor actor, QuestConfig questConfig) {
+        this.actor = actor;
+        this.questConfig = questConfig;
     }
 
-    public Quest getQuest() {
-        return quest;
+    public QuestActor getActor() {
+        return actor;
+    }
+
+    public QuestConfig getQuestConfig() {
+        return questConfig;
     }
 
     @Override

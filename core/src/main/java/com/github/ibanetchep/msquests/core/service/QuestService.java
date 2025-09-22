@@ -1,15 +1,16 @@
 package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
-import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
+import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
-import com.github.ibanetchep.msquests.core.repository.ActorRepository;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,21 +18,23 @@ import java.util.logging.Logger;
 public class QuestService {
 
     private final Logger logger;
-    private final QuestConfigRegistry questRegistry;
+    private final QuestConfigRegistry questConfigRegistry;
     private final QuestRepository questRepository;
-    private final QuestMapper questMapper;
+    private final QuestFactory questFactory;
+    private final QuestRegistry questRegistry;
 
     public QuestService(
             Logger logger,
-            QuestConfigRegistry questRegistry,
-            ActorRepository actorRepository,
+            QuestConfigRegistry questConfigRegistry,
             QuestRepository questRepository,
-            QuestMapper questMapper
+            QuestFactory questFactory,
+            QuestRegistry questRegistry
     ) {
         this.logger = logger;
-        this.questRegistry = questRegistry;
+        this.questConfigRegistry = questConfigRegistry;
         this.questRepository = questRepository;
-        this.questMapper = questMapper;
+        this.questFactory = questFactory;
+        this.questRegistry = questRegistry;
     }
 
 
@@ -39,7 +42,7 @@ public class QuestService {
         return questRepository.getAllByActor(actor.getId())
                 .thenAccept(questEntryDtos -> {
                     for (QuestDTO questDTO : questEntryDtos.values()) {
-                        QuestGroupConfig questGroupConfig = questRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
+                        QuestGroupConfig questGroupConfig = questConfigRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
 
                         if (questGroupConfig == null) {
                             logger.warning("Could not find group " + questDTO.groupKey() + " for quest " + questDTO.questKey());
@@ -53,17 +56,31 @@ public class QuestService {
                             continue;
                         }
 
-                        Quest quest = questMapper.toEntity(questDTO, actor, questConfig);
-                        actor.addQuest(quest);
+                        Quest quest = questFactory.createQuest(questConfig, actor, questDTO);
+                        questRegistry.registerQuest(quest);
                     }
+                })
+                .exceptionally(e -> {
+                    logger.log(Level.SEVERE, "Failed to load quests", e);
+                    return null;
                 });
     }
 
 
-    public void saveQuest(Quest quest) {
-        questRepository.save(questMapper.toDto(quest)).exceptionally(e -> {
+    public CompletableFuture<Void> saveQuest(Quest quest) {
+        return questRepository.save(quest.toDTO()).exceptionally(e -> {
             logger.log(Level.SEVERE, "Failed to save quest", e);
             return null;
+        });
+    }
+
+    public void saveDirtyQuests() {
+        Collection<Quest> dirtyQuests = questRegistry.getDirtyQuests();
+        logger.info("Saving " + dirtyQuests.size() + " dirty quests");
+
+        dirtyQuests.forEach(quest -> {
+            saveQuest(quest);
+            questRegistry.clearDirty(quest);
         });
     }
 }

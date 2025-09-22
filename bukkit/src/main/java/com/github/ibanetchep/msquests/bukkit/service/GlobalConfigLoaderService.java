@@ -101,7 +101,7 @@ public class GlobalConfigLoaderService {
             }
 
             QuestActionDTO questActionDTO = new QuestActionDTO(type, name, map);
-            actions.add(plugin.getActionTypeRegistry().createAction(questActionDTO));
+            actions.add(plugin.getQuestActionFactory().createAction(questActionDTO));
         }
 
         return actions;
