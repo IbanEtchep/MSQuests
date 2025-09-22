@@ -9,10 +9,7 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParamet
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.Translator;
-import com.github.ibanetchep.msquests.bukkit.listener.PlayerJoinListener;
-import com.github.ibanetchep.msquests.bukkit.listener.QuestCompleteListener;
-import com.github.ibanetchep.msquests.bukkit.listener.QuestProgressListener;
-import com.github.ibanetchep.msquests.bukkit.listener.QuestStartListener;
+import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
@@ -131,10 +128,6 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         registerListeners();
         registerCommands();
-
-        questConfigService.loadQuestGroups();
-
-        Bukkit.getOnlinePlayers().forEach(player -> questPlayerService.loadPlayer(player));
     }
 
     @Override
@@ -204,6 +197,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     public void registerListeners() {
         PluginManager pluginManager = getServer().getPluginManager();
+        pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
         pluginManager.registerEvents(new QuestStartListener(this), this);
         pluginManager.registerEvents(new QuestCompleteListener(this), this);
