@@ -19,6 +19,7 @@ public class QuestStartEvent extends Event implements Cancellable {
     private boolean cancelled;
 
     public QuestStartEvent(QuestActor actor, QuestConfig questConfig) {
+        super(true);
         this.actor = actor;
         this.questConfig = questConfig;
     }

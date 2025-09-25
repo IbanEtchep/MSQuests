@@ -22,13 +22,13 @@ public class QuestGroupMapper {
      * @param entity The QuestGroup entity to convert
      * @return The converted QuestGroupDTO
      */
-    public QuestGroupDTO toDto(QuestGroupConfig entity) {
+    public QuestGroupDTO toDTO(QuestGroupConfig entity) {
         if (entity == null) {
             return null;
         }
 
         List<QuestConfigDTO> questDtos = entity.getOrderedQuests().stream()
-                .map(questConfigMapper::toDto)
+                .map(questConfigMapper::toDTO)
                 .toList();
 
         int maxActiveQuests = 0;

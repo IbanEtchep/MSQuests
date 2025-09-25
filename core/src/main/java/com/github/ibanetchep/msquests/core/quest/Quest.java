@@ -130,24 +130,4 @@ public class Quest {
                 .findFirst().orElse(null);
     }
 
-    public QuestDTO toDTO() {
-        Map<String, QuestObjectiveDTO> objectiveDtos = objectives.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().toDTO()
-                ));
-
-        return new QuestDTO(
-                id,
-                questConfig.getKey(),
-                questConfig.getGroup().getKey(),
-                actor.getId(),
-                status,
-                completedAt != null ? completedAt.getTime() : null,
-                createdAt.getTime(),
-                updatedAt.getTime(),
-                objectiveDtos
-        );
-    }
-
 }

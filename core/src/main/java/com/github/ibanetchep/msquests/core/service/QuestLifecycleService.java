@@ -7,14 +7,20 @@ import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicObjectiveExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public class QuestLifecycleService {
 
     private final EventDispatcher dispatcher;
+    private AtomicQuestExecutor executor;
+    private AtomicObjectiveExecutor objectiveExecutor;
     private final QuestService persistenceService;
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
@@ -23,12 +29,16 @@ public class QuestLifecycleService {
             EventDispatcher dispatcher,
             QuestService persistenceService,
             QuestFactory questFactory,
-            QuestRegistry questRegistry
+            QuestRegistry questRegistry,
+            AtomicQuestExecutor executor,
+            AtomicObjectiveExecutor objectiveExecutor
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
         this.questFactory = questFactory;
         this.questRegistry = questRegistry;
+        this.executor = executor;
+        this.objectiveExecutor = objectiveExecutor;
     }
 
     public boolean startQuest(QuestActor actor, QuestConfig questConfig) {
@@ -50,51 +60,61 @@ public class QuestLifecycleService {
         CoreQuestStartedEvent startedEvent = new CoreQuestStartedEvent(quest);
         dispatcher.dispatch(startedEvent);
 
-        questRegistry.registerQuest(quest);
-        persistenceService.saveQuest(quest);
+        executor.execute(quest, updatedQuest -> {
+            questRegistry.registerQuest(updatedQuest);
+            persistenceService.saveQuest(updatedQuest).join();
+        });
 
         return true;
     }
 
-    public void updateObjectiveProgress(QuestObjective objective, Runnable progressAction, @Nullable PlayerProfile profile) {
-        var progressEvent = new CoreQuestObjectiveProgressEvent(objective, profile);
-        dispatcher.dispatch(progressEvent);
-        if (progressEvent.isCancelled()) return;
+    public <T extends QuestObjective> void updateObjectiveProgress(T objective, Consumer<T> progressAction, @Nullable PlayerProfile profile) {
+        objectiveExecutor.execute(objective, updatedObjective -> {
+            Quest quest = updatedObjective.getQuest();
 
-        progressAction.run();
+            var progressEvent = new CoreQuestObjectiveProgressEvent(objective, profile);
+            dispatcher.dispatch(progressEvent);
+            if (progressEvent.isCancelled()) return;
 
-        var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
-        dispatcher.dispatch(progressedEvent);
+            progressAction.accept(updatedObjective);
 
-        if (objective.isCompleted()) {
-            var objectiveCompleteEvent = new CoreQuestObjectiveCompleteEvent(objective, profile);
-            dispatcher.dispatch(objectiveCompleteEvent);
+            var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
+            dispatcher.dispatch(progressedEvent);
 
-            Quest quest = objective.getQuest();
-            if (quest.getObjectives().values().stream().allMatch(QuestObjective::isCompleted)) {
-                var questCompleteEvent = new CoreQuestCompletedEvent(quest);
-                dispatcher.dispatch(questCompleteEvent);
-                quest.setStatus(QuestStatus.COMPLETED);
+            if (objective.isCompleted()) {
+                var objectiveCompleteEvent = new CoreQuestObjectiveCompleteEvent(objective, profile);
+                dispatcher.dispatch(objectiveCompleteEvent);
+
+                if (quest.getObjectives().values().stream().allMatch(QuestObjective::isCompleted)) {
+                    var questCompleteEvent = new CoreQuestCompletedEvent(quest);
+                    dispatcher.dispatch(questCompleteEvent);
+                    quest.setStatus(QuestStatus.COMPLETED);
+                }
+
+                persistenceService.saveQuest(objective.getQuest()).join();
+                return;
             }
 
-            persistenceService.saveQuest(objective.getQuest());
-            return;
-        }
-
-        questRegistry.markDirty(objective.getQuest());
+            questRegistry.markDirty(objective.getQuest());
+        }).exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
 
 
     public void completeQuest(Quest quest) {
-        quest.setStatus(QuestStatus.COMPLETED);
+        executor.execute(quest, updatedQuest -> {
+            updatedQuest.setStatus(QuestStatus.COMPLETED);
 
-        CoreQuestCompletedEvent event = new CoreQuestCompletedEvent(quest);
-        dispatcher.dispatch(event);
+            CoreQuestCompletedEvent event = new CoreQuestCompletedEvent(updatedQuest);
+            dispatcher.dispatch(event);
 
-        for (QuestAction questAction : quest.getQuestConfig().getRewards()) {
-            questAction.execute(quest);
-        }
+            for (QuestAction questAction : updatedQuest.getQuestConfig().getRewards()) {
+                questAction.execute(updatedQuest);
+            }
 
-        persistenceService.saveQuest(quest);
+            persistenceService.saveQuest(updatedQuest).join();
+        });
     }
 }

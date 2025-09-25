@@ -23,6 +23,7 @@ public class ObjectiveProgressedEvent extends Event {
      * @param profile - profile who triggered the progress
      */
     public ObjectiveProgressedEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
+        super(true);
         this.objective = objective;
         this.profile = profile;
     }

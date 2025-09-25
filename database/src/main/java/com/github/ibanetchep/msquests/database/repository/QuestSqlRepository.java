@@ -28,8 +28,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                     q.started_at as q_started_at, q.completed_at as q_completed_at, 
                     q.expires_at as q_expires_at, q.created_at as q_created_at, 
                     q.updated_at as q_updated_at, q.actor_id as q_actor_id,
-                    o.objective_key as o_key, o.objective_status as o_status, 
-                    o.progress_tracker as o_progress_tracker, o.quest_id as o_quest_id
+                    o.objective_key as o_key, o.objective_status as o_status, o.objective_type as o_type,
+                    o.progress as o_progress, o.quest_id as o_quest_id
                 FROM msquests_quest q
                 LEFT JOIN msquests_objective o ON q.id = o.quest_id
                 WHERE q.actor_id = :actorId
@@ -72,11 +72,13 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                             String objKey = rs.getString("o_key");
                             if (objKey != null) {
                                 QuestObjectiveStatus objStatus = QuestObjectiveStatus.valueOf(rs.getString("o_status"));
-                                String progressJson = rs.getString("o_progress_tracker");
+                                String progressJson = rs.getString("o_progress");
+                                String type = rs.getString("o_type");
 
                                 QuestObjectiveDTO objective = new QuestObjectiveDTO(
                                         questId,
                                         objKey,
+                                        type,
                                         objStatus,
                                         progressJson
                                 );
@@ -124,21 +126,23 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
                     int updatedObj = handle.createUpdate(
                                     "UPDATE msquests_objective " +
-                                            "SET objective_status = :status, progress_tracker = :progress_tracker " +
+                                            "SET objective_status = :status, progress = :progress, objective_type = :type " +
                                             "WHERE quest_id = :questId AND objective_key = :objectiveKey")
                             .bind("objectiveKey", objectiveKey)
                             .bind("status", obj.objectiveStatus().toString())
-                            .bind("progress_tracker", obj.progressTrackerJson())
+                            .bind("progress", obj.progressJson())
                             .bind("questId", questEntryId)
+                            .bind("type", obj.objectiveType())
                             .execute();
 
                     if (updatedObj == 0) {
                         handle.createUpdate(
-                                        "INSERT INTO msquests_objective (objective_key, objective_status, progress_tracker, quest_id) " +
-                                                "VALUES (:objectiveKey, :status, :progress_tracker, :questId)")
+                                        "INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id, objective_type) " +
+                                                "VALUES (:objectiveKey, :status, :progress, :questId, :type)")
                                 .bind("objectiveKey", objectiveKey)
                                 .bind("status", obj.objectiveStatus().toString())
-                                .bind("progress_tracker", obj.progressTrackerJson())
+                                .bind("progress", obj.progressJson())
+                                .bind("type", obj.objectiveType())
                                 .bind("questId", questEntryId)
                                 .execute();
                     }

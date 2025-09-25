@@ -24,7 +24,7 @@ public class QuestConfigMapper {
         this.rewardTypeRegistry = rewardTypeRegistry;
     }
 
-    public QuestConfigDTO toDto(QuestConfig entity) {
+    public QuestConfigDTO toDTO(QuestConfig entity) {
         Map<String, QuestObjectiveConfigDTO> objectiveDtos = new HashMap<>();
 
         if (entity.getObjectives() != null) {
