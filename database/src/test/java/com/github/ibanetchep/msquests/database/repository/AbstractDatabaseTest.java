@@ -204,10 +204,12 @@ public abstract class AbstractDatabaseTest {
         private final List<String> objectiveStatuses = new ArrayList<>();
         private final List<String> progresses = new ArrayList<>();
         private final List<UUID> questIds = new ArrayList<>();
+        private final List<String> objectiveTypes = new ArrayList<>();
 
-        public ObjectiveFixture addObjective(String key, String status, String progress, UUID questId) {
+        public ObjectiveFixture addObjective(String key, String type, String status, String progress, UUID questId) {
             objectiveKeys.add(key);
             objectiveStatuses.add(status);
+            objectiveTypes.add(type);
             progresses.add(progress);
             questIds.add(questId);
             return this;
@@ -215,13 +217,14 @@ public abstract class AbstractDatabaseTest {
 
         @Override
         public void load(Connection connection) throws SQLException {
-            String sql = "INSERT INTO msquests_objective (objective_key, objective_status, progress_tracker, quest_id) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO msquests_objective (objective_key, objective_status, progress, quest_id, objective_type) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 for (int i = 0; i < objectiveKeys.size(); i++) {
                     stmt.setString(1, objectiveKeys.get(i));
                     stmt.setString(2, objectiveStatuses.get(i));
                     stmt.setString(3, progresses.get(i));
                     stmt.setString(4, questIds.get(i).toString());
+                    stmt.setString(5, objectiveTypes.get(i));
                     stmt.executeUpdate();
                 }
             }

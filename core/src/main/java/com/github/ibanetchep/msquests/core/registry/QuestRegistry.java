@@ -35,4 +35,8 @@ public class QuestRegistry {
     public Collection<Quest> getAllQuests() {
         return Collections.unmodifiableCollection(quests.values());
     }
+
+    public Quest getQuest(UUID questId) {
+        return quests.get(questId);
+    }
 }

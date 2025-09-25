@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
+import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
@@ -22,19 +23,22 @@ public class QuestService {
     private final QuestRepository questRepository;
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
+    private final QuestMapper questMapper;
 
     public QuestService(
             Logger logger,
             QuestConfigRegistry questConfigRegistry,
             QuestRepository questRepository,
             QuestFactory questFactory,
-            QuestRegistry questRegistry
+            QuestRegistry questRegistry,
+            QuestMapper questMapper
     ) {
         this.logger = logger;
         this.questConfigRegistry = questConfigRegistry;
         this.questRepository = questRepository;
         this.questFactory = questFactory;
         this.questRegistry = questRegistry;
+        this.questMapper = questMapper;
     }
 
 
@@ -68,7 +72,7 @@ public class QuestService {
 
 
     public CompletableFuture<Void> saveQuest(Quest quest) {
-        return questRepository.save(quest.toDTO()).exceptionally(e -> {
+        return questRepository.save(questMapper.toDTO(quest)).exceptionally(e -> {
             logger.log(Level.SEVERE, "Failed to save quest", e);
             return null;
         });

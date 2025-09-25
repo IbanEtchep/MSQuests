@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
+import com.github.ibanetchep.msquests.core.quest.objective.CounterQuestObjective;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.entity.EntityType;
@@ -37,8 +38,7 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
             EntityType entityType = entity.getType();
 
             if(entityType == objective.getObjectiveConfig().getEntityType() && !objective.isCompleted()) {
-                Runnable progressAction = () -> objective.getProgressTracker().incrementProgress(1);
-                platform.getQuestLifecycleService().updateObjectiveProgress(objective, progressAction, profile);
+                platform.getQuestLifecycleService().updateObjectiveProgress(objective, CounterQuestObjective::incrementProgress, profile);
             }
         }
     }

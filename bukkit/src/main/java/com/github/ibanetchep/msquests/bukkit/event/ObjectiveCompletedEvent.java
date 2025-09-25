@@ -22,6 +22,7 @@ public class ObjectiveCompletedEvent extends Event {
      * @param profile - profile who triggered the progress
      */
     public ObjectiveCompletedEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
+        super(true);
         this.objective = objective;
         this.profile = profile;
     }

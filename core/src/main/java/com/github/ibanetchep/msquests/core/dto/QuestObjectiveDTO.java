@@ -7,6 +7,7 @@ import java.util.UUID;
 public record QuestObjectiveDTO(
         UUID questEntryId,
         String objectiveKey,
+        String objectiveType,
         QuestObjectiveStatus objectiveStatus,
-        String progressTrackerJson
+        String progressJson
 ) {}

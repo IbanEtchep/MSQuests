@@ -32,11 +32,16 @@ import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
+import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicLocalObjectiveExecutor;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicLocalQuestExecutor;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicObjectiveExecutor;
+import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.registry.*;
 import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
 import com.github.ibanetchep.msquests.core.service.*;
@@ -110,6 +115,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         loadTranslator();
 
         questFactory = new QuestFactory(questObjectiveFactory);
+        QuestMapper questMapper = new QuestMapper();
 
         QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"));
         ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
@@ -119,12 +125,15 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
 
-        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry);
+        AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor();
+        AtomicObjectiveExecutor atomicObjectiveExecutor = new AtomicLocalObjectiveExecutor(atomicQuestExecutor);
+
+        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry, questMapper);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, atomicQuestExecutor, atomicObjectiveExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();

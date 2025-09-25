@@ -67,7 +67,7 @@ public class QuestFactory {
                     throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveKey());
                 }
 
-                objective.getProgressTracker().loadFromJson(objectiveDto.progressTrackerJson());
+                objective.updateProgressFromJson(objectiveDto.progressJson());
             }
         }
 

@@ -48,8 +48,8 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         addFixture(questFixture);
 
         ObjectiveFixture objectiveFixture = new ObjectiveFixture()
-                .addObjective("collect_items", "IN_PROGRESS", "5", questId1)
-                .addObjective("defeat_boss", "COMPLETED", "1", questId2);
+                .addObjective("collect_items", "ITEM", "IN_PROGRESS", "5", questId1)
+                .addObjective("defeat_boss", "BOSS", "COMPLETED", "1", questId2);
         addFixture(objectiveFixture);
 
         loadFixtures();
@@ -229,6 +229,7 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         QuestObjectiveDTO objective = new QuestObjectiveDTO(
                 questId,
                 "find_treasure",
+                "ITEM",
                 QuestObjectiveStatus.IN_PROGRESS,
                 ""
         );

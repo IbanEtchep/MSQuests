@@ -5,7 +5,7 @@ import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
-import com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class PlaceholderEngine {
         registerResolver(QuestConfig.class, new QuestConfigPlaceholderResolver());
         registerResolver(Quest.class, new QuestPlaceholderResolver());
         registerResolver(QuestGroupConfig.class, new GroupPlaceholderResolver());
-        registerResolver(AbstractQuestObjective.class, new ObjectivePlaceholderResolver());
+        registerResolver(QuestObjective.class, new ObjectivePlaceholderResolver());
         registerResolver(QuestActor.class, new ActorPlaceholderResolver());
         registerResolver(Player.class, new PlayerPlaceholderResolver());
     }

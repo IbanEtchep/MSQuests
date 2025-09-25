@@ -1,36 +1,29 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
-import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
-import com.github.ibanetchep.msquests.core.quest.objective.progress.ProgressTracker;
 
-public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig, P extends ProgressTracker> implements QuestObjective {
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
+
+public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig, P> implements QuestObjective {
 
     protected C objectiveConfig;
-    protected P progressTracker;
+    protected final AtomicReference<P> progress;
     protected Quest quest;
 
     public AbstractQuestObjective(Quest quest, C objectiveConfig, P progressTracker) {
         this.quest = quest;
         this.objectiveConfig = objectiveConfig;
-        this.progressTracker = progressTracker;
+        this.progress = new AtomicReference<>(progressTracker);
     }
 
-    public P getProgressTracker() {
-        return progressTracker;
+    public P getProgress() {
+        return progress.get();
     }
 
-    public boolean isCompleted() {
-        return progressTracker.isCompleted();
-    }
-
-    public double getProgressPercent() {
-        if (getStatus() == QuestObjectiveStatus.COMPLETED) {
-            return 100;
-        }
-
-        return progressTracker.getProgressPercent();
+    public void updateProgress(UnaryOperator<P> update) {
+        progress.updateAndGet(update);
     }
 
     public Quest getQuest() {
@@ -52,14 +45,5 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig, P e
 
     public C getObjectiveConfig() {
         return objectiveConfig;
-    }
-
-    public QuestObjectiveDTO toDTO() {
-        return new QuestObjectiveDTO(
-                quest.getId(),
-                objectiveConfig.getKey(),
-                getStatus(),
-                progressTracker.toJson()
-        );
     }
 }
