@@ -91,6 +91,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                         .list();
             });
 
+
             return quests;
         });
     }

@@ -1,21 +1,21 @@
-package com.github.ibanetchep.msquests.core.registry;
+package com.github.ibanetchep.msquests.core.cache;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class QuestRegistry {
+public class QuestCache {
 
     private final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
     private final Set<Quest> dirtyQuests = ConcurrentHashMap.newKeySet();
 
-    public void registerQuest(Quest quest) {
+    public void add(Quest quest) {
         quest.getActor().addQuest(quest);
         quests.put(quest.getId(), quest);
     }
 
-    public void unregisterQuest(Quest quest) {
+    public void remove(Quest quest) {
         quests.remove(quest.getId());
         dirtyQuests.remove(quest);
     }

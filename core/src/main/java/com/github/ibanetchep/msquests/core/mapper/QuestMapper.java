@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,7 +15,16 @@ public class QuestMapper {
         Map<String, QuestObjectiveDTO> objectiveDtos = quest.getObjectives().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> entry.getValue().toDTO()
+                        entry -> {
+                            QuestObjective objective = entry.getValue();
+                            return new QuestObjectiveDTO(
+                                    objective.getQuest().getId(),
+                                    objective.getObjectiveConfig().getKey(),
+                                    objective.getType(),
+                                    objective.getStatus(),
+                                    objective.progressToJson()
+                            );
+                        }
                 ));
 
         QuestConfig questConfig = quest.getQuestConfig();

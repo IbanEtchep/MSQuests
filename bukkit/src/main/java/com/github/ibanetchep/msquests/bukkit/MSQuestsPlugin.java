@@ -26,6 +26,9 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
+import com.github.ibanetchep.msquests.core.cache.PlayerProfileCache;
+import com.github.ibanetchep.msquests.core.cache.QuestActorCache;
+import com.github.ibanetchep.msquests.core.cache.QuestCache;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
@@ -72,11 +75,11 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     private QuestObjectiveFactory questObjectiveFactory;
     private QuestActionFactory questActionFactory;
 
-    private PlayerProfileRegistry playerProfileRegistry;
+    private PlayerProfileCache playerProfileCache;
     private ActorTypeRegistry actorTypeRegistry;
     private QuestConfigRegistry questConfigRegistry;
-    private QuestActorRegistry questActorRegistry;
-    private QuestRegistry questRegistry;
+    private QuestActorCache questActorCache;
+    private QuestCache questCache;
 
     private QuestConfigService questConfigService;
     private PlayerProfileService playerProfileService;
@@ -99,12 +102,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         eventDispatcher = new BukkitEventDispatcher(this);
 
         questConfigRegistry = new QuestConfigRegistry();
-        questRegistry = new QuestRegistry();
+        questCache = new QuestCache();
         actorTypeRegistry = new ActorTypeRegistry();
         questObjectiveFactory = new QuestObjectiveFactory();
         questActionFactory = new QuestActionFactory();
-        playerProfileRegistry = new PlayerProfileRegistry();
-        questActorRegistry = new QuestActorRegistry();
+        playerProfileCache = new PlayerProfileCache();
+        questActorCache = new QuestActorCache();
 
         registerObjectiveTypes();
         registerActionTypes();
@@ -128,12 +131,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor();
         AtomicObjectiveExecutor atomicObjectiveExecutor = new AtomicLocalObjectiveExecutor(atomicQuestExecutor);
 
-        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry, questMapper);
-        questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
+        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questCache, questMapper);
+        questActorService = new QuestActorService(getLogger(), actorRepository, questActorCache, playerProfileCache, questService);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
-        playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
+        playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileCache, questActorCache);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, atomicQuestExecutor, atomicObjectiveExecutor);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questCache, atomicQuestExecutor, atomicObjectiveExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();
@@ -258,8 +261,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     @Override
-    public PlayerProfileRegistry getPlayerProfileRegistry() {
-        return playerProfileRegistry;
+    public PlayerProfileCache getPlayerProfileRegistry() {
+        return playerProfileCache;
     }
 
     @Override
@@ -281,8 +284,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     @Override
-    public QuestActorRegistry getQuestActorRegistry() {
-        return questActorRegistry;
+    public QuestActorCache getQuestActorRegistry() {
+        return questActorCache;
     }
 
     public QuestPlayerService getQuestPlayerService() {

@@ -11,7 +11,7 @@ import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicObjectiveExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
+import com.github.ibanetchep.msquests.core.cache.QuestCache;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -23,20 +23,20 @@ public class QuestLifecycleService {
     private AtomicObjectiveExecutor objectiveExecutor;
     private final QuestService persistenceService;
     private final QuestFactory questFactory;
-    private final QuestRegistry questRegistry;
+    private final QuestCache questCache;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
             QuestService persistenceService,
             QuestFactory questFactory,
-            QuestRegistry questRegistry,
+            QuestCache questCache,
             AtomicQuestExecutor executor,
             AtomicObjectiveExecutor objectiveExecutor
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
         this.questFactory = questFactory;
-        this.questRegistry = questRegistry;
+        this.questCache = questCache;
         this.executor = executor;
         this.objectiveExecutor = objectiveExecutor;
     }
@@ -61,7 +61,7 @@ public class QuestLifecycleService {
         dispatcher.dispatch(startedEvent);
 
         executor.execute(quest, updatedQuest -> {
-            questRegistry.registerQuest(updatedQuest);
+            questCache.add(updatedQuest);
             persistenceService.saveQuest(updatedQuest).join();
         });
 
@@ -95,7 +95,7 @@ public class QuestLifecycleService {
                 return;
             }
 
-            questRegistry.markDirty(objective.getQuest());
+            questCache.markDirty(objective.getQuest());
         }).exceptionally(ex -> {
             ex.printStackTrace();
             return null;
