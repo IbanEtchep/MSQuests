@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
-import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
@@ -18,15 +17,5 @@ public interface QuestObjective extends PlaceholderProvider {
 
     default String getType() {
         return getObjectiveConfig().getType();
-    }
-
-    default QuestObjectiveDTO toDTO() {
-        return new QuestObjectiveDTO(
-                getQuest().getId(),
-                getObjectiveConfig().getKey(),
-                getType(),
-                getStatus(),
-                progressToJson()
-        );
     }
 }

@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.service;
 
+import com.github.ibanetchep.msquests.core.cache.QuestCache;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
@@ -8,7 +9,6 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
-import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 
 import java.util.Collection;
@@ -22,7 +22,7 @@ public class QuestService {
     private final QuestConfigRegistry questConfigRegistry;
     private final QuestRepository questRepository;
     private final QuestFactory questFactory;
-    private final QuestRegistry questRegistry;
+    private final QuestCache questCache;
     private final QuestMapper questMapper;
 
     public QuestService(
@@ -30,17 +30,16 @@ public class QuestService {
             QuestConfigRegistry questConfigRegistry,
             QuestRepository questRepository,
             QuestFactory questFactory,
-            QuestRegistry questRegistry,
+            QuestCache questCache,
             QuestMapper questMapper
     ) {
         this.logger = logger;
         this.questConfigRegistry = questConfigRegistry;
         this.questRepository = questRepository;
         this.questFactory = questFactory;
-        this.questRegistry = questRegistry;
+        this.questCache = questCache;
         this.questMapper = questMapper;
     }
-
 
     public CompletableFuture<Void> loadQuests(QuestActor actor) {
         return questRepository.getAllByActor(actor.getId())
@@ -61,7 +60,7 @@ public class QuestService {
                         }
 
                         Quest quest = questFactory.createQuest(questConfig, actor, questDTO);
-                        questRegistry.registerQuest(quest);
+                        questCache.add(quest);
                     }
                 })
                 .exceptionally(e -> {
@@ -79,12 +78,12 @@ public class QuestService {
     }
 
     public void saveDirtyQuests() {
-        Collection<Quest> dirtyQuests = questRegistry.getDirtyQuests();
+        Collection<Quest> dirtyQuests = questCache.getDirtyQuests();
         logger.info("Saving " + dirtyQuests.size() + " dirty quests");
 
         dirtyQuests.forEach(quest -> {
             saveQuest(quest);
-            questRegistry.clearDirty(quest);
+            questCache.clearDirty(quest);
         });
     }
 }
