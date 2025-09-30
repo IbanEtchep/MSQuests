@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.quest.action;
+package com.github.ibanetchep.msquests.core.quest.config.action;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;

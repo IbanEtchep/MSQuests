@@ -4,14 +4,14 @@ import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicObjectiveExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import com.github.ibanetchep.msquests.core.cache.QuestCache;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -23,20 +23,20 @@ public class QuestLifecycleService {
     private AtomicObjectiveExecutor objectiveExecutor;
     private final QuestService persistenceService;
     private final QuestFactory questFactory;
-    private final QuestCache questCache;
+    private final QuestRegistry questRegistry;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
             QuestService persistenceService,
             QuestFactory questFactory,
-            QuestCache questCache,
+            QuestRegistry questRegistry,
             AtomicQuestExecutor executor,
             AtomicObjectiveExecutor objectiveExecutor
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
         this.questFactory = questFactory;
-        this.questCache = questCache;
+        this.questRegistry = questRegistry;
         this.executor = executor;
         this.objectiveExecutor = objectiveExecutor;
     }
@@ -61,7 +61,7 @@ public class QuestLifecycleService {
         dispatcher.dispatch(startedEvent);
 
         executor.execute(quest, updatedQuest -> {
-            questCache.add(updatedQuest);
+            questRegistry.add(updatedQuest);
             persistenceService.saveQuest(updatedQuest).join();
         });
 
@@ -95,7 +95,7 @@ public class QuestLifecycleService {
                 return;
             }
 
-            questCache.markDirty(objective.getQuest());
+            questRegistry.markDirty(objective.getQuest());
         }).exceptionally(ex -> {
             ex.printStackTrace();
             return null;

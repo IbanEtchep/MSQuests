@@ -1,13 +1,16 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import org.bukkit.Material;
 
 import java.util.Map;
 
+@ObjectiveType(ObjectiveTypes.DELIVER_ITEM)
 @AtLeastOneOfFields({"material", "itemKey"})
 public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
 

@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.cache;
+package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class QuestActorCache {
+public class QuestActorRegistry {
 
     private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
 

@@ -4,6 +4,9 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.kyori.adventure.bossbar.BossBar;
@@ -18,14 +21,27 @@ import java.util.concurrent.TimeUnit;
 /**
  * Bossbar shown to each online player that is actor of the quest, using Adventure API.
  */
+
+@ActionType("boss_bar")
+@AtLeastOneOfFields({"message", "message_key"})
 public class PlayerBossBarAction extends BukkitQuestAction {
 
+    @ConfigField(name = "message")
     private final @Nullable String message;
+
+    @ConfigField(name = "message_key")
     private final @Nullable String messageKey;
 
+    @ConfigField(name = "color")
     private final BossBar.Color color;
+
+    @ConfigField(name = "style")
     private final BossBar.Overlay style;
+
+    @ConfigField(name = "show_progress")
     private final boolean showProgress;
+
+    @ConfigField(name = "duration")
     private final int duration;
 
     private BossBar bossBar;

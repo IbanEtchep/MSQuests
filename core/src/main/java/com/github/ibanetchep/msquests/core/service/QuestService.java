@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.service;
 
-import com.github.ibanetchep.msquests.core.cache.QuestCache;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
@@ -22,7 +22,7 @@ public class QuestService {
     private final QuestConfigRegistry questConfigRegistry;
     private final QuestRepository questRepository;
     private final QuestFactory questFactory;
-    private final QuestCache questCache;
+    private final QuestRegistry questRegistry;
     private final QuestMapper questMapper;
 
     public QuestService(
@@ -30,14 +30,14 @@ public class QuestService {
             QuestConfigRegistry questConfigRegistry,
             QuestRepository questRepository,
             QuestFactory questFactory,
-            QuestCache questCache,
+            QuestRegistry questRegistry,
             QuestMapper questMapper
     ) {
         this.logger = logger;
         this.questConfigRegistry = questConfigRegistry;
         this.questRepository = questRepository;
         this.questFactory = questFactory;
-        this.questCache = questCache;
+        this.questRegistry = questRegistry;
         this.questMapper = questMapper;
     }
 
@@ -60,7 +60,7 @@ public class QuestService {
                         }
 
                         Quest quest = questFactory.createQuest(questConfig, actor, questDTO);
-                        questCache.add(quest);
+                        questRegistry.add(quest);
                     }
                 })
                 .exceptionally(e -> {
@@ -78,12 +78,12 @@ public class QuestService {
     }
 
     public void saveDirtyQuests() {
-        Collection<Quest> dirtyQuests = questCache.getDirtyQuests();
+        Collection<Quest> dirtyQuests = questRegistry.getDirtyQuests();
         logger.info("Saving " + dirtyQuests.size() + " dirty quests");
 
         dirtyQuests.forEach(quest -> {
             saveQuest(quest);
-            questCache.clearDirty(quest);
+            questRegistry.clearDirty(quest);
         });
     }
 }

@@ -156,17 +156,20 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     private Map<String, QuestObjectiveConfigDTO> parseObjectives(ConfigurationSection questSection) {
         Map<String, QuestObjectiveConfigDTO> objectives = new HashMap<>();
-        ConfigurationSection objectivesSection = questSection.getConfigurationSection("objectives");
+        List<Map<?, ?>> objectivesList = questSection.getMapList("objectives");
 
-        if (objectivesSection != null) {
-            for (String objectiveKey : objectivesSection.getKeys(false)) {
-                ConfigurationSection objectiveConfig = objectivesSection.getConfigurationSection(objectiveKey);
-                if (objectiveConfig != null) {
-                    Map<String, Object> config = objectiveConfig.getValues(true);
-                    String type = (String) config.get("type");
-                    objectives.put(objectiveKey, new QuestObjectiveConfigDTO(objectiveKey, type, config));
-                }
-            }
+        for (Map<?, ?> map : objectivesList) {
+            Map<String, Object> config = map.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> e.getKey().toString(),
+                            Map.Entry::getValue
+                    ));
+            String type = (String) config.get("type");
+            String key = (String) config.get("key");
+
+            if (type == null || key == null) continue;
+
+            objectives.put(key, new QuestObjectiveConfigDTO(key, type, config));
         }
 
         return objectives;

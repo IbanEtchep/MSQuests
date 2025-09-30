@@ -3,47 +3,64 @@ package com.github.ibanetchep.msquests.core.factory;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
+import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class QuestObjectiveFactory {
 
-    private static class Type<C extends QuestObjectiveConfig, O extends QuestObjective> {
-        private final Function<QuestObjectiveConfigDTO, C> configFactory;
-        private final BiFunction<Quest, C, O> objectiveFactory;
-
-        Type(Function<QuestObjectiveConfigDTO, C> configFactory,
-             BiFunction<Quest, C, O> objectiveFactory) {
-            this.configFactory = configFactory;
-            this.objectiveFactory = objectiveFactory;
-        }
-
+    private record Type<C extends QuestObjectiveConfig, O extends QuestObjective>(
+            Class<C> configClass,
+            Class<O> objectiveClass,
+            String schema
+    ) {
         C createConfig(QuestObjectiveConfigDTO dto) {
-            return configFactory.apply(dto);
+            try {
+                return configClass.getConstructor(QuestObjectiveConfigDTO.class).newInstance(dto);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to instantiate config: " +
+                        configClass.getSimpleName(), e);
+            }
         }
 
         O createObjective(Quest quest, C config) {
-            return objectiveFactory.apply(quest, config);
+            try {
+                return objectiveClass.getConstructor(Quest.class, configClass).newInstance(quest, config);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to instantiate objective: " + objectiveClass.getSimpleName(), e);
+            }
         }
     }
 
     private final Map<String, Type<?, ?>> types = new HashMap<>();
 
-    public <C extends QuestObjectiveConfig, O extends QuestObjective> void registerType(
-            String key,
-            Function<QuestObjectiveConfigDTO, C> configFactory,
-            BiFunction<Quest, C, O> objectiveFactory
+    public <C extends QuestObjectiveConfig, O extends QuestObjective> void register(
+            Class<C> configClass,
+            Class<O> objectiveClass
     ) {
-        types.put(key, new Type<>(configFactory, objectiveFactory));
+        ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
+        if (annotation == null) {
+            throw new IllegalArgumentException(
+                    configClass.getSimpleName() + " must have @ObjectiveType annotation"
+            );
+        }
+
+        String type = annotation.value();
+        if (types.containsKey(type)) {
+            throw new IllegalStateException("Objective type already registered: " + type);
+        }
+
+        types.put(type, new Type<>(configClass, objectiveClass, JsonSchemaGenerator.generateSchema(configClass)));
     }
 
     public QuestObjectiveConfig createConfig(QuestObjectiveConfigDTO dto) {
         Type<?, ?> type = types.get(dto.type());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + dto.type());
+        JsonSchemaValidator.validate(dto.config(), type.schema());
         return type.createConfig(dto);
     }
 
