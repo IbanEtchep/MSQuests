@@ -5,7 +5,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
@@ -72,6 +72,7 @@ public class QuestConfigMapper {
 
         for (Map.Entry<String, QuestObjectiveConfigDTO> entry : dto.objectives().entrySet()) {
             QuestObjectiveConfigDTO objectiveDto = entry.getValue();
+
             QuestObjectiveConfig objective = questObjectiveFactory.createConfig(objectiveDto);
             questConfig.addObjective(objective);
         }

@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.dto.PlayerProfileDTO;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import com.github.ibanetchep.msquests.core.cache.PlayerProfileCache;
-import com.github.ibanetchep.msquests.core.cache.QuestActorCache;
+import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
 
 import java.util.UUID;
@@ -15,19 +15,19 @@ public class PlayerProfileService {
 
     private final Logger logger;
     private final PlayerProfileRepository repository;
-    private final PlayerProfileCache playerProfileCache;
-    private final QuestActorCache questActorCache;
+    private final PlayerProfileRegistry playerProfileRegistry;
+    private final QuestActorRegistry questActorRegistry;
 
     public PlayerProfileService(
             Logger logger,
             PlayerProfileRepository repository,
-            PlayerProfileCache playerProfileCache,
-            QuestActorCache questActorCache
+            PlayerProfileRegistry playerProfileRegistry,
+            QuestActorRegistry questActorRegistry
     ) {
         this.logger = logger;
         this.repository = repository;
-        this.playerProfileCache = playerProfileCache;
-        this.questActorCache = questActorCache;
+        this.playerProfileRegistry = playerProfileRegistry;
+        this.questActorRegistry = questActorRegistry;
     }
 
     public CompletableFuture<PlayerProfile> loadProfile(UUID id) {
@@ -40,8 +40,8 @@ public class PlayerProfileService {
             PlayerProfile profile = new PlayerProfile(id);
             profile.setTrackedQuestId(dto.trackedQuestId());
 
-            playerProfileCache.registerPlayerProfile(profile);
-            questActorCache.linkProfileToActors(profile);
+            playerProfileRegistry.registerPlayerProfile(profile);
+            questActorRegistry.linkProfileToActors(profile);
             return profile;
         }).exceptionally(e -> {
             logger.log(Level.SEVERE, "Failed to load profile " + id, e);

@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.config;
 
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 
 import java.util.ArrayList;
 import java.util.List;

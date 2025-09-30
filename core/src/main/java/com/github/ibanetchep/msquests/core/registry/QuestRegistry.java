@@ -1,11 +1,11 @@
-package com.github.ibanetchep.msquests.core.cache;
+package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.quest.Quest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class QuestCache {
+public class QuestRegistry {
 
     private final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
     private final Set<Quest> dirtyQuests = ConcurrentHashMap.newKeySet();

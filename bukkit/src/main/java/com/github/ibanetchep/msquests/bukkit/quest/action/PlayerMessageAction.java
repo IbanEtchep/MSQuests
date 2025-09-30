@@ -4,6 +4,9 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,12 +18,19 @@ import java.util.Objects;
 /**
  * Message that is sent to each online player that is actor of the quest.
  */
+
+@ActionType("message")
+@AtLeastOneOfFields({"message", "message_key"})
 public class PlayerMessageAction extends BukkitQuestAction {
 
+    @ConfigField(name = "message")
     private final @Nullable String message;
+    @ConfigField(name = "message_key")
     private final @Nullable String messageKey;
 
+    @ConfigField(name = "objective_template")
     private final @Nullable String objectiveTemplate;
+    @ConfigField(name = "objective_template_key")
     private final @Nullable String objectiveTemplateKey;
 
     public PlayerMessageAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
@@ -73,7 +83,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
         } else return Objects.requireNonNullElse(message, "");
     }
 
-    private String resolveObjectiveTemplate() {
+    private @Nullable String resolveObjectiveTemplate() {
         if(objectiveTemplateKey != null) {
             return MessageBuilder.translatable(objectiveTemplateKey).toStringRaw();
         } else {

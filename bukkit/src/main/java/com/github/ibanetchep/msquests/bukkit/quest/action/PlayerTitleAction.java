@@ -4,6 +4,9 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 
@@ -14,11 +17,19 @@ import java.util.Objects;
 /**
  * Title message that supports direct text or lang key for title and subtitle.
  */
+
+@ActionType("title")
+@AtLeastOneOfFields({"title", "title_key"})
+@AtLeastOneOfFields({"subtitle", "subtitle_key"})
 public class PlayerTitleAction extends BukkitQuestAction {
 
+    @ConfigField(name = "title")
     private final String title;
+    @ConfigField(name = "title_key")
     private final String titleKey;
+    @ConfigField(name = "subtitle")
     private final String subtitle;
+    @ConfigField(name = "subtitle_key")
     private final String subtitleKey;
 
     public PlayerTitleAction(QuestActionDTO dto, MSQuestsPlugin plugin) {

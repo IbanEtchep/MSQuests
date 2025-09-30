@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.config;
 
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 

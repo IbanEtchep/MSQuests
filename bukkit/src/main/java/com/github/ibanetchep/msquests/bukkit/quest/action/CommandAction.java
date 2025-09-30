@@ -4,6 +4,8 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Bukkit;
 
 import java.util.Map;
@@ -12,8 +14,10 @@ import java.util.logging.Level;
 /**
  * Reward that executes a command once.
  */
+@ActionType("command")
 public class CommandAction extends BukkitQuestAction {
 
+    @ConfigField(name = "command", required = true)
     private final String commandTemplate;
 
     public CommandAction(QuestActionDTO dto, MSQuestsPlugin plugin) {

@@ -1,37 +1,53 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
+import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 public class QuestActionFactory {
+    private final Map<String, RegisteredAction<?>> registeredTypes = new HashMap<>();
 
-    private final Map<String, Function<QuestActionDTO, QuestAction>> registeredTypes = new HashMap<>();
-
-    /**
-     * Register a reward type with its factory function.
-     *
-     * @param type key of the reward type, e.g. "item", "command"
-     * @param factory function that converts RewardDTO to Reward
-     */
-    public void registerType(String type, Function<QuestActionDTO, QuestAction> factory) {
-        registeredTypes.put(type, factory);
+    public record RegisteredAction<T extends QuestAction>(
+            Class<T> actionClass,
+            Function<QuestActionDTO, T> factory,
+            String schema
+    ) {
     }
 
-    /**
-     * Creates a Reward from its config DTO.
-     */
+    public <T extends QuestAction> void register(
+            Class<T> actionClass,
+            Function<QuestActionDTO, T> factory
+    ) {
+        ActionType annotation = actionClass.getAnnotation(ActionType.class);
+        if (annotation == null) {
+            throw new IllegalArgumentException(
+                    actionClass.getSimpleName() + " must have @ActionType annotation"
+            );
+        }
+
+        String type = annotation.value();
+        if (registeredTypes.containsKey(type)) {
+            throw new IllegalStateException("Action type already registered: " + type);
+        }
+
+        registeredTypes.put(type, new RegisteredAction<>(actionClass, factory, JsonSchemaGenerator.generateSchema(actionClass)));
+    }
+
     public QuestAction createAction(QuestActionDTO config) {
-        Function<QuestActionDTO, QuestAction> factory = registeredTypes.get(config.type());
-        if (factory == null) throw new IllegalArgumentException("Unknown action type: " + config.type());
-        return factory.apply(config);
-    }
+        RegisteredAction<?> registered = registeredTypes.get(config.type());
 
-    public Map<String, Function<QuestActionDTO, QuestAction>> getRegisteredTypes() {
-        return Collections.unmodifiableMap(registeredTypes);
+        if (registered == null) {
+            throw new IllegalArgumentException("Unknown action type: " + config.type());
+        }
+
+        JsonSchemaValidator.validate(config.config(), registered.schema());
+
+        return registered.factory().apply(config);
     }
 }

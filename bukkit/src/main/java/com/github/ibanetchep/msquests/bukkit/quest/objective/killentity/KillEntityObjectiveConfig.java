@@ -1,12 +1,15 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import org.bukkit.entity.EntityType;
 
 import java.util.Map;
 
+@ObjectiveType(ObjectiveTypes.KILL_ENTITY)
 public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
 
     @ConfigField(name = "entity_type")

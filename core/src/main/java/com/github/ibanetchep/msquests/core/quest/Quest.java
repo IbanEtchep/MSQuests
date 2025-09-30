@@ -108,13 +108,12 @@ public class Quest {
 
         if (flow == Flow.PARALLEL) {
             return objectives.values().stream()
-                    .filter(o -> o.getObjectiveConfig().isValid())
                     .filter(o -> !o.isCompleted())
                     .toList();
         }
 
         var firstActiveObjective = getFirstActiveObjective();
-        if (flow == Flow.SEQUENTIAL && firstActiveObjective != null && firstActiveObjective.getObjectiveConfig().isValid()) {
+        if (flow == Flow.SEQUENTIAL && firstActiveObjective != null) {
             return List.of(firstActiveObjective);
         }
 

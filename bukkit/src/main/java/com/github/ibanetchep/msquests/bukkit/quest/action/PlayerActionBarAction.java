@@ -4,6 +4,9 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +15,15 @@ import java.util.Objects;
 /**
  * ActionBar message that supports direct message or lang key.
  */
+
+@ActionType("action_bar")
+@AtLeastOneOfFields({"message", "message_key"})
 public class PlayerActionBarAction extends BukkitQuestAction {
 
+    @ConfigField(name = "message")
     private final String message;
+
+    @ConfigField(name = "message_key")
     private final String messageKey;
 
     public PlayerActionBarAction(QuestActionDTO dto, MSQuestsPlugin plugin) {

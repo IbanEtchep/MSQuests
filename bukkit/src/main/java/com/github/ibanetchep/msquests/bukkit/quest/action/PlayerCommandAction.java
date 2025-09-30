@@ -4,6 +4,8 @@ import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
+import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Bukkit;
 
 import java.util.Map;
@@ -11,8 +13,11 @@ import java.util.Map;
 /**
  * Executes a command for each online player that is the actor of the quest.
  */
+
+@ActionType("player_command")
 public class PlayerCommandAction extends BukkitQuestAction {
 
+    @ConfigField(name = "command")
     private final String commandTemplate;
 
     public PlayerCommandAction(QuestActionDTO dto, MSQuestsPlugin plugin) {

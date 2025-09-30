@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.core.service;
 
-import com.github.ibanetchep.msquests.core.cache.PlayerProfileCache;
-import com.github.ibanetchep.msquests.core.cache.QuestActorCache;
+import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
@@ -14,28 +14,28 @@ import java.util.logging.Logger;
 public class QuestActorService {
 
     private final Logger logger;
-    private final QuestActorCache questActorCache;
-    private final PlayerProfileCache playerProfileCache;
+    private final QuestActorRegistry questActorRegistry;
+    private final PlayerProfileRegistry playerProfileRegistry;
     private final ActorRepository actorRepository;
     private final QuestService questService;
 
     public QuestActorService(
             Logger logger,
             ActorRepository actorRepository,
-            QuestActorCache questActorCache,
-            PlayerProfileCache playerProfileCache,
+            QuestActorRegistry questActorRegistry,
+            PlayerProfileRegistry playerProfileRegistry,
             QuestService questService
     ) {
         this.logger = logger;
-        this.questActorCache = questActorCache;
+        this.questActorRegistry = questActorRegistry;
         this.questService = questService;
-        this.playerProfileCache = playerProfileCache;
+        this.playerProfileRegistry = playerProfileRegistry;
         this.actorRepository = actorRepository;
     }
 
 
     public CompletableFuture<Void> loadActor(QuestActor actor) {
-        questActorCache.unregisterActor(actor.getId());
+        questActorRegistry.unregisterActor(actor.getId());
 
         return actorRepository.get(actor.getId()).thenAccept(actorDTO -> {
             if (actorDTO == null) {
@@ -43,9 +43,9 @@ public class QuestActorService {
                 actorRepository.add(actorDTO);
             }
 
-            questActorCache.registerActor(actor);
+            questActorRegistry.registerActor(actor);
             questService.loadQuests(actor);
-            playerProfileCache.linkActorToProfiles(actor);
+            playerProfileRegistry.linkActorToProfiles(actor);
         }).exceptionally(e -> {
             logger.log(Level.SEVERE, "Failed to load actor", e);
             return null;
@@ -53,7 +53,7 @@ public class QuestActorService {
     }
 
     public CompletableFuture<Void> reloadActors() {
-        List<CompletableFuture<Void>> futures = questActorCache.getActors().values().stream()
+        List<CompletableFuture<Void>> futures = questActorRegistry.getActors().values().stream()
                 .map(this::loadActor)
                 .toList();
 

@@ -17,11 +17,11 @@ group_1:
           item: "diamond"
           amount: 10
       objectives:
-        objective_1:
+        - key: objective_1
           type: "block_break"
           material: "stone"
           amount: 10
-        objective_2:
+        - key: objective_2
           type: "kill"
           mob: "zombie"
           amount: 5
@@ -36,6 +36,6 @@ group_1:
           name: "Command Reward"
           command: "give %actor_name% diamond"
       objectives:
-        objective_1:
+        - key: objective_1
           type: "explore"
           location: "village"
