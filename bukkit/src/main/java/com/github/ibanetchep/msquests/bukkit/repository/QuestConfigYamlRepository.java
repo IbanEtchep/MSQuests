@@ -4,7 +4,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupType;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,33 +126,21 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
             endAt = Instant.parse(endAtString);
         }
 
-        Integer maxActiveQuests = null;
-        Integer maxPerPeriod = null;
-        String periodSwitchCron = null;
-
-        if (groupSection.contains("maxActiveQuests")) {
-            maxActiveQuests = groupSection.getInt("maxActiveQuests");
-        }
-        if (groupSection.contains("maxPerPeriod")) {
-            maxPerPeriod = groupSection.getInt("maxPerPeriod");
-        }
-        if (groupSection.contains("periodSwitchCron")) {
-            periodSwitchCron = groupSection.getString("periodSwitchCron");
-        }
-
         questConfigPaths.put(groupKey, path);
+
         return new QuestGroupDTO(
                 groupKey,
                 groupSection.getString("name"),
                 groupSection.getString("description"),
                 quests,
-                QuestGroupType.valueOf(groupSection.getString("type")),
-                maxActiveQuests,
-                maxPerPeriod,
-                periodSwitchCron,
+                groupSection.getString("distribution_mode"),
+                groupSection.getInt("max_active"),
+                groupSection.getInt("max_per_period"),
+                groupSection.getString("reset_cron"),
                 startAt,
                 endAt
         );
+
     }
 
     private Map<String, QuestObjectiveConfigDTO> parseObjectives(ConfigurationSection questSection) {

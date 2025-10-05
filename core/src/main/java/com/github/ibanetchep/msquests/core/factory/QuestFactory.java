@@ -1,13 +1,11 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 
 import java.util.Date;
 import java.util.Map;
@@ -33,7 +31,7 @@ public class QuestFactory {
         Quest quest = new Quest(id, config, actor, status, completedAt, createdAt, updatedAt);
 
         for (QuestObjectiveConfig objectiveConfig : config.getObjectives().values()) {
-            quest.addObjective(questObjectiveFactory.createObjective(quest, objectiveConfig));
+            quest.addObjective(questObjectiveFactory.createObjective(quest, objectiveConfig, 0));
         }
 
         actor.addQuest(quest);
@@ -46,10 +44,10 @@ public class QuestFactory {
     }
 
     public Quest createQuest(QuestConfig config, QuestActor actor, QuestDTO dto) {
-        Quest quest = this.createQuest(
+        Quest quest = new Quest(
                 dto.id(),
-                actor,
                 config,
+                actor,
                 dto.status(),
                 dto.completedAt() != null ? new Date(dto.completedAt()) : null,
                 dto.createdAt() != null ? new Date(dto.createdAt()) : null,
@@ -57,20 +55,24 @@ public class QuestFactory {
         );
 
         if (dto.objectives() != null) {
-            for (Map.Entry<String, QuestObjectiveDTO> entry : dto.objectives().entrySet()) {
-                QuestObjectiveDTO objectiveDto = entry.getValue();
-                QuestObjective objective = quest.getObjective(objectiveDto.objectiveKey());
+            for (Map.Entry<String, QuestObjectiveConfig> entry : config.getObjectives().entrySet()) {
+                String key = entry.getKey();
+                QuestObjectiveConfig objectiveConfig = entry.getValue();
 
-                QuestObjectiveConfig questObjectiveConfig = config.getObjectives().get(objectiveDto.objectiveKey());
-
-                if (questObjectiveConfig == null) {
-                    throw new IllegalStateException("Objective definition not found for ID: " + objectiveDto.objectiveKey());
+                int progress = 0;
+                if (dto.objectives().containsKey(key)) {
+                    progress = dto.objectives().get(key).progress();
                 }
 
-                objective.updateProgressFromJson(objectiveDto.progressJson());
+                quest.addObjective(questObjectiveFactory.createObjective(quest, objectiveConfig, progress));
+            }
+        } else {
+            for (QuestObjectiveConfig objectiveConfig : config.getObjectives().values()) {
+                quest.addObjective(questObjectiveFactory.createObjective(quest, objectiveConfig, 0));
             }
         }
 
+        actor.addQuest(quest);
         return quest;
     }
 }

@@ -231,7 +231,7 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
                 "find_treasure",
                 "ITEM",
                 QuestObjectiveStatus.IN_PROGRESS,
-                ""
+                0
         );
 
         QuestDTO quest = new QuestDTO(

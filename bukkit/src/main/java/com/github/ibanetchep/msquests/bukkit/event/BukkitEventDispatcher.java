@@ -21,7 +21,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
         handlers.put(CoreQuestStartedEvent.class, e -> callQuestStarted((CoreQuestStartedEvent) e));
         handlers.put(CoreQuestCompletedEvent.class, e -> callQuestComplete((CoreQuestCompletedEvent) e));
         handlers.put(CoreQuestObjectiveProgressEvent.class, e -> callQuestObjectiveProgress((CoreQuestObjectiveProgressEvent) e));
-        handlers.put(CoreQuestObjectiveCompleteEvent.class, e -> callQuestObjectiveComplete((CoreQuestObjectiveCompleteEvent) e));
+        handlers.put(CoreQuestObjectiveCompletedEvent.class, e -> callQuestObjectiveComplete((CoreQuestObjectiveCompletedEvent) e));
         handlers.put(CoreQuestObjectiveProgressedEvent.class, e -> callQuestObjectiveProgressed((CoreQuestObjectiveProgressedEvent) e));
     }
 
@@ -58,7 +58,7 @@ public class BukkitEventDispatcher implements EventDispatcher {
         event.setCancelled(progressEvent.isCancelled());
     }
 
-    private void callQuestObjectiveComplete(CoreQuestObjectiveCompleteEvent event) {
+    private void callQuestObjectiveComplete(CoreQuestObjectiveCompletedEvent event) {
         QuestObjective objective = event.getObjective();
         PlayerProfile profile = event.getPlayerProfile();
 

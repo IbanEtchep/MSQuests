@@ -14,9 +14,9 @@ public record GlobalConfig(String language, DatabaseConfig databaseConfig, Map<S
 
     public record DatabaseConfig(String type, String host, int port, String name, String user, String password) {}
 
-    public record ActorConfig(List<QuestAction> startActions, List<QuestAction> progressActions, List<QuestAction> completeActions) {
+    public record ActorConfig(List<QuestAction> startActions, List<QuestAction> objectiveProgressActions, List<QuestAction> objectiveCompleteActions, List<QuestAction> completeActions) {
         public ActorConfig() {
-            this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
     }
 }

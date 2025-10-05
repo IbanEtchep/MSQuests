@@ -1,7 +1,5 @@
 package com.github.ibanetchep.msquests.core.dto;
 
-import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupType;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -10,10 +8,10 @@ public record QuestGroupDTO(
         String name,
         String description,
         List<QuestConfigDTO> quests,
-        QuestGroupType type,
-        Integer maxActiveQuests,
+        String distributionMode,
+        Integer maxActive,
         Integer maxPerPeriod,
-        String periodSwitchCron,
+        String resetCron,
         Instant startAt,
         Instant endAt
 ) {}

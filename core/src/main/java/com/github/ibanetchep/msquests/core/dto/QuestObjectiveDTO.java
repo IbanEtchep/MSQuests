@@ -9,5 +9,5 @@ public record QuestObjectiveDTO(
         String objectiveKey,
         String objectiveType,
         QuestObjectiveStatus objectiveStatus,
-        String progressJson
+        int progress
 ) {}

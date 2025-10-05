@@ -27,9 +27,9 @@ public class QuestObjectiveFactory {
             }
         }
 
-        O createObjective(Quest quest, C config) {
+        O createObjective(Quest quest, C config, int progress) {
             try {
-                return objectiveClass.getConstructor(Quest.class, configClass).newInstance(quest, config);
+                return objectiveClass.getConstructor(Quest.class, configClass, int.class).newInstance(quest, config, progress);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to instantiate objective: " + objectiveClass.getSimpleName(), e);
             }
@@ -65,10 +65,10 @@ public class QuestObjectiveFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public QuestObjective createObjective(Quest quest, QuestObjectiveConfig config) {
+    public QuestObjective createObjective(Quest quest, QuestObjectiveConfig config, int progress) {
         Type<QuestObjectiveConfig, QuestObjective> type = (Type<QuestObjectiveConfig, QuestObjective>) types.get(config.getType());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + config.getType());
-        return type.createObjective(quest, config);
+        return type.createObjective(quest, config, progress);
     }
 }
 
