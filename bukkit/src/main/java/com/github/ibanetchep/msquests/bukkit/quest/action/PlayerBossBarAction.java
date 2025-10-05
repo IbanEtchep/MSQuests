@@ -64,11 +64,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
 
     @Override
     public void execute(Quest quest) {
-        double progress = quest.getObjectives().isEmpty() ? 0.0 :
-                quest.getObjectives().values().stream()
-                        .mapToDouble(QuestObjective::getProgressPercent)
-                        .average()
-                        .orElse(0.0) / 100.0;
+        double progress = quest.getProgressPercent();
 
         Component text = MessageBuilder.raw(resolveMessage())
                 .applyPlaceholderResolver(quest)
@@ -79,7 +75,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
 
     @Override
     public void execute(QuestObjective objective) {
-        double progress = objective.getProgressPercent() / 100.0;
+        double progress = objective.getProgressPercent();
 
         Component text = MessageBuilder.raw(resolveMessage())
                 .applyPlaceholderResolver(objective)

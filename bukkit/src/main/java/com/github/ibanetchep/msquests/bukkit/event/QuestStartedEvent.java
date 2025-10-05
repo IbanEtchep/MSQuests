@@ -16,7 +16,6 @@ public class QuestStartedEvent extends Event {
     private boolean cancelled;
 
     public QuestStartedEvent(Quest quest) {
-        super(true);
         this.quest = quest;
     }
 

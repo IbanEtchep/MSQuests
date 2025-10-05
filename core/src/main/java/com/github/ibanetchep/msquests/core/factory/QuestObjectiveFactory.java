@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -27,9 +27,9 @@ public class QuestObjectiveFactory {
             }
         }
 
-        O createObjective(Quest quest, C config, int progress) {
+        O createObjective(QuestStage stage, C config, int progress) {
             try {
-                return objectiveClass.getConstructor(Quest.class, configClass, int.class).newInstance(quest, config, progress);
+                return objectiveClass.getConstructor(QuestStage.class, configClass, int.class).newInstance(stage, config, progress);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to instantiate objective: " + objectiveClass.getSimpleName(), e);
             }
@@ -65,10 +65,10 @@ public class QuestObjectiveFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public QuestObjective createObjective(Quest quest, QuestObjectiveConfig config, int progress) {
+    public QuestObjective createObjective(QuestStage stage, QuestObjectiveConfig config, int progress) {
         Type<QuestObjectiveConfig, QuestObjective> type = (Type<QuestObjectiveConfig, QuestObjective>) types.get(config.getType());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + config.getType());
-        return type.createObjective(quest, config, progress);
+        return type.createObjective(stage, config, progress);
     }
 }
 

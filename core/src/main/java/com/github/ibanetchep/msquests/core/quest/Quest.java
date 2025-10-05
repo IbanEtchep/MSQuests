@@ -3,13 +3,14 @@ package com.github.ibanetchep.msquests.core.quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
-import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Quest {
 
@@ -17,9 +18,8 @@ public class Quest {
     private QuestConfig questConfig;
     private QuestStatus status;
     private QuestActor actor;
-    private final Map<String, QuestObjective> objectives = new LinkedHashMap<>();
-    @Nullable
-    private Date completedAt;
+    private final Map<String, QuestStage> stages = new LinkedHashMap<>();
+    private @Nullable Date completedAt;
     private Date createdAt;
     private Date updatedAt;
 
@@ -89,16 +89,29 @@ public class Quest {
         this.questConfig = questConfig;
     }
 
-    public Map<String, QuestObjective> getObjectives() {
-        return objectives;
+    public Map<String, QuestStage> getStages() {
+        return stages;
     }
 
-    public void addObjective(QuestObjective objective) {
-        this.objectives.put(objective.getObjectiveConfig().getKey(), objective);
+    public void addStage(QuestStage stage) {
+        stages.put(stage.getKey(), stage);
     }
 
-    public QuestObjective getObjective(String key) {
-        return this.objectives.get(key);
+    public @Nullable QuestStage getCurrentStage() {
+        return stages.values().stream()
+                .filter(s -> !s.isCompleted())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public int getCurrentStageIndex() {
+        for (int i = 0; i < stages.size(); i++) {
+            if (!stages.get(i).isCompleted()) {
+                return i;
+            }
+        }
+
+        return stages.size(); // Tous complétés
     }
 
     public QuestGroupConfig getQuestGroup() {
@@ -106,26 +119,21 @@ public class Quest {
     }
 
     public List<QuestObjective> getActiveObjectives() {
-        Flow flow = questConfig.getFlow();
+        QuestStage stage = getCurrentStage();
 
-        if (flow == Flow.PARALLEL) {
-            return objectives.values().stream()
-                    .filter(o -> !o.isCompleted())
-                    .toList();
+        if (stage == null) {
+            return List.of();
         }
 
-        var firstActiveObjective = getFirstActiveObjective();
-        if (flow == Flow.SEQUENTIAL && firstActiveObjective != null) {
-            return List.of(firstActiveObjective);
-        }
-
-        return List.of();
+        return stage.getActiveObjectives();
     }
 
     public @Nullable QuestObjective getFirstActiveObjective() {
-        return objectives.values().stream()
-                .filter(o -> !o.isCompleted())
-                .findFirst().orElse(null);
+        if(getCurrentStage() == null) {
+            return null;
+        }
+
+        return getCurrentStage().getFirstActiveObjective();
     }
 
     public boolean shouldExpire() {
@@ -151,5 +159,23 @@ public class Quest {
         }
 
         return false;
+    }
+
+    public boolean shouldComplete() {
+        return getCurrentStage() == null && getStatus() == QuestStatus.IN_PROGRESS;
+    }
+
+    public double getProgressPercent() {
+        return stages.values().stream()
+                .mapToDouble(QuestStage::getProgressPercent)
+                .average()
+                .orElse(0.0) / 100.0;
+    }
+
+    public Map<String, QuestObjective> getObjectives() {
+        return stages.values().stream()
+                .map(QuestStage::getObjectives)
+                .flatMap(stage -> stage.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

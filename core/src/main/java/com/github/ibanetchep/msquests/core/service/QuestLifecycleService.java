@@ -90,7 +90,7 @@ public class QuestLifecycleService {
             var objectiveCompletedEvent = new CoreQuestObjectiveCompletedEvent(objective, profile);
             dispatcher.dispatch(objectiveCompletedEvent);
 
-            if (quest.getObjectives().values().stream().allMatch(QuestObjective::isCompleted)) {
+            if (quest.shouldComplete()) {
                 var questCompleteEvent = new CoreQuestCompletedEvent(quest);
                 dispatcher.dispatch(questCompleteEvent);
                 quest.setStatus(QuestStatus.COMPLETED);

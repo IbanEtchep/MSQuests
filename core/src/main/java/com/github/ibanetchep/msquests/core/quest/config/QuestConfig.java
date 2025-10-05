@@ -11,21 +11,17 @@ public class QuestConfig {
     private String key;
     private String name;
     private String description;
-    private Flow flow = Flow.PARALLEL;
-    private Set<String> tags;
-    private final Map<String, QuestObjectiveConfig> objectives;
-    private long duration; // max in seconds
+    private final Map<String, QuestStageConfig> stages;
     private final List<QuestAction> rewards;
+    private long duration; // max in seconds
     private QuestGroupConfig group;
 
-    public QuestConfig(String key, String name, String description, long duration, Flow flow) {
+    public QuestConfig(String key, String name, String description, long duration) {
         this.key = key;
         this.name = name;
         this.description = description;
         this.duration = duration;
-        this.flow = flow;
-        this.tags = new HashSet<>();
-        this.objectives = new HashMap<>();
+        this.stages = new LinkedHashMap<>();
         this.rewards = new ArrayList<>();
     }
 
@@ -53,36 +49,12 @@ public class QuestConfig {
         this.description = description;
     }
 
-    public Map<String, QuestObjectiveConfig> getObjectives() {
-        return objectives;
-    }
-
-    public void addObjective(QuestObjectiveConfig objective) {
-        objectives.put(objective.getKey(), objective);
-    }
-
     public long getDuration() {
         return duration;
     }
 
     public void setDuration(long duration) {
         this.duration = duration;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public void addTag(String tag) {
-        tags.add(tag);
-    }
-
-    public void removeTag(String tag) {
-        tags.remove(tag);
     }
 
     public List<QuestAction> getRewards() {
@@ -101,11 +73,11 @@ public class QuestConfig {
         return group;
     }
 
-    public Flow getFlow() {
-        return flow;
+    public Map<String, QuestStageConfig> getStages() {
+        return stages;
     }
 
-    public void setObjectiveCompletionType(Flow flow) {
-        this.flow = flow;
+    public void addStage(QuestStageConfig stage) {
+        stages.put(stage.getKey(), stage);
     }
 }
