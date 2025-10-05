@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 import java.util.Map;
@@ -11,13 +11,18 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
     protected C objectiveConfig;
     protected final AtomicInteger progress;
     protected int target;
-    protected Quest quest;
+    protected QuestStage questStage;
 
-    public AbstractQuestObjective(Quest quest, C objectiveConfig, int progress, int target) {
-        this.quest = quest;
+    public AbstractQuestObjective(QuestStage questStage, C objectiveConfig, int progress, int target) {
+        this.questStage = questStage;
         this.objectiveConfig = objectiveConfig;
         this.progress = new AtomicInteger(progress);
         this.target = target;
+    }
+
+    @Override
+    public QuestStage getStage() {
+        return questStage;
     }
 
     public int getProgress() {
@@ -32,17 +37,13 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
         this.progress.set(progress);
     }
 
-    public Quest getQuest() {
-        return quest;
-    }
-
     public QuestObjectiveStatus getStatus() {
         if (isCompleted()) {
             return QuestObjectiveStatus.COMPLETED;
         }
 
-        if(quest.getQuestConfig().getFlow() == Flow.SEQUENTIAL) {
-            QuestObjective firstActiveObjective = quest.getFirstActiveObjective();
+        if(questStage.getStageConfig().getFlow() == Flow.SEQUENTIAL) {
+            QuestObjective firstActiveObjective = questStage.getFirstActiveObjective();
             return firstActiveObjective == this ? QuestObjectiveStatus.IN_PROGRESS : QuestObjectiveStatus.PENDING;
         }
 

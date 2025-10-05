@@ -15,7 +15,6 @@ public class QuestCompleteEvent extends Event {
     private final Quest quest;
 
     public QuestCompleteEvent(Quest quest) {
-        super(true);
         this.quest = quest;
     }
 

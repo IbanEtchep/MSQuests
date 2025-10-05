@@ -1,10 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.repository;
 
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
+import com.github.ibanetchep.msquests.core.dto.*;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -88,15 +83,8 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                 ConfigurationSection questSection = questsSection.getConfigurationSection(questKey);
                 if (questSection == null) continue;
 
-                Map<String, QuestObjectiveConfigDTO> objectives = parseObjectives(questSection);
+                Map<String, QuestStageConfigDTO> stages = parseStages(questSection);
                 List<QuestActionDTO> rewards = parseRewards(questSection);
-
-                Flow flow = Flow.PARALLEL;
-                if (questSection.contains("flow")) {
-                    flow = Flow.valueOf(questSection.getString("flow"));
-                }
-
-                questSection.getString("flow");
 
                 QuestConfigDTO questConfig = new QuestConfigDTO(
                         questKey,
@@ -104,10 +92,8 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
                         questSection.getString("name"),
                         questSection.getString("description"),
                         questSection.getLong("duration"),
-                        flow,
-                        questSection.getStringList("tags"),
                         rewards,
-                        objectives
+                        stages
                 );
 
                 quests.add(questConfig);
@@ -143,26 +129,63 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
 
     }
 
-    private Map<String, QuestObjectiveConfigDTO> parseObjectives(ConfigurationSection questSection) {
-        Map<String, QuestObjectiveConfigDTO> objectives = new HashMap<>();
-        List<Map<?, ?>> objectivesList = questSection.getMapList("objectives");
+    private Map<String, QuestStageConfigDTO> parseStages(ConfigurationSection questSection) {
+        List<Map<?, ?>> stagesList = questSection.getMapList("stages");
+        Map<String, QuestStageConfigDTO> stages = new HashMap<>();
 
-        for (Map<?, ?> map : objectivesList) {
-            Map<String, Object> config = map.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            e -> e.getKey().toString(),
-                            Map.Entry::getValue
-                    ));
-            String type = (String) config.get("type");
-            String key = (String) config.get("key");
+        for (Map<?, ?> map : stagesList) {
+            String stageKey = (String) map.get("key");
+            if (stageKey == null) continue;
 
-            if (type == null || key == null) continue;
+            String stageName = (String) map.get("name");
+            String flowString = "PARALLEL";
 
-            objectives.put(key, new QuestObjectiveConfigDTO(key, type, config));
+            if (map.containsKey("flow")) {
+                flowString = (String) map.get("flow");
+            }
+
+            Flow flow = Flow.valueOf(flowString.toUpperCase());
+
+            Object rawObjectives = map.get("objectives");
+            List<Map<?, ?>> objectivesList = new ArrayList<>();
+
+            if (rawObjectives instanceof List<?> list) {
+                for (Object o : list) {
+                    if (o instanceof Map<?, ?> m) {
+                        objectivesList.add(m);
+                    }
+                }
+            }
+
+            Map<String, QuestObjectiveConfigDTO> objectives = new HashMap<>();
+            if (objectivesList != null) {
+                for (Map<?, ?> objMap : objectivesList) {
+                    Map<String, Object> config = objMap.entrySet().stream()
+                            .collect(Collectors.toMap(
+                                    e -> e.getKey().toString(),
+                                    Map.Entry::getValue
+                            ));
+                    String objKey = (String) config.get("key");
+                    String objType = (String) config.get("type");
+                    if (objKey == null || objType == null) continue;
+
+                    objectives.put(objKey, new QuestObjectiveConfigDTO(objKey, objType, config));
+                }
+            }
+
+            QuestStageConfigDTO stageDTO = new QuestStageConfigDTO(
+                    stageKey,
+                    stageName,
+                    flow,
+                    objectives
+            );
+
+            stages.put(stageKey, stageDTO);
         }
 
-        return objectives;
+        return stages;
     }
+
 
     private List<QuestActionDTO> parseRewards(ConfigurationSection questSection) {
         List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");

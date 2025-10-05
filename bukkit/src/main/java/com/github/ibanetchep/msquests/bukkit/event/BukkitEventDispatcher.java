@@ -19,9 +19,9 @@ public class BukkitEventDispatcher implements EventDispatcher {
 
         handlers.put(CoreQuestStartEvent.class, e -> callQuestStart((CoreQuestStartEvent) e));
         handlers.put(CoreQuestStartedEvent.class, e -> callQuestStarted((CoreQuestStartedEvent) e));
-        handlers.put(CoreQuestCompletedEvent.class, e -> callQuestComplete((CoreQuestCompletedEvent) e));
+        handlers.put(CoreQuestCompletedEvent.class, e -> callQuestCompleted((CoreQuestCompletedEvent) e));
         handlers.put(CoreQuestObjectiveProgressEvent.class, e -> callQuestObjectiveProgress((CoreQuestObjectiveProgressEvent) e));
-        handlers.put(CoreQuestObjectiveCompletedEvent.class, e -> callQuestObjectiveComplete((CoreQuestObjectiveCompletedEvent) e));
+        handlers.put(CoreQuestObjectiveCompletedEvent.class, e -> callQuestObjectiveCompleted((CoreQuestObjectiveCompletedEvent) e));
         handlers.put(CoreQuestObjectiveProgressedEvent.class, e -> callQuestObjectiveProgressed((CoreQuestObjectiveProgressedEvent) e));
     }
 
@@ -44,9 +44,9 @@ public class BukkitEventDispatcher implements EventDispatcher {
         plugin.getServer().getPluginManager().callEvent(startedEvent);
     }
 
-    private void callQuestComplete(CoreQuestCompletedEvent event) {
+    private void callQuestCompleted(CoreQuestCompletedEvent event) {
         QuestCompleteEvent completeEvent = new QuestCompleteEvent(event.getQuest());
-        plugin.getServer().getPluginManager().callEvent(completeEvent);
+        plugin.getScheduler().runNextTick(task -> plugin.getServer().getPluginManager().callEvent(completeEvent));
     }
 
     private void callQuestObjectiveProgress(CoreQuestObjectiveProgressEvent event) {
@@ -58,12 +58,12 @@ public class BukkitEventDispatcher implements EventDispatcher {
         event.setCancelled(progressEvent.isCancelled());
     }
 
-    private void callQuestObjectiveComplete(CoreQuestObjectiveCompletedEvent event) {
+    private void callQuestObjectiveCompleted(CoreQuestObjectiveCompletedEvent event) {
         QuestObjective objective = event.getObjective();
         PlayerProfile profile = event.getPlayerProfile();
 
         ObjectiveCompletedEvent completeEvent = new ObjectiveCompletedEvent(objective, profile);
-        plugin.getServer().getPluginManager().callEvent(completeEvent);
+        plugin.getScheduler().runNextTick(task -> plugin.getServer().getPluginManager().callEvent(completeEvent));
     }
 
     private void callQuestObjectiveProgressed(CoreQuestObjectiveProgressedEvent event) {
@@ -72,5 +72,4 @@ public class BukkitEventDispatcher implements EventDispatcher {
         ObjectiveProgressedEvent progressedEvent = new ObjectiveProgressedEvent(objective, profile);
         plugin.getServer().getPluginManager().callEvent(progressedEvent);
     }
-
 }

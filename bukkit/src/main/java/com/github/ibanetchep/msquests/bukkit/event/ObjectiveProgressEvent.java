@@ -24,7 +24,6 @@ public class ObjectiveProgressEvent extends Event implements Cancellable {
      * @param profile - profile who triggered the progress
      */
     public ObjectiveProgressEvent(QuestObjective objective, @Nullable PlayerProfile profile) {
-        super(true);
         this.objective = objective;
         this.profile = profile;
     }

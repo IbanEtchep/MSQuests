@@ -5,9 +5,6 @@ group_1:
       name: "First Quest"
       description: "This is the first quest"
       duration: 120
-      tags:
-        - "tag1"
-        - "tag2"
       rewards:
         - type: "command"
           name: "Command Reward"
@@ -16,26 +13,28 @@ group_1:
           name: "Item Reward"
           item: "diamond"
           amount: 10
-      objectives:
-        - key: objective_1
-          type: "block_break"
-          material: "stone"
-          amount: 10
-        - key: objective_2
-          type: "kill"
-          mob: "zombie"
-          amount: 5
+      stages:
+        - key: stage_1
+          objectives:
+            - key: objective_1
+              type: "block_break"
+              material: "stone"
+              amount: 10
+            - key: objective_2
+              type: "kill"
+              mob: "zombie"
+              amount: 5
     quest_2:
       name: "Second Quest"
       description: "This is the second quest"
       duration: 180
-      tags:
-        - "tag3"
       rewards:
         - type: "command"
           name: "Command Reward"
           command: "give %actor_name% diamond"
-      objectives:
-        - key: objective_1
-          type: "explore"
-          location: "village"
+      stages:
+        - key: stage_1
+          objectives:
+            - key: objective_1
+              type: "explore"
+              location: "village"

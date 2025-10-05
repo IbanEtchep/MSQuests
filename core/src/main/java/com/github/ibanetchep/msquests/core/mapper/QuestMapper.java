@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 public class QuestMapper {
 
     public QuestDTO toDTO(Quest quest) {
-        Map<String, QuestObjectiveDTO> objectiveDtos = quest.getObjectives().entrySet().stream()
+        Map<String, QuestObjectiveDTO> objectiveDtos = quest.getStages().entrySet().stream()
+                .flatMap(stage -> stage.getValue().getObjectives().entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> {
