@@ -72,7 +72,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                             String objKey = rs.getString("o_key");
                             if (objKey != null) {
                                 QuestObjectiveStatus objStatus = QuestObjectiveStatus.valueOf(rs.getString("o_status"));
-                                String progressJson = rs.getString("o_progress");
+                                int progress = rs.getInt("o_progress");
                                 String type = rs.getString("o_type");
 
                                 QuestObjectiveDTO objective = new QuestObjectiveDTO(
@@ -80,7 +80,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                         objKey,
                                         type,
                                         objStatus,
-                                        progressJson
+                                        progress
                                 );
 
                                 quests.get(questId).objectives().put(objKey, objective);
@@ -131,7 +131,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                             "WHERE quest_id = :questId AND objective_key = :objectiveKey")
                             .bind("objectiveKey", objectiveKey)
                             .bind("status", obj.objectiveStatus().toString())
-                            .bind("progress", obj.progressJson())
+                            .bind("progress", obj.progress())
                             .bind("questId", questEntryId)
                             .bind("type", obj.objectiveType())
                             .execute();
@@ -142,7 +142,7 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                                 "VALUES (:objectiveKey, :status, :progress, :questId, :type)")
                                 .bind("objectiveKey", objectiveKey)
                                 .bind("status", obj.objectiveStatus().toString())
-                                .bind("progress", obj.progressJson())
+                                .bind("progress", obj.progress())
                                 .bind("type", obj.objectiveType())
                                 .bind("questId", questEntryId)
                                 .execute();

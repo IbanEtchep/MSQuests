@@ -5,8 +5,6 @@ import com.github.ibanetchep.msquests.core.lang.Translatable;
 public enum TranslationKey implements Translatable {
 
     //QUEST GENERAL
-    QUEST_OBJECTIVE_PROGRESS("quest.objective_progress"),
-
     QUEST_ADMIN_RELOAD("quest_admin.reload"),
     QUEST_ADMIN_STARTED("quest_admin.quest.started"),
     QUEST_ADMIN_COULD_NOT_START("quest_admin.quest.could_not_start"),

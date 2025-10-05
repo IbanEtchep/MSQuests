@@ -3,8 +3,7 @@ package com.github.ibanetchep.msquests.core.mapper;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.config.group.ChainedQuestGroupConfig;
-import com.github.ibanetchep.msquests.core.quest.config.group.PoolQuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.List;
@@ -31,25 +30,15 @@ public class QuestGroupMapper {
                 .map(questConfigMapper::toDTO)
                 .toList();
 
-        int maxActiveQuests = 0;
-        int maxPerPeriod = 0;
-        String periodSwitchCron = null;
-
-        if (entity instanceof PoolQuestGroupConfig pool) {
-            maxActiveQuests = pool.getMaxActiveQuests();
-            maxPerPeriod = pool.getMaxPerPeriod();
-            periodSwitchCron = pool.getPeriodSwitchCron();
-        }
-
         return new QuestGroupDTO(
                 entity.getKey(),
                 entity.getName(),
                 entity.getDescription(),
                 questDtos,
-                entity.getType(),
-                maxActiveQuests,
-                maxPerPeriod,
-                periodSwitchCron,
+                entity.getDistributionMode().toString(),
+                entity.getMaxActive(),
+                entity.getMaxPerPeriod(),
+                entity.getResetCron(),
                 entity.getStartAt(),
                 entity.getEndAt()
         );
@@ -65,33 +54,19 @@ public class QuestGroupMapper {
             return null;
         }
 
-        QuestGroupConfig questGroupConfig;
-
-        switch (dto.type()) {
-            case POOL:
-                questGroupConfig = new PoolQuestGroupConfig(
-                        dto.key(),
-                        dto.name(),
-                        dto.description(),
-                        dto.startAt(),
-                        dto.endAt(),
-                        dto.periodSwitchCron(),
-                        dto.maxActiveQuests(),
-                        dto.maxPerPeriod()
-                );
-                break;
-            case CHAINED:
-                questGroupConfig = new ChainedQuestGroupConfig(
-                        dto.key(),
-                        dto.name(),
-                        dto.description(),
-                        dto.startAt(),
-                        dto.endAt()
-                );
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown quest group type: " + dto.type());
+        QuestDistributionMode distributionMode = QuestDistributionMode.SEQUENTIAL;
+        if (dto.distributionMode() != null) {
+            distributionMode = QuestDistributionMode.valueOf(dto.distributionMode().toUpperCase());
         }
+
+        QuestGroupConfig questGroupConfig = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description())
+                .distributionMode(distributionMode)
+                .maxActive(dto.maxActive())
+                .maxPerPeriod(dto.maxPerPeriod())
+                .resetCron(dto.resetCron())
+                .startAt(dto.startAt())
+                .endAt(dto.endAt())
+                .build();
 
         for (QuestConfigDTO questConfigDTO : dto.quests()) {
             QuestConfig questConfig = questConfigMapper.toEntity(questConfigDTO);

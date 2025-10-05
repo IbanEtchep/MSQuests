@@ -1,19 +1,21 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
-public interface QuestObjective extends PlaceholderProvider {
+public interface QuestObjective extends PlaceholderProvider, Translatable {
 
     Quest getQuest();
     QuestObjectiveConfig getObjectiveConfig();
     boolean isCompleted();
+    void complete();
+    void incrementProgress(int progress);
     double getProgressPercent();
     QuestObjectiveStatus getStatus();
-    String progressToJson();
-    void updateProgressFromJson(String json);
-
+    int getTarget();
+    int getProgress();
 
     default String getType() {
         return getObjectiveConfig().getType();

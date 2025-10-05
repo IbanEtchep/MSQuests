@@ -22,7 +22,7 @@ public class QuestMapper {
                                     objective.getObjectiveConfig().getKey(),
                                     objective.getType(),
                                     objective.getStatus(),
-                                    objective.progressToJson()
+                                    objective.getProgress()
                             );
                         }
                 ));

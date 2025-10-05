@@ -50,7 +50,7 @@ public class CreateTablesMigration extends Migration {
                 objective_key VARCHAR(255) NOT NULL,
                 objective_status VARCHAR(50) NOT NULL,
                 objective_type VARCHAR(255) NOT NULL,
-                progress TEXT,
+                progress INTEGER DEFAULT 0,
                 started_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 quest_id CHAR(36) NOT NULL REFERENCES msquests_quest(id) ON DELETE CASCADE,

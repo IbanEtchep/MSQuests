@@ -13,7 +13,6 @@ import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
-import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveHandler;
@@ -41,9 +40,7 @@ import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
-import com.github.ibanetchep.msquests.core.quest.executor.AtomicLocalObjectiveExecutor;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicLocalQuestExecutor;
-import com.github.ibanetchep.msquests.core.quest.executor.AtomicObjectiveExecutor;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.registry.*;
 import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
@@ -129,14 +126,13 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
 
         AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor();
-        AtomicObjectiveExecutor atomicObjectiveExecutor = new AtomicLocalObjectiveExecutor(atomicQuestExecutor);
 
         questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry, questMapper);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, atomicQuestExecutor, atomicObjectiveExecutor);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, atomicQuestExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();

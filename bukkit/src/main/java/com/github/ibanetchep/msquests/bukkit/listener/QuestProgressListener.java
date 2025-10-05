@@ -26,7 +26,7 @@ public class QuestProgressListener implements Listener {
 
         GlobalConfig.ActorConfig actorConfig = plugin.getGlobalConfig().actorConfig(actor.getActorType());
 
-        for (QuestAction action : actorConfig.progressActions()) {
+        for (QuestAction action : actorConfig.objectiveProgressActions()) {
             action.execute(objective);
         }
     }

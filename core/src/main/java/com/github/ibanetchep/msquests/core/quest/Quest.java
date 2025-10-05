@@ -5,8 +5,10 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.*;
 
 public class Quest {
@@ -126,4 +128,28 @@ public class Quest {
                 .findFirst().orElse(null);
     }
 
+    public boolean shouldExpire() {
+        QuestGroupConfig group = getQuestGroup();
+        if (group == null) {
+            return false;
+        }
+
+        Instant createdAtInstant = getCreatedAt().toInstant();
+        Instant now = Instant.now();
+
+        Instant endAt = group.getEndAt();
+        if (endAt != null) {
+            return now.isAfter(endAt);
+        }
+
+        String resetCron = group.getResetCron();
+        if (resetCron != null) {
+            Instant expiration = CronUtils.getNextExecution(resetCron, createdAtInstant);
+            if (expiration != null) {
+                return now.isAfter(expiration);
+            }
+        }
+
+        return false;
+    }
 }

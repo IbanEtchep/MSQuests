@@ -76,10 +76,11 @@ public class GlobalConfigLoaderService {
 
         for (String actorKey : actorKeys) {
             List<QuestAction> start = readActions("actor_type." + actorKey + ".start_actions");
-            List<QuestAction> progress = readActions("actor_type." + actorKey + ".progress_actions");
+            List<QuestAction> objectiveProgress = readActions("actor_type." + actorKey + ".objective_progress_actions");
+            List<QuestAction> objectiveComplete = readActions("actor_type." + actorKey + ".objective_complete_actions");
             List<QuestAction> complete = readActions("actor_type." + actorKey + ".complete_actions");
 
-            actorTypes.put(actorKey, new GlobalConfig.ActorConfig(start, progress, complete));
+            actorTypes.put(actorKey, new GlobalConfig.ActorConfig(start, objectiveProgress, objectiveComplete, complete));
         }
 
         return new GlobalConfig(language, database, actorTypes);
