@@ -1,0 +1,74 @@
+key: group_1
+name: "groupe 1"
+description: "Description du groupe"
+distribution_mode: CHAINED
+max_active: 3
+max_per_period: 10
+reset_cron: "0 0 * * *"
+start_at: "2024-01-01T00:00:00Z"
+end_at: "2024-12-31T23:59:59Z"
+
+quests:
+  - key: quest_1
+    name: "First Quest"
+    description: "This is the first quest"
+    duration: 120
+    rewards:
+      - type: "command"
+        name: "Command Reward"
+        config:
+          command: "give %actor_name% diamond 1"
+      - type: "give_item"
+        name: "Item Reward"
+        config:
+          material: "DIAMOND"
+          amount: 10
+    stages:
+      - key: stage_1
+        name: "Premier stage"
+        flow: PARALLEL
+        objectives:
+          - key: objective_1
+            type: "block_break"
+            config:
+              material: "STONE"
+              amount: 10
+          - key: objective_2
+            type: "kill_entity"
+            config:
+              entity_type: "ZOMBIE"
+              amount: 5
+      - key: stage_2
+        name: "Deuxième stage"
+        flow: PARALLEL
+        objectives:
+          - key: stage_2_1
+            type: "block_break"
+            config:
+              material: "DIRT"
+              amount: 5
+
+  - key: quest_2
+    name: "Second Quest"
+    description: "This is the second quest"
+    duration: 180
+    rewards:
+      - type: "command"
+        name: "Command Reward"
+        config:
+          command: "give %actor_name% dirt 5"
+      - type: "give_item"
+        name: "Item Reward"
+        config:
+          material: "DIRT"
+          amount: 1
+    stages:
+      - key: stage_1
+        name: "Stage unique"
+        flow: PARALLEL
+        objectives:
+          - key: objective_1
+            type: "kill_entity"
+            config:
+              entity_type: "PIG"
+              amount: 1

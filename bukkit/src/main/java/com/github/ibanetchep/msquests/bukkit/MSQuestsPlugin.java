@@ -117,7 +117,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         questFactory = new QuestFactory(questObjectiveFactory);
         QuestMapper questMapper = new QuestMapper();
 
-        QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"));
+        QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger());
         ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
         QuestSqlRepository questRepository = new QuestSqlRepository(dbAccess);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);

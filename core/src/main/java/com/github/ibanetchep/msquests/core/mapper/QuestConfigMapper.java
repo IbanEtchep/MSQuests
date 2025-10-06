@@ -6,15 +6,13 @@ import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestStageConfigDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
-import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class QuestConfigMapper {
 
@@ -27,16 +25,16 @@ public class QuestConfigMapper {
     }
 
     public QuestConfigDTO toDTO(QuestConfig entity) {
-        Map<String, QuestStageConfigDTO> stageDtos = new HashMap<>();
+        List<QuestStageConfigDTO> stageDtos = new ArrayList<>();
 
         for (QuestStageConfig stageConfig : entity.getStages().values()) {
-            Map<String, QuestObjectiveConfigDTO> objectiveDtos = new HashMap<>();
+            List<QuestObjectiveConfigDTO> objectiveDtos = new ArrayList<>();
 
             for (QuestObjectiveConfig objectiveConfig : stageConfig.getObjectives().values()) {
-                objectiveDtos.put(objectiveConfig.getKey(), objectiveConfig.toDTO());
+                objectiveDtos.add(objectiveConfig.toDTO());
             }
 
-            stageDtos.put(stageConfig.getKey(), new QuestStageConfigDTO(stageConfig.getKey(), stageConfig.getName(), stageConfig.getFlow(), objectiveDtos));
+            stageDtos.add(new QuestStageConfigDTO(stageConfig.getKey(), stageConfig.getName(), stageConfig.getFlow(), objectiveDtos));
         }
 
         List<QuestActionDTO> rewards = new ArrayList<>();
@@ -48,7 +46,6 @@ public class QuestConfigMapper {
 
         return new QuestConfigDTO(
                 entity.getKey(),
-                entity.getGroup().getKey(),
                 entity.getName(),
                 entity.getDescription(),
                 entity.getDuration(),
@@ -67,15 +64,11 @@ public class QuestConfigMapper {
             }
         }
 
-        for (Map.Entry<String, QuestStageConfigDTO> entry : dto.stages().entrySet()) {
-            QuestStageConfigDTO stageDto = entry.getValue();
-
+        for (QuestStageConfigDTO stageDto : dto.stages()) {
             QuestStageConfig stageConfig = new QuestStageConfig(stageDto.key(), stageDto.name(), stageDto.flow());
             questConfig.addStage(stageConfig);
 
-            for (Map.Entry<String, QuestObjectiveConfigDTO> objectiveEntry : stageDto.objectives().entrySet()) {
-                QuestObjectiveConfigDTO objectiveDto = objectiveEntry.getValue();
-
+            for (QuestObjectiveConfigDTO objectiveDto : stageDto.objectives()) {
                 QuestObjectiveConfig objectiveConfig = questObjectiveFactory.createConfig(objectiveDto);
                 stageConfig.addObjective(objectiveConfig);
             }
