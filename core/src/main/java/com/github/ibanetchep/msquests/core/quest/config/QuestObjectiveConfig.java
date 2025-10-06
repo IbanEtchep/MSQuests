@@ -10,7 +10,6 @@ import java.util.Map;
 
 /**
  * Base class for all quest objective configs.
- * Values are assumed to be already validated by JSON Schema before instantiation.
  */
 public abstract class QuestObjectiveConfig implements Translatable, PlaceholderProvider {
 

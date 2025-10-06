@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.service;
 
-import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
@@ -34,7 +34,7 @@ public class QuestConfigService {
 
         return questConfigRepository.getAllGroups()
                 .thenAccept(questGroupDtos -> {
-                    for (QuestGroupDTO questGroupDTO : questGroupDtos.values()) {
+                    for (QuestGroupConfigDTO questGroupDTO : questGroupDtos.values()) {
                         QuestGroupConfig questGroupConfig = questGroupMapper.toEntity(questGroupDTO);
                         questRegistry.registerQuestGroupConfig(questGroupConfig);
                         logger.info("Loaded group " + questGroupConfig.getKey() + " with "

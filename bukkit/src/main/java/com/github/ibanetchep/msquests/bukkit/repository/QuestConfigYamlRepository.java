@@ -1,54 +1,59 @@
 package com.github.ibanetchep.msquests.bukkit.repository;
 
-import com.github.ibanetchep.msquests.core.dto.*;
-import com.github.ibanetchep.msquests.core.quest.objective.Flow;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class QuestConfigYamlRepository implements QuestConfigRepository {
 
-    /**
-     * The root folder where the quest config files are stored. (default: pluginFolder/quests)
-     */
+    private final Logger logger;
     private final Path rootFolder;
-
     /**
-     * A map that stores the path of each loaded quest config.
-     * Key: group key
-     * Value: path to the quest config file
+     * Group key - path
      */
     private final Map<String, Path> questConfigPaths = new ConcurrentHashMap<>();
+    private final ObjectMapper yamlMapper;
 
-    public QuestConfigYamlRepository(Path rootFolder) {
+    public QuestConfigYamlRepository(Path rootFolder, Logger logger) {
         this.rootFolder = rootFolder;
+        this.logger = logger;
+
+        this.yamlMapper = new ObjectMapper(new YAMLFactory());
+        this.yamlMapper.registerModule(new JavaTimeModule());
+        this.yamlMapper.findAndRegisterModules();
+        this.yamlMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
     }
 
     @Override
-    public CompletableFuture<Map<String, QuestGroupDTO>> getAllGroups() {
-        Map<String, QuestGroupDTO> questGroups = new HashMap<>();
-
+    public CompletableFuture<Map<String, QuestGroupConfigDTO>> getAllGroups() {
         return CompletableFuture.supplyAsync(() -> {
+            Map<String, QuestGroupConfigDTO> questGroups = new HashMap<>();
+
             try (Stream<Path> paths = Files.walk(rootFolder)) {
                 paths
-                        .filter(path -> path.getFileName().toString().endsWith(".yml"))
+                        .filter(Files::isRegularFile)
+                        .filter(this::isValidQuestFile)
                         .forEach(path -> {
-                            List<QuestGroupDTO> groups = loadFileGroups(path);
-                            for (QuestGroupDTO group : groups) {
+                            try {
+                                QuestGroupConfigDTO group = loadGroup(path);
                                 questGroups.put(group.key(), group);
+                            } catch (Exception e) {
+                                logger.log(Level.WARNING, "Failed to load quest group " + path, e);
                             }
                         });
             } catch (IOException e) {
@@ -59,152 +64,33 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
         });
     }
 
-    public List<QuestGroupDTO> loadFileGroups(Path path) {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(path.toFile());
-        List<QuestGroupDTO> questGroups = new ArrayList<>();
+    public QuestGroupConfigDTO loadGroup(Path path) throws IOException {
+        try (InputStream input = Files.newInputStream(path)) {
+            QuestGroupConfigDTO group = yamlMapper.readValue(input, QuestGroupConfigDTO.class);
 
-        for (String groupKey : config.getKeys(false)) {
-            ConfigurationSection groupSection = config.getConfigurationSection(groupKey);
-            if (groupSection == null) continue;
-
-            QuestGroupDTO groupDTO = parseGroup(groupKey, groupSection, path);
-            questGroups.add(groupDTO);
-        }
-
-        return questGroups;
-    }
-
-    private QuestGroupDTO parseGroup(String groupKey, ConfigurationSection groupSection, Path path) {
-        ConfigurationSection questsSection = groupSection.getConfigurationSection("quests");
-        List<QuestConfigDTO> quests = new ArrayList<>();
-
-        if (questsSection != null) {
-            for (String questKey : questsSection.getKeys(false)) {
-                ConfigurationSection questSection = questsSection.getConfigurationSection(questKey);
-                if (questSection == null) continue;
-
-                Map<String, QuestStageConfigDTO> stages = parseStages(questSection);
-                List<QuestActionDTO> rewards = parseRewards(questSection);
-
-                QuestConfigDTO questConfig = new QuestConfigDTO(
-                        questKey,
-                        groupKey,
-                        questSection.getString("name"),
-                        questSection.getString("description"),
-                        questSection.getLong("duration"),
-                        rewards,
-                        stages
-                );
-
-                quests.add(questConfig);
-            }
-        }
-
-        Instant startAt = null;
-        Instant endAt = null;
-        String startAtString = groupSection.getString("startAt");
-        String endAtString = groupSection.getString("endAt");
-
-        if (startAtString != null) {
-            startAt = Instant.parse(startAtString);
-        }
-        if (endAtString != null) {
-            endAt = Instant.parse(endAtString);
-        }
-
-        questConfigPaths.put(groupKey, path);
-
-        return new QuestGroupDTO(
-                groupKey,
-                groupSection.getString("name"),
-                groupSection.getString("description"),
-                quests,
-                groupSection.getString("distribution_mode"),
-                groupSection.getInt("max_active"),
-                groupSection.getInt("max_per_period"),
-                groupSection.getString("reset_cron"),
-                startAt,
-                endAt
-        );
-
-    }
-
-    private Map<String, QuestStageConfigDTO> parseStages(ConfigurationSection questSection) {
-        List<Map<?, ?>> stagesList = questSection.getMapList("stages");
-        Map<String, QuestStageConfigDTO> stages = new HashMap<>();
-
-        for (Map<?, ?> map : stagesList) {
-            String stageKey = (String) map.get("key");
-            if (stageKey == null) continue;
-
-            String stageName = (String) map.get("name");
-            String flowString = "PARALLEL";
-
-            if (map.containsKey("flow")) {
-                flowString = (String) map.get("flow");
+            String fileName = path.getFileName().toString().replace(".yml", "");
+            if (!fileName.equals(group.key())) {
+                logger.warning("File name '" + fileName + "' doesn't match group key '" + group.key() + "'");
             }
 
-            Flow flow = Flow.valueOf(flowString.toUpperCase());
+            questConfigPaths.put(group.key(), path);
 
-            Object rawObjectives = map.get("objectives");
-            List<Map<?, ?>> objectivesList = new ArrayList<>();
-
-            if (rawObjectives instanceof List<?> list) {
-                for (Object o : list) {
-                    if (o instanceof Map<?, ?> m) {
-                        objectivesList.add(m);
-                    }
-                }
-            }
-
-            Map<String, QuestObjectiveConfigDTO> objectives = new HashMap<>();
-            if (objectivesList != null) {
-                for (Map<?, ?> objMap : objectivesList) {
-                    Map<String, Object> config = objMap.entrySet().stream()
-                            .collect(Collectors.toMap(
-                                    e -> e.getKey().toString(),
-                                    Map.Entry::getValue
-                            ));
-                    String objKey = (String) config.get("key");
-                    String objType = (String) config.get("type");
-                    if (objKey == null || objType == null) continue;
-
-                    objectives.put(objKey, new QuestObjectiveConfigDTO(objKey, objType, config));
-                }
-            }
-
-            QuestStageConfigDTO stageDTO = new QuestStageConfigDTO(
-                    stageKey,
-                    stageName,
-                    flow,
-                    objectives
-            );
-
-            stages.put(stageKey, stageDTO);
+            return group;
         }
-
-        return stages;
     }
 
 
-    private List<QuestActionDTO> parseRewards(ConfigurationSection questSection) {
-        List<Map<?, ?>> rewardsList = questSection.getMapList("rewards");
-        List<QuestActionDTO> rewards = new ArrayList<>();
+    public void saveGroup(QuestGroupConfigDTO group) throws IOException {
+        Path path = questConfigPaths.computeIfAbsent(group.key(), k -> rootFolder.resolve(group.key() + ".yml"));
+        yamlMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), group);
+    }
 
-        for (Map<?, ?> map : rewardsList) {
-            Map<String, Object> config = map.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            e -> e.getKey().toString(),
-                            Map.Entry::getValue
-                    ));
-            String type = (String) config.get("type");
-            String name = (String) config.get("name");
+    public Path getGroupPath(String groupKey) {
+        return questConfigPaths.get(groupKey);
+    }
 
-            if (type == null) continue;
-
-            rewards.add(new QuestActionDTO(type, name, config));
-        }
-
-        return rewards;
+    private boolean isValidQuestFile(Path path) {
+        String fileName = path.getFileName().toString().toLowerCase();
+        return fileName.endsWith(".yml");
     }
 }

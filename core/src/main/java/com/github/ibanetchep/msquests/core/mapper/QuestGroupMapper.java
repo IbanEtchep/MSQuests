@@ -1,12 +1,15 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestGroupDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class QuestGroupMapper {
 
@@ -21,7 +24,7 @@ public class QuestGroupMapper {
      * @param entity The QuestGroup entity to convert
      * @return The converted QuestGroupDTO
      */
-    public QuestGroupDTO toDTO(QuestGroupConfig entity) {
+    public QuestGroupConfigDTO toDTO(QuestGroupConfig entity) {
         if (entity == null) {
             return null;
         }
@@ -30,7 +33,7 @@ public class QuestGroupMapper {
                 .map(questConfigMapper::toDTO)
                 .toList();
 
-        return new QuestGroupDTO(
+        return new QuestGroupConfigDTO(
                 entity.getKey(),
                 entity.getName(),
                 entity.getDescription(),
@@ -49,7 +52,7 @@ public class QuestGroupMapper {
      * @param dto The QuestGroupDTO to convert
      * @return The converted QuestGroup entity
      */
-    public QuestGroupConfig toEntity(QuestGroupDTO dto) {
+    public QuestGroupConfig toEntity(QuestGroupConfigDTO dto) {
         if (dto == null) {
             return null;
         }
