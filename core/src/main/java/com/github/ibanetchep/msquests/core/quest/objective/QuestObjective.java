@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.core.quest.objective;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 public interface QuestObjective extends PlaceholderProvider, Translatable {

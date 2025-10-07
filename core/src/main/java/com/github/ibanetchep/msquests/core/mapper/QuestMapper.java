@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 

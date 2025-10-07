@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.registry;
 
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

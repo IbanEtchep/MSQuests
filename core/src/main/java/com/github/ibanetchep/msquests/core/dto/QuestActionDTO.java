@@ -8,5 +8,5 @@ import java.util.Map;
 public record QuestActionDTO(
         String type,
         @Nullable String name,
-        Map<String, Object> config
+        Map<String, Object> params
 ) {}

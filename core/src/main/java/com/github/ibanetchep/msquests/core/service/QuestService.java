@@ -1,10 +1,12 @@
 package com.github.ibanetchep.msquests.core.service;
 
+import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
@@ -15,6 +17,7 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class QuestService {
 
@@ -54,7 +57,7 @@ public class QuestService {
 
                         QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(questDTO.questKey());
                         if (questConfig == null) {
-                            logger.warning("Could not find config for quest " + questDTO.questKey()
+                            logger.warning("Could not find params for quest " + questDTO.questKey()
                                     + " in group " + questDTO.groupKey());
                             continue;
                         }
@@ -79,6 +82,10 @@ public class QuestService {
 
     public void saveDirtyQuests() {
         Collection<Quest> dirtyQuests = questRegistry.getDirtyQuests();
+        if(dirtyQuests.isEmpty()) {
+            return;
+        }
+
         logger.info("Saving " + dirtyQuests.size() + " dirty quests");
 
         dirtyQuests.forEach(quest -> {

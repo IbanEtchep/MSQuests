@@ -52,12 +52,12 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("group_1", group.key());
         assertEquals("groupe 1", group.name());
         assertEquals("Description du groupe", group.description());
-        assertEquals("CHAINED", group.distributionMode());
+        assertEquals("SEQUENTIAL", group.distributionMode());
         assertEquals(3, group.maxActive());
         assertEquals(10, group.maxPerPeriod());
         assertEquals("0 0 * * *", group.resetCron());
         assertEquals(Instant.parse("2024-01-01T00:00:00Z"), group.startAt());
-        assertEquals(Instant.parse("2024-12-31T23:59:59Z"), group.endAt());
+        assertEquals(Instant.parse("2025-12-31T23:59:59Z"), group.endAt());
 
         List<QuestConfigDTO> quests = group.quests();
         assertNotNull(quests, "Quests should not be null");
@@ -77,13 +77,13 @@ public class QuestConfigYamlRepositoryTest {
         QuestActionDTO reward1_1 = quest1.rewards().get(0);
         assertEquals("command", reward1_1.type());
         assertEquals("Command Reward", reward1_1.name());
-        assertEquals("give %actor_name% diamond 1", reward1_1.config().get("command"));
+        assertEquals("give %actor_name% diamond 1", reward1_1.params().get("command"));
 
         QuestActionDTO reward1_2 = quest1.rewards().get(1);
         assertEquals("give_item", reward1_2.type());
         assertEquals("Item Reward", reward1_2.name());
-        assertEquals("DIAMOND", reward1_2.config().get("material"));
-        assertEquals(10, ((Number) reward1_2.config().get("amount")).intValue());
+        assertEquals("DIAMOND", reward1_2.params().get("material"));
+        assertEquals(10, ((Number) reward1_2.params().get("amount")).intValue());
 
         // Quest 1 - Stages
         List<QuestStageConfigDTO> stages1 = quest1.stages();
@@ -103,15 +103,15 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(obj1_1_1, "Objective 1 should exist");
         assertEquals("objective_1", obj1_1_1.key());
         assertEquals("block_break", obj1_1_1.type());
-        assertEquals("STONE", obj1_1_1.config().get("material"));
-        assertEquals(10, ((Number) obj1_1_1.config().get("amount")).intValue());
+        assertEquals("STONE", obj1_1_1.params().get("material"));
+        assertEquals(10, ((Number) obj1_1_1.params().get("amount")).intValue());
 
         QuestObjectiveConfigDTO obj1_1_2 = stage1_1.getObjective("objective_2");
         assertNotNull(obj1_1_2, "Objective 2 should exist");
         assertEquals("objective_2", obj1_1_2.key());
         assertEquals("kill_entity", obj1_1_2.type());
-        assertEquals("ZOMBIE", obj1_1_2.config().get("entity_type"));
-        assertEquals(5, ((Number) obj1_1_2.config().get("amount")).intValue());
+        assertEquals("ZOMBIE", obj1_1_2.params().get("entity_type"));
+        assertEquals(5, ((Number) obj1_1_2.params().get("amount")).intValue());
 
         // Quest 1 - Stage 2
         QuestStageConfigDTO stage1_2 = quest1.getStage("stage_2");
@@ -127,8 +127,8 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(obj1_2_1, "Stage 2 objective should exist");
         assertEquals("stage_2_1", obj1_2_1.key());
         assertEquals("block_break", obj1_2_1.type());
-        assertEquals("DIRT", obj1_2_1.config().get("material"));
-        assertEquals(5, ((Number) obj1_2_1.config().get("amount")).intValue());
+        assertEquals("DIRT", obj1_2_1.params().get("material"));
+        assertEquals(5, ((Number) obj1_2_1.params().get("amount")).intValue());
 
         // ===== QUEST 2 =====
         QuestConfigDTO quest2 = group.getQuest("quest_2");
@@ -144,13 +144,13 @@ public class QuestConfigYamlRepositoryTest {
         QuestActionDTO reward2_1 = quest2.rewards().get(0);
         assertEquals("command", reward2_1.type());
         assertEquals("Command Reward", reward2_1.name());
-        assertEquals("give %actor_name% dirt 5", reward2_1.config().get("command"));
+        assertEquals("give %actor_name% dirt 5", reward2_1.params().get("command"));
 
         QuestActionDTO reward2_2 = quest2.rewards().get(1);
         assertEquals("give_item", reward2_2.type());
         assertEquals("Item Reward", reward2_2.name());
-        assertEquals("DIRT", reward2_2.config().get("material"));
-        assertEquals(1, ((Number) reward2_2.config().get("amount")).intValue());
+        assertEquals("DIRT", reward2_2.params().get("material"));
+        assertEquals(1, ((Number) reward2_2.params().get("amount")).intValue());
 
         // Quest 2 - Stages
         List<QuestStageConfigDTO> stages2 = quest2.stages();
@@ -169,8 +169,8 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(obj2_1_1, "Objective 1 should exist");
         assertEquals("objective_1", obj2_1_1.key());
         assertEquals("kill_entity", obj2_1_1.type());
-        assertEquals("PIG", obj2_1_1.config().get("entity_type"));
-        assertEquals(1, ((Number) obj2_1_1.config().get("amount")).intValue());
+        assertEquals("PIG", obj2_1_1.params().get("entity_type"));
+        assertEquals(1, ((Number) obj2_1_1.params().get("amount")).intValue());
     }
 
     @Test
@@ -213,7 +213,10 @@ public class QuestConfigYamlRepositoryTest {
                 20, // Changed from 10
                 originalGroup.resetCron(),
                 originalGroup.startAt(),
-                originalGroup.endAt()
+                originalGroup.endAt(),
+                originalGroup.actorType(),
+                originalGroup.repeatable(),
+                originalGroup.actions()
         );
 
         // Save
@@ -246,7 +249,15 @@ public class QuestConfigYamlRepositoryTest {
                 5,
                 "0 0 * * *",
                 Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-12-31T23:59:59Z")
+                Instant.parse("2025-12-31T23:59:59Z"),
+                "player",
+                true,
+                new QuestGroupConfigActionsDTO(
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                )
         );
 
         // Save (path should be auto-created)
@@ -312,7 +323,15 @@ public class QuestConfigYamlRepositoryTest {
                 50,
                 "0 0 * * 0",
                 Instant.parse("2025-01-01T00:00:00Z"),
-                Instant.parse("2025-12-31T23:59:59Z")
+                Instant.parse("2025-12-31T23:59:59Z"),
+                "player",
+                true,
+                new QuestGroupConfigActionsDTO(
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                )
         );
 
         // Save
@@ -342,12 +361,12 @@ public class QuestConfigYamlRepositoryTest {
         QuestObjectiveConfigDTO reloadedObjective = reloadedStage.getObjective("mine_diamonds");
         assertNotNull(reloadedObjective);
         assertEquals("block_break", reloadedObjective.type());
-        assertEquals("DIAMOND_ORE", reloadedObjective.config().get("material"));
-        assertEquals(64, ((Number) reloadedObjective.config().get("amount")).intValue());
+        assertEquals("DIAMOND_ORE", reloadedObjective.params().get("material"));
+        assertEquals(64, ((Number) reloadedObjective.params().get("amount")).intValue());
 
         QuestActionDTO reloadedReward = reloadedQuest.rewards().get(0);
         assertEquals("command", reloadedReward.type());
-        assertEquals("give %player% diamond_pickaxe 1", reloadedReward.config().get("command"));
+        assertEquals("give %player% diamond_pickaxe 1", reloadedReward.params().get("command"));
     }
 
     @Test
@@ -422,15 +441,15 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(objective1, "Objective 1 should exist");
 
         // Config should contain specific fields, not generic ones
-        assertNotNull(objective1.config().get("material"), "Config should contain 'material'");
-        assertNotNull(objective1.config().get("amount"), "Config should contain 'amount'");
-        assertNull(objective1.config().get("key"), "Config should NOT contain 'key'");
-        assertNull(objective1.config().get("type"), "Config should NOT contain 'type'");
+        assertNotNull(objective1.params().get("material"), "Config should contain 'material'");
+        assertNotNull(objective1.params().get("amount"), "Config should contain 'amount'");
+        assertNull(objective1.params().get("key"), "Config should NOT contain 'key'");
+        assertNull(objective1.params().get("type"), "Config should NOT contain 'type'");
 
         // Same for rewards
         QuestActionDTO reward1 = quest1.rewards().get(0);
-        assertNotNull(reward1.config().get("command"), "Config should contain 'command'");
-        assertNull(reward1.config().get("type"), "Config should NOT contain 'type'");
-        assertNull(reward1.config().get("name"), "Config should NOT contain 'name'");
+        assertNotNull(reward1.params().get("command"), "Config should contain 'command'");
+        assertNull(reward1.params().get("type"), "Config should NOT contain 'type'");
+        assertNull(reward1.params().get("name"), "Config should NOT contain 'name'");
     }
 }

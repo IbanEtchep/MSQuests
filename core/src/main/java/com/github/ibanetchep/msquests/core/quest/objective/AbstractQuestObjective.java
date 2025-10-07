@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
-import com.github.ibanetchep.msquests.core.quest.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
 import java.util.Map;

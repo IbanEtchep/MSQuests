@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
-import com.github.ibanetchep.msquests.core.quest.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -13,6 +12,7 @@ public abstract class QuestActor {
 
     protected UUID id;
     protected String name;
+    protected final Map<String, ActorQuestGroup> groups = new ConcurrentHashMap<>();
     protected final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
     protected final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
 
@@ -43,6 +43,17 @@ public abstract class QuestActor {
     public void addQuest(Quest quest) {
         quests.put(quest.getId(), quest);
         quest.setActor(this);
+
+        QuestGroupConfig groupConfig = quest.getQuestGroup();
+        groups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig)).addQuest(quest);
+    }
+
+    public ActorQuestGroup getActorQuestGroup(QuestGroupConfig groupConfig) {
+        if(!groupConfig.getActorType().equalsIgnoreCase(getActorType())) {
+            return null;
+        }
+
+        return groups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig));
     }
 
     public void removeQuest(Quest quest) {

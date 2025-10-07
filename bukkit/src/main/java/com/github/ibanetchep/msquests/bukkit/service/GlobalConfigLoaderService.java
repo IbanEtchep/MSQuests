@@ -71,40 +71,6 @@ public class GlobalConfigLoaderService {
                 config.getString("database.password")
         );
 
-        Map<String, GlobalConfig.ActorConfig> actorTypes = new HashMap<>();
-        Set<String> actorKeys = config.getSection("actor_type").getKeys().stream().map(Object::toString).collect(Collectors.toSet());
-
-        for (String actorKey : actorKeys) {
-            List<QuestAction> start = readActions("actor_type." + actorKey + ".start_actions");
-            List<QuestAction> objectiveProgress = readActions("actor_type." + actorKey + ".objective_progress_actions");
-            List<QuestAction> objectiveComplete = readActions("actor_type." + actorKey + ".objective_complete_actions");
-            List<QuestAction> complete = readActions("actor_type." + actorKey + ".complete_actions");
-
-            actorTypes.put(actorKey, new GlobalConfig.ActorConfig(start, objectiveProgress, objectiveComplete, complete));
-        }
-
-        return new GlobalConfig(language, database, actorTypes);
-    }
-
-    private List<QuestAction> readActions(String path) {
-        List<Map<?, ?>> rawList = config.getMapList(path);
-        List<QuestAction> actions = new ArrayList<>();
-
-        for (Map<?, ?> raw : rawList) {
-            String type = (String) raw.get("type");
-            String name = (String) raw.get("name");
-
-            if (type == null) continue;
-
-            Map<String, Object> map = new HashMap<>();
-            for (Map.Entry<?, ?> entry : raw.entrySet()) {
-                map.put(entry.getKey().toString(), entry.getValue());
-            }
-
-            QuestActionDTO questActionDTO = new QuestActionDTO(type, name, map);
-            actions.add(plugin.getQuestActionFactory().createAction(questActionDTO));
-        }
-
-        return actions;
+        return new GlobalConfig(language, database);
     }
 }

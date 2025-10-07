@@ -1,12 +1,48 @@
 key: group_1
 name: "groupe 1"
 description: "Description du groupe"
-distribution_mode: CHAINED
+distribution_mode: SEQUENTIAL
 max_active: 3
 max_per_period: 10
 reset_cron: "0 0 * * *"
 start_at: "2024-01-01T00:00:00Z"
-end_at: "2024-12-31T23:59:59Z"
+end_at: "2025-12-31T23:59:59Z"
+actor_type: "PLAYER"
+
+actions:
+  quest_start:
+    - type: message
+      params:
+        message: |-
+          <#2ecc71>You have started the quest %quest_name%.
+          Objectives : %objectives%
+        objective_template: <newline>   - %objective_name%
+    - type: title
+      params:
+        title: <#FFD166>Quest started
+        subtitle: '%quest_name% %quest_description%'
+    - type: action_bar
+      params:
+        message: <#FFD166>Quest %quest_name% started!
+  quest_complete:
+    - type: message
+      params:
+        message: |-
+          <#2ecc71>You have completed the quest %quest_name%.
+          Objectives : %objectives%
+        objective: <newline>   - %objective_name%
+    - type: title
+      params:
+        title: <#2ecc71>Quest completed
+        subtitle: '%quest_name% %quest_description%'
+  objective_progress:
+    - type: boss_bar
+      params:
+        message: '%objective_name% - %objective_progress%'
+  objective_complete:
+    - type: boss_bar
+      params:
+        message: '<green>%objective_name% - %objective_progress%</green>'
 
 quests:
   - key: quest_1
@@ -16,11 +52,11 @@ quests:
     rewards:
       - type: "command"
         name: "Command Reward"
-        config:
+        params:
           command: "give %actor_name% diamond 1"
       - type: "give_item"
         name: "Item Reward"
-        config:
+        params:
           material: "DIAMOND"
           amount: 10
     stages:
@@ -30,12 +66,12 @@ quests:
         objectives:
           - key: objective_1
             type: "block_break"
-            config:
+            params:
               material: "STONE"
               amount: 10
           - key: objective_2
             type: "kill_entity"
-            config:
+            params:
               entity_type: "ZOMBIE"
               amount: 5
       - key: stage_2
@@ -44,7 +80,7 @@ quests:
         objectives:
           - key: stage_2_1
             type: "block_break"
-            config:
+            params:
               material: "DIRT"
               amount: 5
 
@@ -55,11 +91,11 @@ quests:
     rewards:
       - type: "command"
         name: "Command Reward"
-        config:
+        params:
           command: "give %actor_name% dirt 5"
       - type: "give_item"
         name: "Item Reward"
-        config:
+        params:
           material: "DIRT"
           amount: 1
     stages:
@@ -69,6 +105,6 @@ quests:
         objectives:
           - key: objective_1
             type: "kill_entity"
-            config:
+            params:
               entity_type: "PIG"
               amount: 1

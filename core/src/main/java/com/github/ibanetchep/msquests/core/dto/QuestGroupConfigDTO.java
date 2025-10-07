@@ -14,7 +14,10 @@ public record QuestGroupConfigDTO(
         Integer maxPerPeriod,
         String resetCron,
         Instant startAt,
-        Instant endAt
+        Instant endAt,
+        String actorType,
+        boolean repeatable,
+        QuestGroupConfigActionsDTO actions
 ) {
     public QuestGroupConfigDTO {
         if (key == null || key.isBlank()) {

@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Material;
@@ -25,8 +25,8 @@ public class GiveItemAction extends BukkitQuestAction {
 
     public GiveItemAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
         super(dto, plugin);
-        this.item = Material.valueOf(((String) dto.config().get("material")).toUpperCase());
-        this.amount = (int) dto.config().get("amount");
+        this.item = Material.valueOf(((String) dto.params().get("material")).toUpperCase());
+        this.amount = (int) dto.params().get("amount");
     }
 
     @Override

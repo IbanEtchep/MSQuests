@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Bukkit;
@@ -22,7 +22,7 @@ public class PlayerCommandAction extends BukkitQuestAction {
 
     public PlayerCommandAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
         super(dto, plugin);
-        this.commandTemplate = (String) dto.config().get("command");
+        this.commandTemplate = (String) dto.params().get("command");
     }
 
     @Override

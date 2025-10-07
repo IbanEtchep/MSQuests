@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
@@ -35,10 +35,10 @@ public class PlayerMessageAction extends BukkitQuestAction {
 
     public PlayerMessageAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
         super(dto, plugin);
-        this.message = (String) dto.config().get("message");
-        this.messageKey = (String) dto.config().get("message_key");
-        this.objectiveTemplate = (String) dto.config().get("objective_template");
-        this.objectiveTemplateKey = (String) dto.config().get("objective_template_key");
+        this.message = (String) dto.params().get("message");
+        this.messageKey = (String) dto.params().get("message_key");
+        this.objectiveTemplate = (String) dto.params().get("objective_template");
+        this.objectiveTemplateKey = (String) dto.params().get("objective_template_key");
     }
 
     @Override

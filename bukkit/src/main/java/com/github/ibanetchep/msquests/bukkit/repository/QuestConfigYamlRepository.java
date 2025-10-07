@@ -79,7 +79,6 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
         }
     }
 
-
     public void saveGroup(QuestGroupConfigDTO group) throws IOException {
         Path path = questConfigPaths.computeIfAbsent(group.key(), k -> rootFolder.resolve(group.key() + ".yml"));
         yamlMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), group);

@@ -19,7 +19,7 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
     protected QuestObjectiveConfig(QuestObjectiveConfigDTO dto) {
         this.key = dto.key();
         this.type = dto.type();
-        loadConfig(dto.config());
+        loadConfig(dto.params());
     }
 
     /**
@@ -37,7 +37,7 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
                 field.setAccessible(true);
                 field.set(this, value);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to set config field: " + annotation.name(), e);
+                throw new RuntimeException("Failed to set params field: " + annotation.name(), e);
             }
         }
     }
@@ -64,7 +64,7 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
         return rawValue;
     }
 
-    /** Convert this config back to a DTO */
+    /** Convert this params back to a DTO */
     public abstract QuestObjectiveConfigDTO toDTO();
 
     public String getKey() {
