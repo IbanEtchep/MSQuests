@@ -2,17 +2,22 @@ package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
-import com.github.ibanetchep.msquests.core.quest.Quest;
-import com.github.ibanetchep.msquests.core.quest.QuestStatus;
+import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class QuestLifecycleService {
@@ -22,18 +27,21 @@ public class QuestLifecycleService {
     private final QuestService persistenceService;
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
+    private final QuestConfigRegistry questConfigRegistry;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
             QuestService persistenceService,
             QuestFactory questFactory,
             QuestRegistry questRegistry,
+            QuestConfigRegistry questConfigRegistry,
             AtomicQuestExecutor executor
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
         this.questFactory = questFactory;
         this.questRegistry = questRegistry;
+        this.questConfigRegistry = questConfigRegistry;
         this.executor = executor;
     }
 
@@ -56,10 +64,8 @@ public class QuestLifecycleService {
         CoreQuestStartedEvent startedEvent = new CoreQuestStartedEvent(quest);
         dispatcher.dispatch(startedEvent);
 
-        executor.execute(quest, updatedQuest -> {
-            questRegistry.add(updatedQuest);
-            persistenceService.saveQuest(updatedQuest).join();
-        });
+        questRegistry.add(quest);
+        persistenceService.saveQuest(quest).join();
 
         return true;
     }
@@ -83,9 +89,9 @@ public class QuestLifecycleService {
     }
 
     public CompletableFuture<Quest> completeObjective(QuestObjective objective, @Nullable PlayerProfile profile) {
-        Quest initialQuest = objective.getQuest();
+        UUID questId = objective.getQuest().getId();
 
-        return executor.execute(initialQuest, quest -> {
+        return executor.execute(questId, quest -> {
             objective.complete();
             var objectiveCompletedEvent = new CoreQuestObjectiveCompletedEvent(objective, profile);
             dispatcher.dispatch(objectiveCompletedEvent);
@@ -101,7 +107,7 @@ public class QuestLifecycleService {
     }
 
     public void completeQuest(Quest quest) {
-        executor.execute(quest, updatedQuest -> {
+        executor.execute(quest.getId(), updatedQuest -> {
             updatedQuest.setStatus(QuestStatus.COMPLETED);
 
             CoreQuestCompletedEvent event = new CoreQuestCompletedEvent(updatedQuest);
@@ -113,5 +119,46 @@ public class QuestLifecycleService {
 
             persistenceService.saveQuest(updatedQuest).join();
         });
+    }
+
+    /**
+     * Expires all quests that should expire for the given actor.
+     * @param actor the actor to expire quests for
+     */
+    public void expireQuests(QuestActor actor) {
+        actor.getQuests().values().stream()
+                .filter(Quest::shouldExpire)
+                .forEach(this::expireQuestIfNeeded);
+    }
+
+    /**
+     * Expires the given quest.
+     * @param quest the quest to expire
+     */
+    public void expireQuestIfNeeded(Quest quest) {
+        executor.execute(quest.getId(), updatedQuest -> {
+            if (updatedQuest.shouldExpire()) {
+                updatedQuest.setStatus(QuestStatus.EXPIRED);
+                persistenceService.saveQuest(updatedQuest);
+            }
+        });
+    }
+
+    /**
+     * Distribute quests from group where actor is eligible
+     */
+    public void distributeQuests(QuestActor actor) {
+        for(QuestGroupConfig questGroupConfig : questConfigRegistry.getQuestGroupConfigs().values()) {
+            ActorQuestGroup actorQuestGroup = actor.getActorQuestGroup(questGroupConfig);
+
+            if(actorQuestGroup == null) {
+                continue;
+            }
+
+            List<QuestConfig> toDistribute = actorQuestGroup.getAvailableToDistribute();
+            toDistribute.forEach(questConfig -> {
+                startQuest(actor, questConfig);
+            });
+        }
     }
 }

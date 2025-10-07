@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.quest;
+package com.github.ibanetchep.msquests.core.quest.actor;
 
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 
@@ -6,6 +6,7 @@ public enum QuestStatus implements Translatable {
 
     IN_PROGRESS,
     COMPLETED,
+    EXPIRED,
     FAILED;
 
     @Override

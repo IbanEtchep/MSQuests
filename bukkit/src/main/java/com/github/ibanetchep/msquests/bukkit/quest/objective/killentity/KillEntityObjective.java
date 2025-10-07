@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 
-import com.github.ibanetchep.msquests.core.quest.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective;
 
 public class KillEntityObjective extends AbstractQuestObjective<KillEntityObjectiveConfig> {

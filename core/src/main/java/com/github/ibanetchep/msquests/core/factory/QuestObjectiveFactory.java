@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
-import com.github.ibanetchep.msquests.core.quest.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -22,7 +22,7 @@ public class QuestObjectiveFactory {
             try {
                 return configClass.getConstructor(QuestObjectiveConfigDTO.class).newInstance(dto);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to instantiate config: " +
+                throw new RuntimeException("Failed to instantiate params: " +
                         configClass.getSimpleName(), e);
             }
         }
@@ -60,7 +60,7 @@ public class QuestObjectiveFactory {
     public QuestObjectiveConfig createConfig(QuestObjectiveConfigDTO dto) {
         Type<?, ?> type = types.get(dto.type());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + dto.type());
-        JsonSchemaValidator.validate(dto.config(), type.schema());
+        JsonSchemaValidator.validate(dto.params(), type.schema());
         return type.createConfig(dto);
     }
 

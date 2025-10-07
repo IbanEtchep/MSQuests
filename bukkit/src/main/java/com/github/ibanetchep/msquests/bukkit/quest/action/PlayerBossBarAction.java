@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
@@ -49,15 +49,15 @@ public class PlayerBossBarAction extends BukkitQuestAction {
 
     public PlayerBossBarAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
         super(dto, plugin);
-        this.message = (String) dto.config().get("message");
-        this.messageKey = (String) dto.config().get("message_key");
-        this.duration = Integer.parseInt(dto.config().getOrDefault("duration", "5").toString());
+        this.message = (String) dto.params().get("message");
+        this.messageKey = (String) dto.params().get("message_key");
+        this.duration = Integer.parseInt(dto.params().getOrDefault("duration", "5").toString());
         this.showProgress = Boolean.parseBoolean(
-                Objects.toString(dto.config().getOrDefault("show_progress", "true"))
+                Objects.toString(dto.params().getOrDefault("show_progress", "true"))
         );
 
-        String colorStr = (String) dto.config().getOrDefault("color", "WHITE");
-        String styleStr = (String) dto.config().getOrDefault("style", "PROGRESS");
+        String colorStr = (String) dto.params().getOrDefault("color", "WHITE");
+        String styleStr = (String) dto.params().getOrDefault("style", "PROGRESS");
         this.color = BossBar.Color.valueOf(colorStr.toUpperCase());
         this.style = BossBar.Overlay.valueOf(styleStr.toUpperCase());
     }

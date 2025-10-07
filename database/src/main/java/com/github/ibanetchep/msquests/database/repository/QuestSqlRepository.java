@@ -2,7 +2,7 @@ package com.github.ibanetchep.msquests.database.repository;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
-import com.github.ibanetchep.msquests.core.quest.QuestStatus;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.database.DbAccess;

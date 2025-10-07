@@ -1,6 +1,5 @@
-package com.github.ibanetchep.msquests.core.quest;
+package com.github.ibanetchep.msquests.core.quest.actor;
 
-import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -9,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Quest {
@@ -137,6 +135,10 @@ public class Quest {
     }
 
     public boolean shouldExpire() {
+        if (status != QuestStatus.IN_PROGRESS) {
+            return false;
+        }
+
         QuestGroupConfig group = getQuestGroup();
         if (group == null) {
             return false;

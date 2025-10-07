@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.core.quest.config.action;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 

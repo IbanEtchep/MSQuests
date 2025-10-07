@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.event;
 
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 
 public class CoreQuestStartedEvent extends CoreEvent {
 

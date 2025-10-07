@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.core.dto;
 
-import com.github.ibanetchep.msquests.core.quest.QuestStatus;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 
 import java.util.HashMap;
 import java.util.Map;

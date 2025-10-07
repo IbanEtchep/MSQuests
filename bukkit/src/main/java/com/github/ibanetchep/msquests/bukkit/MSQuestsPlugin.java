@@ -36,7 +36,7 @@ import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
 import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
@@ -123,16 +123,16 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory);
-        QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
+        QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper, questActionFactory);
 
-        AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor();
+        AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor(questRegistry);
 
         questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry, questMapper);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
 
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, atomicQuestExecutor);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
         registerListeners();

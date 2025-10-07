@@ -14,6 +14,7 @@ dependencies {
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.20.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
 
@@ -39,6 +40,8 @@ shadowJar {
         include(dependency('com.fasterxml.jackson.core:jackson-databind:.*'))
         include(dependency('com.fasterxml.jackson.core:jackson-core:.*'))
         include(dependency('com.fasterxml.jackson.core:jackson-annotations:.*'))
+        include(dependency('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:.*'))
+        include(dependency('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:.*'))
         include(dependency('com.networknt:json-schema-validator:.*'))
         include(project(':core'))
         include(project(':database'))

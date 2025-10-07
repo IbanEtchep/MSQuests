@@ -1,22 +1,24 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigActionsDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
+import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class QuestGroupMapper {
 
     private final QuestConfigMapper questConfigMapper;
+    private final QuestActionFactory questActionFactory;
 
-    public QuestGroupMapper(QuestConfigMapper questConfigMapper) {
+    public QuestGroupMapper(QuestConfigMapper questConfigMapper, QuestActionFactory questActionFactory) {
         this.questConfigMapper = questConfigMapper;
+        this.questActionFactory = questActionFactory;
     }
 
     /**
@@ -43,7 +45,15 @@ public class QuestGroupMapper {
                 entity.getMaxPerPeriod(),
                 entity.getResetCron(),
                 entity.getStartAt(),
-                entity.getEndAt()
+                entity.getEndAt(),
+                entity.getActorType(),
+                entity.isRepeatable(),
+                new QuestGroupConfigActionsDTO(
+                        entity.getQuestStartActions().stream().map(QuestAction::toDTO).toList(),
+                        entity.getQuestCompleteActions().stream().map(QuestAction::toDTO).toList(),
+                        entity.getObjectiveProgressActions().stream().map(QuestAction::toDTO).toList(),
+                        entity.getObjectiveCompleteActions().stream().map(QuestAction::toDTO).toList()
+                )
         );
     }
 
@@ -62,13 +72,35 @@ public class QuestGroupMapper {
             distributionMode = QuestDistributionMode.valueOf(dto.distributionMode().toUpperCase());
         }
 
-        QuestGroupConfig questGroupConfig = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description())
+        List<QuestAction> questStartActions = dto.actions().questStart().stream()
+                .map(questActionFactory::createAction)
+                .toList();
+
+        List<QuestAction> questCompleteActions = dto.actions().questComplete().stream()
+                .map(questActionFactory::createAction)
+                .toList();
+
+        List<QuestAction> objectiveProgressActions = dto.actions().objectiveComplete().stream()
+                .map(questActionFactory::createAction)
+                .toList();
+
+        List<QuestAction> objectiveCompleteActions = dto.actions().objectiveComplete().stream()
+                .map(questActionFactory::createAction)
+                .toList();
+
+
+        QuestGroupConfig questGroupConfig = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description(), dto.actorType())
                 .distributionMode(distributionMode)
                 .maxActive(dto.maxActive())
                 .maxPerPeriod(dto.maxPerPeriod())
                 .resetCron(dto.resetCron())
                 .startAt(dto.startAt())
                 .endAt(dto.endAt())
+                .repeatable(dto.repeatable())
+                .questStartActions(questStartActions)
+                .questCompleteActions(questCompleteActions)
+                .objectiveProgressActions(objectiveProgressActions)
+                .objectiveCompleteActions(objectiveCompleteActions)
                 .build();
 
         for (QuestConfigDTO questConfigDTO : dto.quests()) {

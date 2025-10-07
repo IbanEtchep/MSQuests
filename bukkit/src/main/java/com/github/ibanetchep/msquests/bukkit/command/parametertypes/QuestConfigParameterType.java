@@ -26,7 +26,7 @@ public class QuestConfigParameterType implements ParameterType<BukkitCommandActo
         QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(value);
 
         if(questConfig == null) {
-            throw new IllegalArgumentException("Could not find quest config " + value);
+            throw new IllegalArgumentException("Could not find quest params " + value);
         }
 
         return questConfig;

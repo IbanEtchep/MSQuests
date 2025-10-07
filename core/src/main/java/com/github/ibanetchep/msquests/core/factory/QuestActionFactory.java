@@ -46,7 +46,7 @@ public class QuestActionFactory {
             throw new IllegalArgumentException("Unknown action type: " + config.type());
         }
 
-        JsonSchemaValidator.validate(config.config(), registered.schema());
+        JsonSchemaValidator.validate(config.params(), registered.schema());
 
         return registered.factory().apply(config);
     }

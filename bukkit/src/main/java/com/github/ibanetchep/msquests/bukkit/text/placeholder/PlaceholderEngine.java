@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.text.placeholder;
 
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.resolver.*;
-import com.github.ibanetchep.msquests.core.quest.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;

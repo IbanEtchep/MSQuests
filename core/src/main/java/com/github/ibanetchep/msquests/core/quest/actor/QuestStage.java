@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.quest;
+package com.github.ibanetchep.msquests.core.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
