@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'io.github.goooler.shadow'
 }
 
 dependencies {
@@ -15,30 +14,4 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.19.7")
     testImplementation("org.testcontainers:junit-jupiter:1.19.7")
     testImplementation("org.testcontainers:mysql:1.19.7")
-}
-
-shadowJar {
-    archiveClassifier.set('')
-    configurations = [project.configurations.runtimeClasspath]
-
-    dependencies {
-        include(dependency('org.jdbi:jdbi3-core:.*'))
-        include(dependency('com.zaxxer:HikariCP:.*'))
-        include(dependency('com.h2database:h2:.*'))
-    }
-
-    relocate "org.jdbi", "com.github.ibanetchep.msquests.lib.jdbi"
-    relocate "com.zaxxer.hikari", "com.github.ibanetchep.msquests.lib.hikari"
-    relocate "org.h2", "com.github.ibanetchep.msquests.lib.h2"
-}
-
-configurations {
-    apiElements.outgoing.artifacts.clear()
-    runtimeElements.outgoing.artifacts.clear()
-    apiElements.outgoing.artifact(shadowJar)
-    runtimeElements.outgoing.artifact(shadowJar)
-}
-
-artifacts {
-    archives shadowJar
 }

@@ -33,28 +33,18 @@ processResources {
 shadowJar {
     archiveFileName = "msquests-bukkit-${version}.jar"
 
-    dependencies {
-        include(dependency('com.tcoded:FoliaLib:.*'))
-        include(dependency('dev.dejvokep:boosted-yaml:.*'))
-        include(dependency('io.github.revxrsal:lamp.*'))
-        include(dependency('com.fasterxml.jackson.core:jackson-databind:.*'))
-        include(dependency('com.fasterxml.jackson.core:jackson-core:.*'))
-        include(dependency('com.fasterxml.jackson.core:jackson-annotations:.*'))
-        include(dependency('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:.*'))
-        include(dependency('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:.*'))
-        include(dependency('com.networknt:json-schema-validator:.*'))
-        include(project(':core'))
-        include(project(':database'))
-    }
-
     relocate "com.tcoded.folialib", "com.github.ibanetchep.msquests.lib.folialib"
     relocate "dev.dejvokep.boostedyaml", "com.github.ibanetchep.msquests.lib.boostedyaml"
     relocate "revxrsal.commands", "com.github.ibanetchep.msquests.lib.commands"
     relocate "com.fasterxml.jackson", "com.github.ibanetchep.msquests.lib.jackson"
     relocate "com.networknt", "com.github.ibanetchep.msquests.lib.networknt"
+    relocate "org.jdbi", "com.github.ibanetchep.msquests.lib.jdbi"
+    relocate "com.zaxxer.hikari", "com.github.ibanetchep.msquests.lib.hikari"
+    relocate "org.h2", "com.github.ibanetchep.msquests.lib.h2"
 
     archiveClassifier.set('')
 }
+
 
 tasks.register('copyPlugin', Copy) {
     from shadowJar.archiveFile
