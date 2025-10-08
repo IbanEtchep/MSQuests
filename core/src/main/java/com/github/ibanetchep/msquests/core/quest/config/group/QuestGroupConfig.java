@@ -29,7 +29,7 @@ public class QuestGroupConfig {
     private final QuestDistributionMode distributionMode;
     private final @Nullable String resetCron;
     private final @Nullable Integer maxPerPeriod;
-    private final @Nullable Integer maxActive;
+    private final int maxActive;
     private final boolean repeatable;
 
     private final List<QuestAction> questStartActions;
@@ -117,7 +117,7 @@ public class QuestGroupConfig {
         return maxPerPeriod;
     }
 
-    public @Nullable Integer getMaxActive() {
+    public int getMaxActive() {
         return maxActive;
     }
 
@@ -184,7 +184,7 @@ public class QuestGroupConfig {
         private QuestDistributionMode distributionMode = QuestDistributionMode.SEQUENTIAL;
         private @Nullable String resetCron;
         private @Nullable Integer maxPerPeriod = 1;
-        private @Nullable Integer maxActive = 1;
+        private int maxActive = 1;
         private boolean repeatable = false;
 
         private List<QuestAction> questStartActions;
