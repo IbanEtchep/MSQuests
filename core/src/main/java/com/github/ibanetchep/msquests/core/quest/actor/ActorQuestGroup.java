@@ -71,7 +71,7 @@ public class ActorQuestGroup {
     }
 
     public boolean hasActive(String questKey) {
-        return getActiveQuestsForKey(questKey).size() > 0;
+        return !getActiveQuestsForKey(questKey).isEmpty();
     }
 
     public int getCompletedCount() {
@@ -123,15 +123,14 @@ public class ActorQuestGroup {
             return List.of();
         }
 
-        Integer maxActive = groupConfig.getMaxActive();
+        int maxActive = groupConfig.getMaxActive();
         Integer maxPerPeriod = groupConfig.getMaxPerPeriod();
 
         int inProgressCount = getInProgressCount();
-        int maxToStart = Integer.MAX_VALUE;
+        int maxToStart = maxActive;
 
-        if (maxActive != null) {
-            maxToStart = Math.min(maxToStart, maxActive - inProgressCount);
-        }
+        maxToStart = Math.min(maxToStart, maxActive - inProgressCount);
+
 
         if (maxPerPeriod != null) {
             int remainingInPeriod = Math.max(0, maxPerPeriod - currentPeriodQuestCount());
@@ -186,6 +185,24 @@ public class ActorQuestGroup {
         }
 
         return candidates;
+    }
+
+    public boolean canStart(QuestConfig config) {
+        if (!groupConfig.isActive()) return false;
+
+        if (hasActive(config.getKey())) return false;
+        if (!groupConfig.isRepeatable() && hasStarted(config.getKey())) return false;
+
+        int maxActive = groupConfig.getMaxActive();
+        Integer maxPerPeriod = groupConfig.getMaxPerPeriod();
+
+        int inProgress = getInProgressCount();
+        if (inProgress >= maxActive) return false;
+
+        int periodCount = currentPeriodQuestCount();
+        if (maxPerPeriod != null && periodCount >= maxPerPeriod) return false;
+
+        return true;
     }
 
 }
