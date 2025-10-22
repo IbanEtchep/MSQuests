@@ -13,8 +13,11 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntityObjective> implements Listener {
 
+    private final MSQuestsPlugin plugin;
+
     public KillEntityObjectiveHandler(MSQuestsPlugin plugin) {
         super(plugin);
+        this.plugin = plugin;
     }
 
     @Override
@@ -37,7 +40,7 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
             EntityType entityType = entity.getType();
 
             if(entityType == objective.getObjectiveConfig().getEntityType() && !objective.isCompleted()) {
-                platform.getQuestLifecycleService().progressObjective(objective, 1, profile);
+                plugin.getProgressManager().progressObjective(objective, 1, profile);
             }
         }
     }

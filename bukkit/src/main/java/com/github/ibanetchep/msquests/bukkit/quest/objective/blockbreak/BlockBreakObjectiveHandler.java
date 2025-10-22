@@ -12,8 +12,11 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreakObjective> implements Listener {
 
+    private final MSQuestsPlugin plugin;
+
     public BlockBreakObjectiveHandler(MSQuestsPlugin plugin) {
         super(plugin);
+        this.plugin = plugin;
     }
 
     @Override
@@ -29,7 +32,7 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
         for (BlockBreakObjective objective : getQuestObjectives(profile)) {
             Material material = event.getBlock().getType();
             if (material == objective.getObjectiveConfig().getMaterial() && !objective.isCompleted()) {
-                platform.getQuestLifecycleService().progressObjective(objective, 1, profile);
+                plugin.getProgressManager().progressObjective(objective, 1, profile);
             }
         }
     }
