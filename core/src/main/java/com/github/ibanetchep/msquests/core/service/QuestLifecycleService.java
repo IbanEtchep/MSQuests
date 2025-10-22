@@ -4,10 +4,10 @@ import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
-import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 public class QuestLifecycleService {
 
     private final EventDispatcher dispatcher;
-    private AtomicQuestExecutor executor;
+    private final AtomicQuestExecutor executor;
     private final QuestService persistenceService;
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
@@ -68,24 +68,6 @@ public class QuestLifecycleService {
         persistenceService.saveQuest(quest).join();
 
         return true;
-    }
-
-    public <T extends QuestObjective> void progressObjective(T objective, int progress, @Nullable PlayerProfile profile) {
-        var progressEvent = new CoreQuestObjectiveProgressEvent(objective, profile);
-        dispatcher.dispatch(progressEvent);
-        if (progressEvent.isCancelled()) return;
-
-        objective.incrementProgress(progress);
-
-        var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
-        dispatcher.dispatch(progressedEvent);
-
-        if (objective.isCompleted()) {
-            completeObjective(objective, profile);
-            return;
-        }
-
-        questRegistry.markDirty(objective.getQuest());
     }
 
     public CompletableFuture<Quest> completeObjective(QuestObjective objective, @Nullable PlayerProfile profile) {

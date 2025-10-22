@@ -25,6 +25,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
+import com.github.ibanetchep.msquests.core.manager.QuestProgressManager;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
@@ -83,6 +84,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     private QuestService questService;
     private QuestActorService questActorService;
     private QuestLifecycleService questLifecycleService;
+    private QuestProgressManager progressManager;
     private QuestPlayerService questPlayerService;
 
     private GlobalConfig globalConfig;
@@ -135,15 +137,19 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
+        progressManager = new QuestProgressManager(questLifecycleService, eventDispatcher);
+
         registerListeners();
         registerCommands();
 
         getScheduler().runTimer(() -> questService.saveDirtyQuests(), 30, 30, TimeUnit.SECONDS);
+        getScheduler().runTimer(progressManager::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void onDisable() {
         dbAccess.closePool();
+        progressManager.flushPendingProgress().join();
     }
 
     public void loadConfig() {
@@ -308,5 +314,9 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     public PlatformScheduler getScheduler() {
         return foliaLib.getScheduler();
+    }
+
+    public QuestProgressManager getProgressManager() {
+        return progressManager;
     }
 }

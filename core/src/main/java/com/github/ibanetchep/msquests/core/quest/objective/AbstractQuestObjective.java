@@ -29,8 +29,11 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
         return progress.get();
     }
 
-    public void incrementProgress(int progress) {
-        this.progress.addAndGet(progress);
+    public void incrementProgress(int amount) {
+        progress.updateAndGet(current -> {
+            int updated = current + amount;
+            return Math.min(updated, target);
+        });
     }
 
     public void setProgress(int progress) {
