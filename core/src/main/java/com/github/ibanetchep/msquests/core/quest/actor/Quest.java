@@ -174,10 +174,9 @@ public class Quest {
                 .orElse(0.0) / 100.0;
     }
 
-    public Map<String, QuestObjective> getObjectives() {
-        return stages.values().stream()
-                .map(QuestStage::getObjectives)
-                .flatMap(stage -> stage.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    public List<QuestObjective> getObjectives() {
+        List<QuestObjective> objectives = new ArrayList<>();
+        stages.values().forEach(stage -> objectives.addAll(stage.getObjectives().values()));
+        return objectives;
     }
 }

@@ -7,6 +7,7 @@ import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
+import com.github.ibanetchep.msquests.core.service.QuestService;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -17,11 +18,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class QuestProgressManager {
 
     private final QuestLifecycleService questLifecycleService;
+    private final QuestService questService;
     private final EventDispatcher dispatcher;
     private final Map<QuestObjective, PendingObjectiveProgress> pendingProgress = new ConcurrentHashMap<>();
 
-    public QuestProgressManager(QuestLifecycleService questLifecycleService, EventDispatcher dispatcher) {
+    public QuestProgressManager(
+            QuestLifecycleService questLifecycleService,
+            QuestService questService,
+            EventDispatcher dispatcher
+    ) {
         this.questLifecycleService = questLifecycleService;
+        this.questService = questService;
         this.dispatcher = dispatcher;
     }
 
@@ -32,15 +39,25 @@ public class QuestProgressManager {
         dispatcher.dispatch(progressEvent);
         if (progressEvent.isCancelled()) return;
 
-        pendingProgress.compute(objective, (obj, existing) ->
+        var pendingObjectiveProgress = pendingProgress.compute(objective, (obj, existing) ->
                 existing == null
                         ? new PendingObjectiveProgress(objective, progress, profile)
                         : new PendingObjectiveProgress(objective, existing.progress() + progress, profile)
         );
+
+        if(objective.getProgress() + pendingObjectiveProgress.progress >= objective.getTarget()) {
+            flushProgress(pendingObjectiveProgress);
+        }
     }
 
-    private CompletableFuture<Quest> flushProgress(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
+    private CompletableFuture<Quest> flushProgress(PendingObjectiveProgress pendingObjectiveProgress) {
+        QuestObjective objective = pendingObjectiveProgress.objective();
+        int progress = pendingObjectiveProgress.progress();
+        PlayerProfile profile = pendingObjectiveProgress.profile();
+
         objective.incrementProgress(progress);
+        pendingProgress.remove(objective);
+
         var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
         dispatcher.dispatch(progressedEvent);
 
@@ -48,15 +65,13 @@ public class QuestProgressManager {
             return questLifecycleService.completeObjective(objective, profile);
         }
 
-        return CompletableFuture.completedFuture(objective.getQuest());
+        return questService.saveQuest(objective.getQuest()).thenApply(q -> objective.getQuest());
     }
 
     public CompletableFuture<Void> flushPendingProgress() {
         List<CompletableFuture<Quest>> futures = pendingProgress.values().stream()
-                .map(p -> flushProgress(p.objective(), p.progress(), p.profile()))
+                .map(this::flushProgress)
                 .toList();
-
-        pendingProgress.clear();
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
@@ -65,8 +80,6 @@ public class QuestProgressManager {
             QuestObjective objective,
             int progress,
             @Nullable PlayerProfile profile
-    ) {
-
-    }
+    ) {}
 
 }

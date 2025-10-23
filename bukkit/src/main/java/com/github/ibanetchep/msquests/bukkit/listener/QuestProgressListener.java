@@ -21,9 +21,8 @@ public class QuestProgressListener implements Listener {
     public void onStart(ObjectiveProgressedEvent event) {
         QuestObjective objective = event.getObjective();
         Quest quest = objective.getQuest();
-        QuestActor actor = quest.getActor();
 
-        for (QuestAction action : quest.getQuestGroup().getObjectiveCompleteActions()) {
+        for (QuestAction action : quest.getQuestGroup().getObjectiveProgressActions()) {
             action.execute(objective);
         }
     }

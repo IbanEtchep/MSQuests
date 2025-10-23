@@ -86,4 +86,8 @@ public class QuestStage {
                 .average()
                 .orElse(0.0) / 100.0;
     }
+
+    public boolean isActive() {
+        return quest.getCurrentStage() == this;
+    }
 }

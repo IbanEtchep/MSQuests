@@ -45,6 +45,10 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
             return QuestObjectiveStatus.COMPLETED;
         }
 
+        if(!questStage.isActive()) {
+            return QuestObjectiveStatus.PENDING;
+        }
+
         if(questStage.getStageConfig().getFlow() == Flow.SEQUENTIAL) {
             QuestObjective firstActiveObjective = questStage.getFirstActiveObjective();
             return firstActiveObjective == this ? QuestObjectiveStatus.IN_PROGRESS : QuestObjectiveStatus.PENDING;

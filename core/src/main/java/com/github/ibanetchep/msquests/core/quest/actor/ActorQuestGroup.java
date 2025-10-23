@@ -3,23 +3,21 @@ package com.github.ibanetchep.msquests.core.quest.actor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ActorQuestGroup {
 
     private final QuestActor actor;
     private final QuestGroupConfig groupConfig;
-
-    /**
-     * Now a map from questKey -> list of Quest instances for that key.
-     * We use ConcurrentHashMap + CopyOnWriteArrayList to be safer for concurrent reads/writes.
-     */
     private final Map<String, List<Quest>> questsByKey = new ConcurrentHashMap<>();
 
     public ActorQuestGroup(QuestActor actor, QuestGroupConfig groupConfig) {
@@ -59,9 +57,8 @@ public class ActorQuestGroup {
         return Collections.unmodifiableList(questsByKey.getOrDefault(questKey, List.of()));
     }
 
-    /** Returns only active quest instances for the given quest key. */
-    public List<Quest> getActiveQuestsForKey(String questKey) {
-        return getAllQuestsForKey(questKey).stream().filter(Quest::isActive).collect(Collectors.toList());
+    public @Nullable Quest getActiveQuestByKey(String questKey) {
+        return getAllQuestsForKey(questKey).stream().filter(Quest::isActive).findFirst().orElse(null);
     }
 
     /** Returns true if the actor ever started this quest key (any instance exists). */
@@ -71,7 +68,7 @@ public class ActorQuestGroup {
     }
 
     public boolean hasActive(String questKey) {
-        return !getActiveQuestsForKey(questKey).isEmpty();
+        return getActiveQuestByKey(questKey) != null;
     }
 
     public int getCompletedCount() {

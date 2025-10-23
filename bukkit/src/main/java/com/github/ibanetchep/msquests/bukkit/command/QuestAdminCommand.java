@@ -68,7 +68,7 @@ public class QuestAdminCommand {
                         actor.getQuestsByGroup(group, page),
                         quest -> {
                             StringBuilder objectivesBuilder = new StringBuilder();
-                            for (QuestObjective obj : quest.getObjectives().values()) {
+                            for (QuestObjective obj : quest.getObjectives()) {
                                 String rendered = MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_LIST_OBJECTIVE_TEMPLATE)
                                         .applyPlaceholderResolver(obj)
                                         .toStringRaw();

@@ -12,14 +12,22 @@ import java.util.Map;
 @ObjectiveType(ObjectiveTypes.KILL_ENTITY)
 public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
 
-    @ConfigField(name = "entity_type")
-    private EntityType entityType;
+    @ConfigField(name = "entity_type", required = true)
+    private  EntityType entityType;
 
     @ConfigField(name = "amount", required = true)
-    private int amount;
+    private int amount = 1;
 
     public KillEntityObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);
+
+        if(dto.params().containsKey("entity_type")) {
+            entityType = EntityType.valueOf(dto.params().get("entity_type").toString().toUpperCase());
+        }
+
+        if(dto.params().containsKey("amount")) {
+            amount = (int) dto.params().get("amount");
+        }
     }
 
     @Override
