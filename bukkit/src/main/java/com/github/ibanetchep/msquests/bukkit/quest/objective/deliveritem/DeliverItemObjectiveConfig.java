@@ -20,11 +20,23 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
     @ConfigField(name = "itemKey")
     private String itemKey;
 
-    @ConfigField(name = "amount", required = true)
-    private final int amount = 1;
+    @ConfigField(name = "amount")
+    private int amount = 1;
 
     public DeliverItemObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);
+
+        if(dto.params().containsKey("material")) {
+            material = Material.valueOf(dto.params().get("material").toString().toUpperCase());
+        }
+
+        if(dto.params().containsKey("amount")) {
+            amount = (int) dto.params().get("amount");
+        }
+
+        if(dto.params().containsKey("itemKey")) {
+            itemKey = dto.params().get("itemKey").toString();
+        }
     }
 
     @Override

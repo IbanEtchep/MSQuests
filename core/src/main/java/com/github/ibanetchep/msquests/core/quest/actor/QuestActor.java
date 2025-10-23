@@ -60,14 +60,6 @@ public abstract class QuestActor {
         quests.remove(quest.getId());
     }
 
-    public @Nullable Quest getActiveQuestByKey(String key) {
-        return quests.values().stream()
-                .filter(quest -> quest.getQuestConfig().getKey().equals(key))
-                .filter(Quest::isActive)
-                .findFirst()
-                .orElse(null);
-    }
-
     @SuppressWarnings("unchecked")
     public <T extends QuestObjective> List<T> getActiveObjectivesByType(String objectiveType) {
         return quests.values().stream()

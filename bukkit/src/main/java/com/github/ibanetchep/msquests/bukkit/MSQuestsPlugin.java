@@ -137,7 +137,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
 
-        progressManager = new QuestProgressManager(questLifecycleService, eventDispatcher);
+        progressManager = new QuestProgressManager(questLifecycleService, questService, eventDispatcher);
 
         registerListeners();
         registerCommands();

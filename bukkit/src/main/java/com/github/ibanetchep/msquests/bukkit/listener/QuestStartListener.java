@@ -22,7 +22,7 @@ public class QuestStartListener implements Listener {
         Quest quest = event.getQuest();
         QuestActor actor = event.getQuest().getActor();
 
-        for (QuestAction action : quest.getQuestGroup().getQuestCompleteActions()) {
+        for (QuestAction action : quest.getQuestGroup().getQuestStartActions()) {
             action.execute(quest);
         }
     }

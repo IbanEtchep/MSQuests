@@ -46,9 +46,9 @@ public class QuestLifecycleService {
     }
 
     public boolean startQuest(QuestActor actor, QuestConfig questConfig) {
-        Quest currentQuest = actor.getActiveQuestByKey(questConfig.getKey());
+        QuestGroupConfig group = questConfig.getGroup();
 
-        if(currentQuest != null) {
+        if(!actor.getActorQuestGroup(group).canStart(questConfig)) {
             return false;
         }
 

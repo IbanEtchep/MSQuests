@@ -6,6 +6,7 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import org.bukkit.Material;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -13,15 +14,23 @@ import java.util.Map;
 public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
 
     @ConfigField(name = "material")
-    private Material material;
+    private @Nullable Material material;
 
     @ConfigField(name = "amount", required = true)
-    private int amount;
+    private int amount = 1;
 
     public BlockBreakObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);
+        if(dto.params().containsKey("material")) {
+            material = Material.valueOf(dto.params().get("material").toString().toUpperCase());
+        }
+
+        if(dto.params().containsKey("amount")) {
+            amount = (int) dto.params().get("amount");
+        }
     }
 
+    @Nullable
     public Material getMaterial() {
         return material;
     }
@@ -33,7 +42,7 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders() {
         return Map.of(
-                "material", "<lang:" + material.translationKey() + ">",
+                "material", material != null ? "<lang:" + material.translationKey() + ">" : "",
                 "amount", String.valueOf(amount)
         );
     }
@@ -44,7 +53,7 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
                 getKey(),
                 getType(),
                 Map.of(
-                        "material", material.name(),
+                        "material", material != null ? material.name() : null,
                         "amount", amount
                 )
         );
