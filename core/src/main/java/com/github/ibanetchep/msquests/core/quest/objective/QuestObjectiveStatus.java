@@ -7,6 +7,7 @@ public enum QuestObjectiveStatus implements Translatable {
     PENDING,
     IN_PROGRESS,
     COMPLETED,
+    FAILED;
     ;
 
     @Override

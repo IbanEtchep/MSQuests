@@ -8,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Quest {
 
@@ -113,7 +112,7 @@ public class Quest {
     }
 
     public QuestGroupConfig getQuestGroup() {
-        return questConfig.getGroup();
+        return questConfig.getGroupConfig();
     }
 
     public List<QuestObjective> getActiveObjectives() {

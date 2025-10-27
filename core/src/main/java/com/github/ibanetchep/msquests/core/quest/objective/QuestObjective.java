@@ -13,8 +13,12 @@ public interface QuestObjective extends PlaceholderProvider, Translatable {
     boolean isCompleted();
     void complete();
     void incrementProgress(int progress);
+    double getProgressRatio();
     double getProgressPercent();
+    String getProgressPercentFormatted();
+
     QuestObjectiveStatus getStatus();
+
     int getTarget();
     int getProgress();
 

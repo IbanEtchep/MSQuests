@@ -4,7 +4,7 @@ import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestConfigParameterType;
-import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupParameterType;
+import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupConfigParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
@@ -25,7 +25,8 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEnti
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
-import com.github.ibanetchep.msquests.core.manager.QuestProgressManager;
+import com.github.ibanetchep.msquests.core.service.QuestDistributionService;
+import com.github.ibanetchep.msquests.core.service.QuestProgressService;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
@@ -73,19 +74,20 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     private QuestObjectiveFactory questObjectiveFactory;
     private QuestActionFactory questActionFactory;
 
+    private QuestRegistry questRegistry;
     private PlayerProfileRegistry playerProfileRegistry;
     private ActorTypeRegistry actorTypeRegistry;
     private QuestConfigRegistry questConfigRegistry;
     private QuestActorRegistry questActorRegistry;
-    private QuestRegistry questRegistry;
 
     private QuestConfigService questConfigService;
     private PlayerProfileService playerProfileService;
     private QuestService questService;
     private QuestActorService questActorService;
     private QuestLifecycleService questLifecycleService;
-    private QuestProgressManager progressManager;
+    private QuestProgressService questProgressService;
     private QuestPlayerService questPlayerService;
+    private QuestDistributionService questDistributionService;
 
     private GlobalConfig globalConfig;
 
@@ -133,23 +135,21 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
-
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor);
+        questDistributionService = new QuestDistributionService();
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
-
-        progressManager = new QuestProgressManager(questLifecycleService, questService, eventDispatcher);
+        questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher);
 
         registerListeners();
         registerCommands();
 
-        getScheduler().runTimer(() -> questService.saveDirtyQuests(), 30, 30, TimeUnit.SECONDS);
-        getScheduler().runTimer(progressManager::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
+        getScheduler().runTimer(questProgressService::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void onDisable() {
         dbAccess.closePool();
-        progressManager.flushPendingProgress().join();
+        questProgressService.flushPendingProgress().join();
     }
 
     public void loadConfig() {
@@ -196,7 +196,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
                 .parameterTypes(builder ->
                         builder
                                 .addParameterType(QuestActor.class, new QuestActorParameterType(this))
-                                .addParameterType(QuestGroupConfig.class, new QuestGroupParameterType(this))
+                                .addParameterType(QuestGroupConfig.class, new QuestGroupConfigParameterType(this))
                                 .addParameterType(Quest.class, new QuestParameterType(this))
                                 .addParameterType(QuestConfig.class, new QuestConfigParameterType(this))
                 )
@@ -316,7 +316,11 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return foliaLib.getScheduler();
     }
 
-    public QuestProgressManager getProgressManager() {
-        return progressManager;
+    public QuestProgressService getQuestProgressService() {
+        return questProgressService;
+    }
+
+    public QuestDistributionService getQuestDistributionService() {
+        return questDistributionService;
     }
 }

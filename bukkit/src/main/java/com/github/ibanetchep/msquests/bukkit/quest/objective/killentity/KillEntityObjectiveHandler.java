@@ -40,7 +40,7 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
             EntityType entityType = entity.getType();
 
             if(entityType == objective.getObjectiveConfig().getEntityType() && !objective.isCompleted()) {
-                plugin.getProgressManager().progressObjective(objective, 1, profile);
+                plugin.getQuestProgressService().progressObjective(objective, 1, profile);
             }
         }
     }

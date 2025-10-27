@@ -10,11 +10,11 @@ import revxrsal.commands.parameter.ParameterType;
 import revxrsal.commands.parameter.PrioritySpec;
 import revxrsal.commands.stream.MutableStringStream;
 
-public class QuestGroupParameterType implements ParameterType<BukkitCommandActor, QuestGroupConfig> {
+public class QuestGroupConfigParameterType implements ParameterType<BukkitCommandActor, QuestGroupConfig> {
 
     private final MSQuestsPlugin plugin;
 
-    public QuestGroupParameterType(MSQuestsPlugin plugin) {
+    public QuestGroupConfigParameterType(MSQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

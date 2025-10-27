@@ -79,18 +79,4 @@ public class QuestService {
             return null;
         });
     }
-
-    public void saveDirtyQuests() {
-        Collection<Quest> dirtyQuests = questRegistry.getDirtyQuests();
-        if(dirtyQuests.isEmpty()) {
-            return;
-        }
-
-        logger.info("Saving " + dirtyQuests.size() + " dirty quests");
-
-        dirtyQuests.forEach(quest -> {
-            saveQuest(quest);
-            questRegistry.clearDirty(quest);
-        });
-    }
 }

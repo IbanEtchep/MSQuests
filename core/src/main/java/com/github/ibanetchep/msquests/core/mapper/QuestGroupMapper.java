@@ -6,7 +6,6 @@ import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
-import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.List;
@@ -40,14 +39,12 @@ public class QuestGroupMapper {
                 entity.getName(),
                 entity.getDescription(),
                 questDtos,
-                entity.getDistributionMode().toString(),
                 entity.getMaxActive(),
                 entity.getMaxPerPeriod(),
                 entity.getResetCron(),
                 entity.getStartAt(),
                 entity.getEndAt(),
                 entity.getActorType(),
-                entity.isRepeatable(),
                 new QuestGroupConfigActionsDTO(
                         entity.getQuestStartActions().stream().map(QuestAction::toDTO).toList(),
                         entity.getQuestCompleteActions().stream().map(QuestAction::toDTO).toList(),
@@ -65,11 +62,6 @@ public class QuestGroupMapper {
     public QuestGroupConfig toEntity(QuestGroupConfigDTO dto) {
         if (dto == null) {
             return null;
-        }
-
-        QuestDistributionMode distributionMode = QuestDistributionMode.SEQUENTIAL;
-        if (dto.distributionMode() != null) {
-            distributionMode = QuestDistributionMode.valueOf(dto.distributionMode().toUpperCase());
         }
 
         List<QuestAction> questStartActions = dto.actions().questStart().stream()
@@ -90,13 +82,11 @@ public class QuestGroupMapper {
 
 
         QuestGroupConfig questGroupConfig = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description(), dto.actorType())
-                .distributionMode(distributionMode)
                 .maxActive(dto.maxActive())
                 .maxPerPeriod(dto.maxPerPeriod())
                 .resetCron(dto.resetCron())
                 .startAt(dto.startAt())
                 .endAt(dto.endAt())
-                .repeatable(dto.repeatable())
                 .questStartActions(questStartActions)
                 .questCompleteActions(questCompleteActions)
                 .objectiveProgressActions(objectiveProgressActions)

@@ -1,12 +1,10 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionMode;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +21,14 @@ public class ActorQuestGroup {
     public ActorQuestGroup(QuestActor actor, QuestGroupConfig groupConfig) {
         this.actor = actor;
         this.groupConfig = groupConfig;
+    }
+
+    public QuestGroupConfig getGroupConfig() {
+        return groupConfig;
+    }
+
+    public QuestActor getActor() {
+        return actor;
     }
 
     /**
@@ -106,100 +112,6 @@ public class ActorQuestGroup {
                             && (periodEnd == null || createdAt.isBefore(periodEnd));
                 })
                 .count();
-    }
-
-    public List<QuestConfig> getAvailableToDistribute() {
-        List<QuestConfig> candidates = new ArrayList<>();
-
-        if (!groupConfig.isActive()) {
-            return List.of();
-        }
-
-        // Do not distribute quests if they need to be manually selected.
-        if(groupConfig.getDistributionMode() == QuestDistributionMode.MANUAL) {
-            return List.of();
-        }
-
-        int maxActive = groupConfig.getMaxActive();
-        Integer maxPerPeriod = groupConfig.getMaxPerPeriod();
-
-        int inProgressCount = getInProgressCount();
-        int maxToStart = maxActive;
-
-        maxToStart = Math.min(maxToStart, maxActive - inProgressCount);
-
-
-        if (maxPerPeriod != null) {
-            int remainingInPeriod = Math.max(0, maxPerPeriod - currentPeriodQuestCount());
-            maxToStart = Math.min(maxToStart, remainingInPeriod);
-        }
-
-        if (maxToStart <= 0) {
-            return List.of();
-        }
-
-        switch (groupConfig.getDistributionMode()) {
-            case SEQUENTIAL -> {
-                List<QuestConfig> neverStarted = getNeverStarted();
-                if (!neverStarted.isEmpty()) {
-                    candidates = neverStarted.stream().limit(maxToStart).toList();
-                } else if (groupConfig.isRepeatable()) {
-                    candidates = getNotInProgress().stream().limit(maxToStart).toList();
-                }
-            }
-
-            case RANDOM -> {
-                if (groupConfig.isRepeatable()) {
-                    candidates.addAll(getNotInProgress());
-                } else {
-                    candidates.addAll(getNeverStarted());
-                }
-
-                Collections.shuffle(candidates);
-                candidates = candidates.stream().limit(maxToStart).toList();
-            }
-        }
-
-        return candidates;
-    }
-
-
-    public List<QuestConfig> getSelectableQuests() {
-        if (!groupConfig.isActive()) {
-            return List.of();
-        }
-
-        if(groupConfig.getDistributionMode() != QuestDistributionMode.MANUAL) {
-            return List.of();
-        }
-
-        List<QuestConfig> candidates = new ArrayList<>();
-
-        if (groupConfig.isRepeatable()) {
-            candidates.addAll(getNotInProgress());
-        } else {
-            candidates.addAll(getNeverStarted());
-        }
-
-        return candidates;
-    }
-
-    public boolean canStart(QuestConfig config) {
-        if (!groupConfig.isActive()) return false;
-
-        if (hasActive(config.getKey())) return false;
-        if (!groupConfig.isRepeatable() && hasStarted(config.getKey())) return false;
-
-        int maxActive = groupConfig.getMaxActive();
-        Integer maxPerPeriod = groupConfig.getMaxPerPeriod();
-
-        int inProgress = getInProgressCount();
-        if (inProgress >= maxActive) return false;
-
-        int periodCount = currentPeriodQuestCount();
-        if (maxPerPeriod != null && periodCount >= maxPerPeriod) return false;
-
-        return true;
     }
 
 }

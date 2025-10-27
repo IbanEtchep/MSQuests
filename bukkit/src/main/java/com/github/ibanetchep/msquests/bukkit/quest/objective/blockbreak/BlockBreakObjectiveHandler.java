@@ -32,7 +32,7 @@ public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreak
         for (BlockBreakObjective objective : getQuestObjectives(profile)) {
             Material material = event.getBlock().getType();
             if (material == objective.getObjectiveConfig().getMaterial() && !objective.isCompleted()) {
-                plugin.getProgressManager().progressObjective(objective, 1, profile);
+                plugin.getQuestProgressService().progressObjective(objective, 1, profile);
             }
         }
     }

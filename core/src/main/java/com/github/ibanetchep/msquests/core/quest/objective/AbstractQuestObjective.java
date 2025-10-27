@@ -12,12 +12,16 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
     protected final AtomicInteger progress;
     protected int target;
     protected QuestStage questStage;
+    protected boolean completed = false;
+    protected boolean failed = false;
 
-    public AbstractQuestObjective(QuestStage questStage, C objectiveConfig, int progress, int target) {
+    public AbstractQuestObjective(QuestStage questStage, C objectiveConfig, int progress, int target, QuestObjectiveStatus status) {
         this.questStage = questStage;
         this.objectiveConfig = objectiveConfig;
         this.progress = new AtomicInteger(progress);
         this.target = target;
+        this.completed = (status == QuestObjectiveStatus.COMPLETED);
+        this.failed = (status == QuestObjectiveStatus.FAILED);
     }
 
     @Override
@@ -40,16 +44,21 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
         this.progress.set(progress);
     }
 
+    @Override
     public QuestObjectiveStatus getStatus() {
-        if (isCompleted()) {
+        if (failed) {
+            return QuestObjectiveStatus.FAILED;
+        }
+
+        if (completed) {
             return QuestObjectiveStatus.COMPLETED;
         }
 
-        if(!questStage.isActive()) {
+        if (!questStage.isActive()) {
             return QuestObjectiveStatus.PENDING;
         }
 
-        if(questStage.getStageConfig().getFlow() == Flow.SEQUENTIAL) {
+        if (questStage.getStageConfig().getFlow() == Flow.SEQUENTIAL) {
             QuestObjective firstActiveObjective = questStage.getFirstActiveObjective();
             return firstActiveObjective == this ? QuestObjectiveStatus.IN_PROGRESS : QuestObjectiveStatus.PENDING;
         }
@@ -71,25 +80,35 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
         return getProgress() >= target;
     }
 
-    public double getProgressPercent() {
+    public double getProgressRatio() {
         return (double) getProgress() / target;
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
-        double percent = getProgressPercent() * 100; // en pourcentage
+    public double getProgressPercent() {
+        return getProgressRatio() * 100;
+    }
+
+    @Override
+    public String getProgressPercentFormatted() {
+        double percent = getProgressRatio() * 100;
         String percentStr;
 
         if (percent == (int) percent) {
-            percentStr = String.valueOf((int) percent); // entier
+            percentStr = String.valueOf((int) percent);
         } else {
-            percentStr = String.format("%.1f", percent); // 1 chiffre après la virgule
+            percentStr = String.format("%.1f", percent);
         }
 
+        return percentStr;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders() {
         return Map.of(
                 "objective_progress", String.valueOf(getProgress()),
                 "objective_target", String.valueOf(target),
-                "objective_progress_percent", percentStr
+                "objective_progress_percent", getProgressPercentFormatted()
         );
     }
 

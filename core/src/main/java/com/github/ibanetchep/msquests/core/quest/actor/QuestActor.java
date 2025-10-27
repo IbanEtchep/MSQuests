@@ -48,7 +48,7 @@ public abstract class QuestActor {
         groups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig)).addQuest(quest);
     }
 
-    public ActorQuestGroup getActorQuestGroup(QuestGroupConfig groupConfig) {
+    public @Nullable ActorQuestGroup getActorQuestGroup(QuestGroupConfig groupConfig) {
         if(!groupConfig.getActorType().equalsIgnoreCase(getActorType())) {
             return null;
         }

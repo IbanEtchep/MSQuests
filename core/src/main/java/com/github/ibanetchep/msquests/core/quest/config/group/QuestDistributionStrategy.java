@@ -1,9 +1,9 @@
 package com.github.ibanetchep.msquests.core.quest.config.group;
 
-public enum QuestDistributionMode {
+public enum QuestDistributionStrategy {
 
+    NONE,
     SEQUENTIAL,
     RANDOM,
-    MANUAL,
 
 }

@@ -35,7 +35,7 @@ shadowJar {
 
     relocate "com.tcoded.folialib", "com.github.ibanetchep.msquests.lib.folialib"
     relocate "dev.dejvokep.boostedyaml", "com.github.ibanetchep.msquests.lib.boostedyaml"
-    relocate "revxrsal.commands", "com.github.ibanetchep.msquests.lib.commands"
+    relocate "revxrsal.commands", "com.github.ibanetchep.msquests.lib.revxrsal.commands"
     relocate "com.fasterxml.jackson", "com.github.ibanetchep.msquests.lib.jackson"
     relocate "com.networknt", "com.github.ibanetchep.msquests.lib.networknt"
     relocate "org.jdbi", "com.github.ibanetchep.msquests.lib.jdbi"

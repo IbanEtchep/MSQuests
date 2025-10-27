@@ -8,10 +8,12 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +30,7 @@ public class QuestLifecycleService {
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
     private final QuestConfigRegistry questConfigRegistry;
+    private final QuestDistributionService distributionManager;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
@@ -35,7 +38,8 @@ public class QuestLifecycleService {
             QuestFactory questFactory,
             QuestRegistry questRegistry,
             QuestConfigRegistry questConfigRegistry,
-            AtomicQuestExecutor executor
+            AtomicQuestExecutor executor,
+            QuestDistributionService distributionManager
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
@@ -43,20 +47,27 @@ public class QuestLifecycleService {
         this.questRegistry = questRegistry;
         this.questConfigRegistry = questConfigRegistry;
         this.executor = executor;
+        this.distributionManager = distributionManager;
     }
 
-    public boolean startQuest(QuestActor actor, QuestConfig questConfig) {
-        QuestGroupConfig group = questConfig.getGroup();
-
-        if(!actor.getActorQuestGroup(group).canStart(questConfig)) {
-            return false;
+    /**
+     * Starts a quest for the given actor.
+     * @param actor the actor to start the quest for
+     * @param questConfig the quest configuration to use
+     * @param strategy the distribution strategy to use
+     * @return the result of the quest start attempt
+     */
+    public QuestStartResult startQuest(QuestActor actor, QuestConfig questConfig, QuestDistributionStrategy strategy) {
+        QuestStartResult validationResult = distributionManager.canStartQuest(actor, questConfig, strategy);
+        if(validationResult.isFailure()) {
+            return validationResult;
         }
 
         CoreQuestStartEvent event = new CoreQuestStartEvent(actor, questConfig);
         dispatcher.dispatch(event);
 
         if(event.isCancelled()) {
-            return false;
+            return QuestStartResult.CANCELLED_BY_EVENT;
         }
 
         Quest quest = questFactory.createQuest(questConfig, actor);
@@ -67,7 +78,7 @@ public class QuestLifecycleService {
         questRegistry.add(quest);
         persistenceService.saveQuest(quest).join();
 
-        return true;
+        return QuestStartResult.SUCCESS;
     }
 
     public CompletableFuture<Quest> completeObjective(QuestObjective objective, @Nullable PlayerProfile profile) {
@@ -127,20 +138,37 @@ public class QuestLifecycleService {
     }
 
     /**
-     * Distribute quests from group where actor is eligible
+     * Distributes quests to the given actor based on the specified strategy.
+     * @param actor the actor to distribute quests to
+     * @param groupConfig the group configuration to use
+     * @param strategy the distribution strategy to use
+     * @param maxToDistribute the maximum number of quests to distribute
+     * @return the number of quests distributed
      */
-    public void distributeQuests(QuestActor actor) {
-        for(QuestGroupConfig questGroupConfig : questConfigRegistry.getQuestGroupConfigs().values()) {
-            ActorQuestGroup actorQuestGroup = actor.getActorQuestGroup(questGroupConfig);
+    public int distributeQuests(QuestActor actor, QuestGroupConfig groupConfig, QuestDistributionStrategy strategy, int maxToDistribute) {
+        ActorQuestGroup actorQuestGroup = actor.getActorQuestGroup(groupConfig);
 
-            if(actorQuestGroup == null) {
+        if(actorQuestGroup == null) {
+            return 0;
+        }
+
+        int startedCount = 0;
+        List<QuestConfig> candidates = distributionManager.getCandidatesForStrategy(groupConfig, strategy);
+
+        for(QuestConfig candidate : candidates) {
+            if(startedCount >= maxToDistribute) {
+                break;
+            }
+
+            QuestStartResult result = startQuest(actor, candidate, strategy);
+
+            if (result.isFailure()) {
                 continue;
             }
 
-            List<QuestConfig> toDistribute = actorQuestGroup.getAvailableToDistribute();
-            toDistribute.forEach(questConfig -> {
-                startQuest(actor, questConfig);
-            });
+            startedCount++;
         }
+
+        return startedCount;
     }
 }
