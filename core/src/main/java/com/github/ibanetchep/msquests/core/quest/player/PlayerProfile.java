@@ -5,25 +5,28 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PlayerProfile {
 
     private final UUID id;
+    private final String name;
     private final Map<UUID, QuestActor> actors = new HashMap<>();
     private @Nullable UUID trackedQuestId;
 
-    public PlayerProfile(UUID id) {
-        this.id = id;
+    public PlayerProfile(UUID id, String name) {
+        this.id = Objects.requireNonNull(id);
+        this.name = Objects.requireNonNull(name);
     }
 
     public UUID getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public @Nullable Quest getTrackedQuest() {

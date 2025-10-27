@@ -15,6 +15,7 @@ public class CreateTablesMigration extends Migration {
             handle.execute("""
             CREATE TABLE IF NOT EXISTS msquests_player_profile (
                 id CHAR(36) PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
                 tracked_quest_id CHAR(36) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

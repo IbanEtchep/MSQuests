@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -9,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.*;
 
-public class Quest {
+public class Quest implements PlaceholderProvider {
 
     private final UUID id;
     private QuestConfig questConfig;
@@ -21,10 +23,10 @@ public class Quest {
     private Date updatedAt;
 
     public Quest(UUID uniqueId, QuestConfig quest, QuestActor actor, QuestStatus status, @Nullable Date completedAt, Date createdAt, Date updatedAt) {
-        this.id = uniqueId;
-        this.questConfig = quest;
-        this.status = status;
-        this.actor = actor;
+        this.id = Objects.requireNonNull(uniqueId);
+        this.questConfig = Objects.requireNonNull(quest);
+        this.status = Objects.requireNonNull(status);
+        this.actor = Objects.requireNonNull(actor);
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -90,6 +92,10 @@ public class Quest {
         return stages;
     }
 
+    public List<QuestStage> getStagesList() {
+        return new ArrayList<>(stages.values());
+    }
+
     public void addStage(QuestStage stage) {
         stages.put(stage.getKey(), stage);
     }
@@ -102,13 +108,15 @@ public class Quest {
     }
 
     public int getCurrentStageIndex() {
-        for (int i = 0; i < stages.size(); i++) {
-            if (!stages.get(i).isCompleted()) {
-                return i;
+        int index = 0;
+
+        for(QuestStage stage : stages.values()) {
+            if(stage.isCompleted()) {
+                index++;
             }
         }
 
-        return stages.size(); // Tous complétés
+        return index;
     }
 
     public QuestGroupConfig getQuestGroup() {
@@ -166,9 +174,9 @@ public class Quest {
         return getCurrentStage() == null && getStatus() == QuestStatus.IN_PROGRESS;
     }
 
-    public double getProgressPercent() {
+    public double getProgressRatio() {
         return stages.values().stream()
-                .mapToDouble(QuestStage::getProgressPercent)
+                .mapToDouble(QuestStage::getProgressRatio)
                 .average()
                 .orElse(0.0) / 100.0;
     }
@@ -177,5 +185,24 @@ public class Quest {
         List<QuestObjective> objectives = new ArrayList<>();
         stages.values().forEach(stage -> objectives.addAll(stage.getObjectives().values()));
         return objectives;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders(Translator translator) {
+        Map<String, String> placeholders = new HashMap<>();
+
+        placeholders.put("quest_id", id.toString());
+        placeholders.put("quest_key", questConfig.getKey());
+        placeholders.put("quest_status", translator.getRaw(status));
+        placeholders.put("quest_actor_name", actor.getName());
+        placeholders.put("quest_actor_type", actor.getActorType());
+        placeholders.put("quest_name", questConfig.getName());
+        placeholders.put("quest_description", questConfig.getDescription() != null ? questConfig.getDescription() : "");
+        placeholders.put("quest_stage_index", getCurrentStageIndex() + "");
+        placeholders.put("quest_stage_count", getStages().size() + "");
+        placeholders.put("quest_status_prefix", translator.getRaw(status.getPrefixTranslationKey()));
+        placeholders.put("quest_status_suffix", translator.getRaw(status.getSuffixTranslationKey()));
+
+        return placeholders;
     }
 }

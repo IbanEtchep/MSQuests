@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
@@ -54,7 +55,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
         }
 
         getOnlinePlayers(quest).forEach(player -> {
-            messageBuilder.applyPlaceholderResolver(player);
+            messageBuilder.placeholder("player", player.getName());
 
             if(quest.getActor().isMember(player.getUniqueId())) {
                 player.sendMessage(messageBuilder.toComponent());
@@ -69,7 +70,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
         getOnlinePlayers(quest).forEach(player -> {
             MessageBuilder messageBuilder = MessageBuilder.raw(resolveMessage())
                     .applyPlaceholderResolver(objective)
-                    .applyPlaceholderResolver(player);
+                    .placeholder("player", player.getName());
 
             if(quest.getActor().isMember(player.getUniqueId())) {
                 player.sendMessage(messageBuilder.toComponent());
@@ -102,7 +103,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
+    public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
                 "message", message != null ? message : "",
                 "message_key", messageKey != null ? messageKey : ""

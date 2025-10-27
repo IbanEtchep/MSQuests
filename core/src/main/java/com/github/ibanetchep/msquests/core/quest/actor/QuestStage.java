@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -9,7 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class QuestStage {
+public class QuestStage implements PlaceholderProvider {
 
     private final Quest quest;
     private final QuestStageConfig stageConfig;
@@ -72,7 +74,11 @@ public class QuestStage {
         return objectives;
     }
 
-    public String getName() {
+    public List<QuestObjective> getObjectiveList() {
+        return objectives.values().stream().toList();
+    }
+
+    public @Nullable String getName() {
         return stageConfig.getName();
     }
 
@@ -80,14 +86,22 @@ public class QuestStage {
         return this.stageConfig.getKey();
     }
 
-    public double getProgressPercent() {
+    public double getProgressRatio() {
         return objectives.values().stream()
                 .mapToDouble(QuestObjective::getProgressRatio)
                 .average()
-                .orElse(0.0) / 100.0;
+                .orElse(0.0);
     }
 
     public boolean isActive() {
         return quest.getCurrentStage() == this;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders(Translator translator) {
+        return Map.of(
+                "stage_name", stageConfig.getName() != null ? stageConfig.getName() : "",
+                "stage_key", getKey()
+        );
     }
 }

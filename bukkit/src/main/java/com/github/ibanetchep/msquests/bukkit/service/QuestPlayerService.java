@@ -22,7 +22,7 @@ public class QuestPlayerService {
     public CompletableFuture<PlayerProfile> loadPlayer(Player player) {
         QuestPlayerActor actor = new QuestPlayerActor(player.getUniqueId(), player.getName());
         return questActorService.loadActor(actor)
-                        .thenCompose(v -> playerProfileService.loadProfile(player.getUniqueId()));
+                        .thenCompose(v -> playerProfileService.loadProfile(player.getUniqueId(), player.getName()));
     }
 
     public CompletableFuture<Void> loadAllPlayers() {

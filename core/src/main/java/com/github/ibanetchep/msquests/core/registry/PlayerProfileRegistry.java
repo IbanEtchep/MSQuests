@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.core.registry;
 
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -11,8 +12,9 @@ public class PlayerProfileRegistry {
 
     private final Map<UUID, PlayerProfile> playerProfiles = new ConcurrentHashMap<>();
 
+    @Nullable
     public PlayerProfile getPlayerProfile(UUID playerId) {
-        return playerProfiles.getOrDefault(playerId, new PlayerProfile(playerId));
+        return playerProfiles.get(playerId);
     }
 
     public void registerPlayerProfile(PlayerProfile playerProfile) {

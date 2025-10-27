@@ -8,8 +8,9 @@ import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestGroupCo
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestParameterType;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
-import com.github.ibanetchep.msquests.bukkit.lang.Translator;
+import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
+import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
@@ -91,7 +92,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
     private GlobalConfig globalConfig;
 
-    private Translator translator;
+    private BukkitTranslator translator;
 
     private DbAccess dbAccess;
     private FoliaLib foliaLib;
@@ -142,6 +143,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
 
         registerListeners();
         registerCommands();
+        registerExpansions();
 
         getScheduler().runTimer(questProgressService::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
     }
@@ -158,7 +160,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     public void loadTranslator() {
-        this.translator = new Translator(
+        this.translator = new BukkitTranslator(
                 new File(getDataFolder(), "lang"),
                 getGlobalConfig().language(),
                 locale -> getResource("lang/" + locale + ".yml"),
@@ -246,6 +248,12 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         actorTypeRegistry.registerType("global", QuestGlobalActor.class);
     }
 
+    public void registerExpansions() {
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new QuestsPlaceholderExpansion(playerProfileRegistry).register();
+        }
+    }
+
     public QuestConfigRegistry getQuestConfigRegistry() {
         return questConfigRegistry;
     }
@@ -290,7 +298,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         return this.playerProfileService;
     }
 
-    public Translator getTranslator() {
+    public BukkitTranslator getTranslator() {
         return translator;
     }
 

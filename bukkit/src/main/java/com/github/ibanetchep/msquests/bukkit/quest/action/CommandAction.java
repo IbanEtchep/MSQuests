@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
@@ -42,7 +43,7 @@ public class CommandAction extends BukkitQuestAction {
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
+    public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
                 "command", commandTemplate
         );

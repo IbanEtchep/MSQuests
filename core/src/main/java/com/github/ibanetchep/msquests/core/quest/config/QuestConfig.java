@@ -1,11 +1,13 @@
 package com.github.ibanetchep.msquests.core.quest.config;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import java.util.*;
 
-public class QuestConfig {
+public class QuestConfig implements PlaceholderProvider {
 
     private String key;
     private String name;
@@ -78,5 +80,14 @@ public class QuestConfig {
 
     public void addStage(QuestStageConfig stage) {
         stages.put(stage.getKey(), stage);
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders(Translator translator) {
+        return Map.of(
+                "quest_key", key,
+                "quest_name", name,
+                "quest_description", description
+        );
     }
 }

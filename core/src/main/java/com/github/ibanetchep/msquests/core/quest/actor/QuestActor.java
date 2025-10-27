@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.actor;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -8,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class QuestActor {
+public abstract class QuestActor implements PlaceholderProvider {
 
     protected UUID id;
     protected String name;
@@ -94,5 +96,13 @@ public abstract class QuestActor {
 
     public void removeProfile(PlayerProfile playerProfile) {
         profiles.remove(playerProfile.getId());
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders(Translator translator) {
+        return Map.of(
+                "actor_id", id.toString(),
+                "actor_name", name
+        );
     }
 }
