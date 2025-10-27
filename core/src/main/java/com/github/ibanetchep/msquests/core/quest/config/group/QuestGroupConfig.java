@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.quest.config.group;
 
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.util.CronUtils;
@@ -13,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class QuestGroupConfig {
+public class QuestGroupConfig implements PlaceholderProvider {
 
     private final String key;
     private final String name;
@@ -159,6 +161,15 @@ public class QuestGroupConfig {
         }
 
         return startAt;
+    }
+
+    @Override
+    public Map<String, String> getPlaceholders(Translator translator) {
+        return Map.of(
+                "group_key", key,
+                "group_name", name,
+                "group_description", description
+        );
     }
 
     public static class Builder {

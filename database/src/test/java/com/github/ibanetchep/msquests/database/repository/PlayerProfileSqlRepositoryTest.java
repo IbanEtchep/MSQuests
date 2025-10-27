@@ -25,7 +25,7 @@ public class PlayerProfileSqlRepositoryTest extends AbstractDatabaseTest {
     void testSaveAndGetPlayerProfileInH2() throws ExecutionException, InterruptedException {
         UUID playerId = UUID.randomUUID();
         UUID trackedQuestId = UUID.randomUUID();
-        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, trackedQuestId);
+        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, "", trackedQuestId);
 
         // Test save
         CompletableFuture<Void> saveFuture = h2Repository.save(profile);
@@ -43,7 +43,7 @@ public class PlayerProfileSqlRepositoryTest extends AbstractDatabaseTest {
     @Test
     void testSaveAndGetPlayerProfileWithNullQuestInH2() throws ExecutionException, InterruptedException {
         UUID playerId = UUID.randomUUID();
-        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, null);
+        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, "", null);
 
         // Test save with null trackedQuestId
         CompletableFuture<Void> saveFuture = h2Repository.save(profile);
@@ -71,7 +71,7 @@ public class PlayerProfileSqlRepositoryTest extends AbstractDatabaseTest {
     void testSaveAndGetPlayerProfileInMySQL() throws ExecutionException, InterruptedException {
         UUID playerId = UUID.randomUUID();
         UUID trackedQuestId = UUID.randomUUID();
-        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, trackedQuestId);
+        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, "", trackedQuestId);
 
         // Test save
         CompletableFuture<Void> saveFuture = mysqlRepository.save(profile);
@@ -89,7 +89,7 @@ public class PlayerProfileSqlRepositoryTest extends AbstractDatabaseTest {
     @Test
     void testSaveAndGetPlayerProfileWithNullQuestInMySQL() throws ExecutionException, InterruptedException {
         UUID playerId = UUID.randomUUID();
-        PlayerProfileDTO profile = new PlayerProfileDTO(playerId, null);
+        PlayerProfileDTO profile = new PlayerProfileDTO(playerId,"", null);
 
         // Test save with null trackedQuestId
         CompletableFuture<Void> saveFuture = mysqlRepository.save(profile);
@@ -120,12 +120,12 @@ public class PlayerProfileSqlRepositoryTest extends AbstractDatabaseTest {
         UUID updatedQuestId = UUID.randomUUID();
 
         // First save with initial quest
-        PlayerProfileDTO initialProfile = new PlayerProfileDTO(playerId, initialQuestId);
+        PlayerProfileDTO initialProfile = new PlayerProfileDTO(playerId, "", initialQuestId);
         CompletableFuture<Void> initialSave = h2Repository.save(initialProfile);
         assertDoesNotThrow(() -> initialSave.get());
 
         // Update with new quest
-        PlayerProfileDTO updatedProfile = new PlayerProfileDTO(playerId, updatedQuestId);
+        PlayerProfileDTO updatedProfile = new PlayerProfileDTO(playerId, "", updatedQuestId);
         CompletableFuture<Void> updateFuture = h2Repository.save(updatedProfile);
         assertDoesNotThrow(() -> updateFuture.get());
 

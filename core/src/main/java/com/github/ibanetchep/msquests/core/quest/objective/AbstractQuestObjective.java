@@ -1,8 +1,10 @@
 package com.github.ibanetchep.msquests.core.quest.objective;
 
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,6 +75,7 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
     @Override
     public void complete() {
         incrementProgress(target - getProgress());
+        completed = true;
     }
 
     @Override
@@ -104,12 +107,18 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
-        return Map.of(
-                "objective_progress", String.valueOf(getProgress()),
-                "objective_target", String.valueOf(target),
-                "objective_progress_percent", getProgressPercentFormatted()
-        );
+    public Map<String, String> getPlaceholders(Translator translator) {
+        Map<String, String> placeholders = new HashMap<>();
+
+        placeholders.put("objective_target", target + "");
+        placeholders.put("objective_progress", progress.toString());
+        placeholders.put("objective_progress_percent", getProgressPercentFormatted());
+        placeholders.put("objective_name", translator.getRaw(objectiveConfig));
+        placeholders.put("objective_status", translator.getRaw(getStatus()));
+        placeholders.put("objective_status_prefix", translator.getRaw(getStatus().getPrefixTranslationKey()));
+        placeholders.put("objective_status_suffix", translator.getRaw(getStatus().getSuffixTranslationKey()));
+
+        return placeholders;
     }
 
     @Override

@@ -26,21 +26,23 @@ public class PlayerProfileSqlRepository extends SqlRepository implements PlayerP
     }
 
     @Override
-    public CompletableFuture<Void> save(PlayerProfileDTO quest) {
+    public CompletableFuture<Void> save(PlayerProfileDTO profileDTO) {
         return runAsync(() -> getJdbi().useTransaction(handle -> {
-            String id = quest.id().toString();
-            String trackedQuestId = quest.trackedQuestId() != null ? quest.trackedQuestId().toString() : null;
+            String id = profileDTO.id().toString();
+            String trackedQuestId = profileDTO.trackedQuestId() != null ? profileDTO.trackedQuestId().toString() : null;
             
             int updated = handle.createUpdate(
-                    "UPDATE msquests_player_profile SET tracked_quest_id = :trackedQuestId WHERE id = :id")
+                    "UPDATE msquests_player_profile SET name = :name, tracked_quest_id = :trackedQuestId WHERE id = :id")
                     .bind("id", id)
+                    .bind("name", profileDTO.name())
                     .bind("trackedQuestId", trackedQuestId)
                     .execute();
             
             if (updated == 0) {
                 handle.createUpdate(
-                        "INSERT INTO msquests_player_profile (id, tracked_quest_id) VALUES (:id, :trackedQuestId)")
+                        "INSERT INTO msquests_player_profile (id, name, tracked_quest_id) VALUES (:id, :name, :trackedQuestId)")
                         .bind("id", id)
+                        .bind("name", profileDTO.name())
                         .bind("trackedQuestId", trackedQuestId)
                         .execute();
             }

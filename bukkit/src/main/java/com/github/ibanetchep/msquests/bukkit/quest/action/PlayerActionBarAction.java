@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
@@ -36,8 +37,12 @@ public class PlayerActionBarAction extends BukkitQuestAction {
     public void execute(Quest quest) {
         getOnlinePlayers(quest).forEach(player -> {
             if (quest.getActor().isMember(player.getUniqueId())) {
-                player.sendActionBar(resolveMessage().applyPlaceholderResolver(quest)
-                        .applyPlaceholderResolver(player).toComponent());
+                player.sendActionBar(
+                        resolveMessage()
+                                .applyPlaceholderResolver(quest)
+                                .placeholder("player", player.getName())
+                                .toComponent()
+                );
             }
         });
     }
@@ -59,7 +64,7 @@ public class PlayerActionBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
+    public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
                 "message", message != null ? message : "",
                 "message_key", messageKey != null ? messageKey : ""

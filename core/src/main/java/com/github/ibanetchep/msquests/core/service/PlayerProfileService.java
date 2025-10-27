@@ -30,18 +30,23 @@ public class PlayerProfileService {
         this.questActorRegistry = questActorRegistry;
     }
 
-    public CompletableFuture<PlayerProfile> loadProfile(UUID id) {
+    public CompletableFuture<PlayerProfile> loadProfile(UUID id, String name) {
         return repository.get(id).thenApply(dto -> {
             if (dto == null) {
-                dto = new PlayerProfileDTO(id, null);
+                dto = new PlayerProfileDTO(id, name, null);
                 repository.save(dto);
             }
 
-            PlayerProfile profile = new PlayerProfile(id);
+            PlayerProfile profile = new PlayerProfile(id, name);
             profile.setTrackedQuestId(dto.trackedQuestId());
 
             playerProfileRegistry.registerPlayerProfile(profile);
             questActorRegistry.linkProfileToActors(profile);
+
+            if(!name.equals(dto.name())) {
+                saveProfile(profile);
+            }
+
             return profile;
         }).exceptionally(e -> {
             logger.log(Level.SEVERE, "Failed to load profile " + id, e);
@@ -50,7 +55,7 @@ public class PlayerProfileService {
     }
 
     public CompletableFuture<Void> saveProfile(PlayerProfile profile) {
-        return repository.save(new PlayerProfileDTO(profile.getId(), profile.getTrackedQuestId()))
+        return repository.save(new PlayerProfileDTO(profile.getId(), profile.getName(), profile.getTrackedQuestId()))
                 .exceptionally(e -> {
                     logger.log(Level.SEVERE, "Failed to save profile " + profile.getId(), e);
                     return null;

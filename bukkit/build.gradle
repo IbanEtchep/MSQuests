@@ -3,11 +3,18 @@ plugins {
     id 'io.github.goooler.shadow'
 }
 
+repositories {
+    maven {
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+}
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":database"))
 
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly('me.clip:placeholderapi:2.11.6')
     implementation("com.tcoded:FoliaLib:0.5.1")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.12")
     implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.12")

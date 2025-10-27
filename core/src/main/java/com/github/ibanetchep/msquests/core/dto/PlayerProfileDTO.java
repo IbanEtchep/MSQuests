@@ -5,5 +5,6 @@ import java.util.UUID;
 
 public record PlayerProfileDTO(
     UUID id,
+    String name,
     UUID trackedQuestId
 ) {}

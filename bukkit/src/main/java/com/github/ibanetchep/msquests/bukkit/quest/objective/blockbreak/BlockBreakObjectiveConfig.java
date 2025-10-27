@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
@@ -40,7 +41,7 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
+    public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
                 "material", material != null ? "<lang:" + material.translationKey() + ">" : "",
                 "amount", String.valueOf(amount)

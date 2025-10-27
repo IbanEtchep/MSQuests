@@ -1,7 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.text;
 
-import com.github.ibanetchep.msquests.bukkit.lang.Translator;
+import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
+import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -22,7 +23,7 @@ import java.util.function.Function;
 public class MessageBuilder {
 
     private final String message;
-    private final List<Object> placeholderResolvers = new ArrayList<>();
+    private final List<PlaceholderProvider> placeholderProviders = new ArrayList<>();
     private final Map<String, String> placeholders = new HashMap<>();
 
     /**
@@ -41,7 +42,7 @@ public class MessageBuilder {
      * @return A new MessageBuilder instance with the translated message
      */
     public static MessageBuilder translatable(Translatable translatable) {
-        return new MessageBuilder(Translator.raw(translatable));
+        return new MessageBuilder(BukkitTranslator.raw(translatable));
     }
 
     /**
@@ -51,7 +52,7 @@ public class MessageBuilder {
      * @return A new MessageBuilder instance with the translated message
      */
     public static MessageBuilder translatable(String key) {
-        return new MessageBuilder(Translator.raw(key));
+        return new MessageBuilder(BukkitTranslator.raw(key));
     }
 
     /**
@@ -70,8 +71,8 @@ public class MessageBuilder {
      * @param obj The context object containing data for placeholders
      * @return This builder for method chaining
      */
-    public MessageBuilder applyPlaceholderResolver(@NotNull Object obj) {
-        placeholderResolvers.add(obj);
+    public MessageBuilder applyPlaceholderResolver(@NotNull PlaceholderProvider obj) {
+        placeholderProviders.add(obj);
         return this;
     }
 
@@ -111,8 +112,8 @@ public class MessageBuilder {
             result = result.replace("%" + entry.getKey() + "%", entry.getValue());
         }
 
-        for (Object resolver : placeholderResolvers) {
-            result = PlaceholderEngine.getInstance().apply(result, resolver);
+        for (PlaceholderProvider placeholderProvider : placeholderProviders) {
+            result = PlaceholderEngine.getInstance().apply(result, placeholderProvider);
         }
 
         return result;

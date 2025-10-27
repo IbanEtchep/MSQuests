@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
@@ -64,7 +65,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
 
     @Override
     public void execute(Quest quest) {
-        double progress = quest.getProgressPercent();
+        double progress = quest.getProgressRatio();
 
         Component text = MessageBuilder.raw(resolveMessage())
                 .applyPlaceholderResolver(quest)
@@ -122,7 +123,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public Map<String, String> getPlaceholders() {
+    public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
                 "message", message != null ? message : "",
                 "message_key", messageKey != null ? messageKey : "",

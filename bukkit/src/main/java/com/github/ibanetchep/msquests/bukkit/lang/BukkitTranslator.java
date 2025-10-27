@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.lang;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
+import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import dev.dejvokep.boostedyaml.YamlDocument;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Translator {
+public class BukkitTranslator implements Translator {
 
     private final File langFolder;
     private final String language;
@@ -29,12 +30,12 @@ public class Translator {
     private final Logger logger;
     private YamlDocument messages;
 
-    private static Translator INSTANCE;
+    private static BukkitTranslator INSTANCE;
 
-    public Translator(File langFolder,
-                      String language,
-                      Function<String, InputStream> defaultLangProvider,
-                      Logger logger) {
+    public BukkitTranslator(File langFolder,
+                            String language,
+                            Function<String, InputStream> defaultLangProvider,
+                            Logger logger) {
         this.langFolder = langFolder;
         this.language = language;
         this.defaultLangProvider = defaultLangProvider;
@@ -50,8 +51,8 @@ public class Translator {
         return INSTANCE.getRaw(translatable);
     }
 
-    public static String raw(Translatable translatable, Map<String, String> placeholders) {
-        return INSTANCE.getRaw(translatable, placeholders);
+    public static Translator getInstance() {
+        return INSTANCE;
     }
 
     public void load() {
@@ -162,17 +163,14 @@ public class Translator {
     /**
      * Returns the raw message from the YAML file
      */
-    private String getRaw(Translatable translatable) {
+    @Override
+    public String getRaw(Translatable translatable) {
         Map<String, String> placeholders = null;
 
         if(translatable instanceof PlaceholderProvider placeholderProvider) {
-            placeholders = placeholderProvider.getPlaceholders();
+            placeholders = placeholderProvider.getPlaceholders(this);
         }
 
-        return getRaw(translatable, placeholders);
-    }
-
-    private String getRaw(Translatable translatable, Map<String, String> placeholders) {
         String raw = getRaw(translatable.getTranslationKey());
 
         if (placeholders != null) {
@@ -184,7 +182,8 @@ public class Translator {
         return raw;
     }
 
-    private String getRaw(String key) {
+    @Override
+    public String getRaw(String key) {
         return messages.getString(key, "Missing translation: " + key);
     }
 }
