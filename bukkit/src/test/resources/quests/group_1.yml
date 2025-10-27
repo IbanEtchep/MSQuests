@@ -1,7 +1,6 @@
 key: group_1
 name: "groupe 1"
 description: "Description du groupe"
-distribution_mode: SEQUENTIAL
 max_active: 3
 max_per_period: 10
 reset_cron: "0 0 * * *"

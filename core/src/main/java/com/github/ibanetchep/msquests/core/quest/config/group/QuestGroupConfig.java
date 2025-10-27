@@ -26,11 +26,9 @@ public class QuestGroupConfig {
     private final @Nullable Instant startAt;
     private final @Nullable Instant endAt;
 
-    private final QuestDistributionMode distributionMode;
     private final @Nullable String resetCron;
     private final @Nullable Integer maxPerPeriod;
     private final int maxActive;
-    private final boolean repeatable;
 
     private final List<QuestAction> questStartActions;
     private final List<QuestAction> questCompleteActions;
@@ -41,10 +39,8 @@ public class QuestGroupConfig {
         this.key = builder.key;
         this.name = builder.name;
         this.description = builder.description;
-        this.repeatable = builder.repeatable;
         this.startAt = builder.startAt;
         this.endAt = builder.endAt;
-        this.distributionMode = builder.distributionMode;
         this.resetCron = builder.resetCron;
         this.maxPerPeriod = builder.maxPerPeriod;
         this.maxActive = builder.maxActive;
@@ -105,10 +101,6 @@ public class QuestGroupConfig {
         return endAt;
     }
 
-    public QuestDistributionMode getDistributionMode() {
-        return distributionMode;
-    }
-
     public @Nullable String getResetCron() {
         return resetCron;
     }
@@ -119,10 +111,6 @@ public class QuestGroupConfig {
 
     public int getMaxActive() {
         return maxActive;
-    }
-
-    public boolean isRepeatable() {
-        return repeatable;
     }
 
     public List<QuestAction> getQuestStartActions() {
@@ -181,11 +169,9 @@ public class QuestGroupConfig {
 
         private @Nullable Instant startAt;
         private @Nullable Instant endAt;
-        private QuestDistributionMode distributionMode = QuestDistributionMode.SEQUENTIAL;
         private @Nullable String resetCron;
         private @Nullable Integer maxPerPeriod = 1;
         private int maxActive = 1;
-        private boolean repeatable = false;
 
         private List<QuestAction> questStartActions;
         private List<QuestAction> questCompleteActions;
@@ -213,11 +199,6 @@ public class QuestGroupConfig {
             return this;
         }
 
-        public Builder distributionMode(QuestDistributionMode distributionMode) {
-            this.distributionMode = distributionMode;
-            return this;
-        }
-
         public Builder resetCron(String resetCron) {
             this.resetCron = resetCron;
             return this;
@@ -230,11 +211,6 @@ public class QuestGroupConfig {
 
         public Builder maxActive(Integer maxActive) {
             this.maxActive = maxActive;
-            return this;
-        }
-
-        public Builder repeatable(boolean repeatable) {
-            this.repeatable = repeatable;
             return this;
         }
 

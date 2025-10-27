@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
@@ -9,6 +10,7 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 
 import java.util.Date;
 import java.util.UUID;
@@ -36,7 +38,7 @@ public class QuestFactory {
             QuestStage stage = new QuestStage(quest, stageConfig);
 
             for (QuestObjectiveConfig objConfig : stageConfig.getObjectives().values()) {
-                QuestObjective objective = questObjectiveFactory.createObjective(stage, objConfig, 0);
+                QuestObjective objective = questObjectiveFactory.createObjective(stage, objConfig, 0, QuestObjectiveStatus.PENDING);
                 stage.addObjective(objective);
             }
 
@@ -75,12 +77,15 @@ public class QuestFactory {
 
             for (QuestObjectiveConfig objConfig : stageConfig.getObjectives().values()) {
                 int progress = 0;
+                QuestObjectiveStatus status = QuestObjectiveStatus.PENDING;
 
                 if (dto.objectives() != null && dto.objectives().containsKey(objConfig.getKey())) {
-                    progress = dto.objectives().get(objConfig.getKey()).progress();
+                    QuestObjectiveDTO objectiveDTO = dto.objectives().get(objConfig.getKey());
+                    progress = objectiveDTO.progress();
+                    status = objectiveDTO.objectiveStatus();
                 }
 
-                QuestObjective objective = questObjectiveFactory.createObjective(stage, objConfig, progress);
+                QuestObjective objective = questObjectiveFactory.createObjective(stage, objConfig, progress, status);
                 stage.addObjective(objective);
             }
 

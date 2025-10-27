@@ -19,6 +19,3 @@ Peut être attribuée à un NPC. Cette commande permet d'attribuer des quetes d'
 - Si aucune quete n'est en cours, la quete suivante du groupe est jouée (Si possible : ex cooldown), donc dialogue d'intro -> début de la quete
 - Si une quete est en cours, vérif d'accomplissement (exemple ramener des items). Si objectif non accompli, rappel des objectifs.
 - Si la quete est accomplie, récompense et message de fin.
-
-
-

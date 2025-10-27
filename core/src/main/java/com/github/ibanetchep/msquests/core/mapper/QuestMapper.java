@@ -33,7 +33,7 @@ public class QuestMapper {
         return new QuestDTO(
                 quest.getId(),
                 questConfig.getKey(),
-                questConfig.getGroup().getKey(),
+                questConfig.getGroupConfig().getKey(),
                 quest.getActor().getId(),
                 quest.getStatus(),
                 quest.getCompletedAt() != null ? quest.getCompletedAt().getTime() : null,

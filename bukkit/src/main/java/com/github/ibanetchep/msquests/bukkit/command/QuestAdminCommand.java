@@ -7,8 +7,10 @@ import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -92,6 +94,41 @@ public class QuestAdminCommand {
         );
     }
 
+    @Subcommand("actor <actor type> <actor> startRandom <group> <amount>")
+    public void distributeGroupQuestsRandom(
+            BukkitCommandActor sender,
+            @QuestActorType String actorType,
+            QuestActor actor,
+            QuestGroupConfig group,
+            @Default("1") @Range(min = 1) @Named("amount") int amount
+    ) {
+        System.out.println(group);
+        int startedCount = plugin.getQuestLifecycleService().distributeQuests(actor, group, QuestDistributionStrategy.RANDOM, amount);
+
+        sender.reply(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_DISTRIBUTED_GROUP)
+                .applyPlaceholderResolver(group)
+                .applyPlaceholderResolver(actor)
+                .placeholder("amount", String.valueOf(startedCount))
+                .toComponent());
+    }
+
+    @Subcommand("actor <actor type> <actor> startNext <group> <amount>")
+    public void distributeGroupNextQuests(
+            BukkitCommandActor sender,
+            @QuestActorType String actorType,
+            QuestActor actor,
+            QuestGroupConfig group,
+            @Default("1") @Range(min = 1) @Named("amount") int amount
+    ) {
+        int startedCount = plugin.getQuestLifecycleService().distributeQuests(actor, group, QuestDistributionStrategy.SEQUENTIAL, amount);
+
+        sender.reply(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_DISTRIBUTED_GROUP)
+                .applyPlaceholderResolver(group)
+                .applyPlaceholderResolver(actor)
+                .placeholder("amount", String.valueOf(startedCount))
+                .toComponent());
+    }
+
     @Subcommand("actor <actor type> <actor> start <group> <quest config>")
     public void startActorQuest(
             BukkitCommandActor sender,
@@ -100,17 +137,8 @@ public class QuestAdminCommand {
             QuestGroupConfig group,
             QuestConfig questConfig
     ) {
-        boolean result = plugin.getQuestLifecycleService().startQuest(actor, questConfig);
-
-        if(result) {
-            sender.reply(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_STARTED)
-                    .applyPlaceholderResolver(questConfig)
-                    .toComponent());
-        } else {
-            sender.reply(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_COULD_NOT_START)
-                    .applyPlaceholderResolver(questConfig)
-                    .toComponent());
-        }
+        QuestStartResult result = plugin.getQuestLifecycleService().startQuest(actor, questConfig, QuestDistributionStrategy.NONE);
+        sender.reply(MessageBuilder.translatable(result).toComponent());
     }
 
     @Subcommand("actor <actor type> <actor> complete <group> <quest>")
@@ -126,8 +154,4 @@ public class QuestAdminCommand {
                 .applyPlaceholderResolver(quest)
                 .toComponent());
     }
-
-    /**
-     * - /msquests actor <actortype> <actorId> remove <group_key> <quest_key>
-     */
 }

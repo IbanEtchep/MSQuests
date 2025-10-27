@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
@@ -27,9 +28,11 @@ public class QuestObjectiveFactory {
             }
         }
 
-        O createObjective(QuestStage stage, C config, int progress) {
+        O createObjective(QuestStage stage, C config, int progress, QuestObjectiveStatus status) {
             try {
-                return objectiveClass.getConstructor(QuestStage.class, configClass, int.class).newInstance(stage, config, progress);
+                return objectiveClass
+                        .getConstructor(QuestStage.class, configClass, int.class, QuestObjectiveStatus.class)
+                        .newInstance(stage, config, progress, status);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to instantiate objective: " + objectiveClass.getSimpleName(), e);
             }
@@ -65,10 +68,10 @@ public class QuestObjectiveFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public QuestObjective createObjective(QuestStage stage, QuestObjectiveConfig config, int progress) {
+    public QuestObjective createObjective(QuestStage stage, QuestObjectiveConfig config, int progress, QuestObjectiveStatus status) {
         Type<QuestObjectiveConfig, QuestObjective> type = (Type<QuestObjectiveConfig, QuestObjective>) types.get(config.getType());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + config.getType());
-        return type.createObjective(stage, config, progress);
+        return type.createObjective(stage, config, progress, status);
     }
 }
 

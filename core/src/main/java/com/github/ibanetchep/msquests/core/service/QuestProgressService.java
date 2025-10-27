@@ -1,4 +1,4 @@
-package com.github.ibanetchep.msquests.core.manager;
+package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.event.CoreQuestObjectiveProgressEvent;
 import com.github.ibanetchep.msquests.core.event.CoreQuestObjectiveProgressedEvent;
@@ -6,8 +6,6 @@ import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
-import com.github.ibanetchep.msquests.core.service.QuestService;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -15,14 +13,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class QuestProgressManager {
+public class QuestProgressService {
 
     private final QuestLifecycleService questLifecycleService;
     private final QuestService questService;
     private final EventDispatcher dispatcher;
     private final Map<QuestObjective, PendingObjectiveProgress> pendingProgress = new ConcurrentHashMap<>();
 
-    public QuestProgressManager(
+    public QuestProgressService(
             QuestLifecycleService questLifecycleService,
             QuestService questService,
             EventDispatcher dispatcher

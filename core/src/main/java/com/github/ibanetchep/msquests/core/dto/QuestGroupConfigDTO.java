@@ -9,14 +9,12 @@ public record QuestGroupConfigDTO(
         String name,
         String description,
         List<QuestConfigDTO> quests,
-        String distributionMode,
         Integer maxActive,
         Integer maxPerPeriod,
         String resetCron,
         Instant startAt,
         Instant endAt,
         String actorType,
-        boolean repeatable,
         QuestGroupConfigActionsDTO actions
 ) {
     public QuestGroupConfigDTO {

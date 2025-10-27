@@ -44,7 +44,7 @@ public class QuestParameterType implements ParameterType<BukkitCommandActor, Que
             return questActor.getQuests().values().stream()
                     .filter(Quest::isActive)
                     .map(Quest::getQuestConfig)
-                    .filter(questConfig -> questConfig.getGroup().equals(questGroupConfig))
+                    .filter(questConfig -> questConfig.getGroupConfig().equals(questGroupConfig))
                     .map(QuestConfig::getKey)
                     .toList();
         };

@@ -82,7 +82,7 @@ public class QuestStage {
 
     public double getProgressPercent() {
         return objectives.values().stream()
-                .mapToDouble(QuestObjective::getProgressPercent)
+                .mapToDouble(QuestObjective::getProgressRatio)
                 .average()
                 .orElse(0.0) / 100.0;
     }

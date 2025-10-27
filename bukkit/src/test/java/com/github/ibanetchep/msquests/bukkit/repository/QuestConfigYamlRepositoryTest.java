@@ -52,7 +52,6 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("group_1", group.key());
         assertEquals("groupe 1", group.name());
         assertEquals("Description du groupe", group.description());
-        assertEquals("SEQUENTIAL", group.distributionMode());
         assertEquals(3, group.maxActive());
         assertEquals(10, group.maxPerPeriod());
         assertEquals("0 0 * * *", group.resetCron());
@@ -208,14 +207,12 @@ public class QuestConfigYamlRepositoryTest {
                 "Modified Name",
                 "Modified Description",
                 originalGroup.quests(),
-                originalGroup.distributionMode(),
                 5, // Changed from 3
                 20, // Changed from 10
                 originalGroup.resetCron(),
                 originalGroup.startAt(),
                 originalGroup.endAt(),
                 originalGroup.actorType(),
-                originalGroup.repeatable(),
                 originalGroup.actions()
         );
 
@@ -244,14 +241,12 @@ public class QuestConfigYamlRepositoryTest {
                 "New Group",
                 "A brand new group",
                 List.of(),  // ✅ Empty list
-                "RANDOM",
                 1,
                 5,
                 "0 0 * * *",
                 Instant.parse("2025-01-01T00:00:00Z"),
                 Instant.parse("2025-12-31T23:59:59Z"),
                 "player",
-                true,
                 new QuestGroupConfigActionsDTO(
                         List.of(),
                         List.of(),
@@ -318,14 +313,12 @@ public class QuestConfigYamlRepositoryTest {
                 "Test Group",
                 "Test Description",
                 List.of(quest),  // ✅ List
-                "ALL",
                 10,
                 50,
                 "0 0 * * 0",
                 Instant.parse("2025-01-01T00:00:00Z"),
                 Instant.parse("2025-12-31T23:59:59Z"),
                 "player",
-                true,
                 new QuestGroupConfigActionsDTO(
                         List.of(),
                         List.of(),
@@ -392,7 +385,6 @@ public class QuestConfigYamlRepositoryTest {
             key: group_2
             name: "Second Group"
             description: "Another group"
-            distribution_mode: RANDOM
             max_active: 1
             max_per_period: 3
             reset_cron: "0 0 * * *"
