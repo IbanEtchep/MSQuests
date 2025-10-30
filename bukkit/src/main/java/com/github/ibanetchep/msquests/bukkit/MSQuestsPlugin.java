@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit;
 
 import com.github.ibanetchep.msquests.bukkit.command.QuestAdminCommand;
+import com.github.ibanetchep.msquests.bukkit.command.QuestCommand;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestActorParameterType;
 import com.github.ibanetchep.msquests.bukkit.command.parametertypes.QuestConfigParameterType;
@@ -212,6 +213,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         BukkitLampConfig.builder(this).disableBrigadier().build();
 
         lamp.register(new QuestAdminCommand(this));
+        lamp.register(new QuestCommand(this));
     }
 
     public void registerListeners() {
