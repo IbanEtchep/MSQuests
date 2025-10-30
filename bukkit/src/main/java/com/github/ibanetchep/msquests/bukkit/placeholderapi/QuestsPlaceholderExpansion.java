@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +51,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         PlayerProfile profile = playerProfileRegistry.getPlayerProfile(player.getUniqueId());
         if (profile == null) {
-            return null;
+            return "";
         }
 
         Quest quest = profile.getTrackedQuest();
@@ -89,7 +90,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
             }
         }
 
-        return null;
+        return "";
     }
 
     @Nullable
@@ -100,7 +101,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     @Nullable
     private String getQuestPlaceholder(@Nullable Quest quest) {
         if (quest == null) {
-            return null;
+            return "";
         }
 
         return MessageBuilder.translatable(TranslationKey.PLACEHOLDER_QUEST)
@@ -112,7 +113,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     private String getStagePlaceholder(@Nullable Quest quest) {
         QuestStage stage = getCurrentStage(quest);
         if (stage == null) {
-            return null;
+            return "";
         }
 
         return MessageBuilder.translatable(TranslationKey.PLACEHOLDER_STAGE)
@@ -125,11 +126,10 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
         return quest != null ? String.valueOf(quest.getStages().size()) : null;
     }
 
-    @Nullable
     private String getStageIndex(@Nullable Quest quest) {
         QuestStage stage = getCurrentStage(quest);
         if (stage == null) {
-            return null;
+            return "";
         }
 
         return String.valueOf(quest.getStagesList().indexOf(stage));
@@ -139,12 +139,12 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     private String getObjectivePlaceholder(@Nullable Quest quest, int index) {
         QuestStage stage = getCurrentStage(quest);
         if (stage == null) {
-            return null;
+            return "";
         }
 
         List<QuestObjective> objectives = stage.getObjectives().values().stream().toList();
         if (objectives.size() < index) {
-            return null;
+            return "";
         }
 
         QuestObjective objective = objectives.get(index - 1);
@@ -157,7 +157,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     private String getFirstActiveObjectivePlaceholder(@Nullable Quest quest) {
         QuestObjective objective = getFirstActiveObjective(quest);
         if (objective == null) {
-            return null;
+            return "";
         }
 
         return MessageBuilder.translatable(TranslationKey.PLACEHOLDER_OBJECTIVE)
@@ -165,13 +165,12 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
                 .toStringRaw();
     }
 
-    @Nullable
     private String getFirstActiveObjectiveIndex(@Nullable Quest quest) {
         QuestStage stage = getCurrentStage(quest);
         QuestObjective objective = getFirstActiveObjective(quest);
 
         if (stage == null || objective == null) {
-            return null;
+            return "";
         }
 
         return String.valueOf(stage.getObjectiveList().indexOf(objective));
