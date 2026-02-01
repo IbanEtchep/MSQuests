@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.command;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.command.annotations.QuestActorType;
-import com.github.ibanetchep.msquests.bukkit.lang.TranslationKey;
+import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
@@ -22,9 +22,9 @@ import java.util.logging.Level;
 @CommandPermission("msquests.admin")
 public class QuestAdminCommand {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public QuestAdminCommand(MSQuestsPlugin plugin) {
+    public QuestAdminCommand(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

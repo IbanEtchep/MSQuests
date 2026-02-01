@@ -3,10 +3,9 @@ package com.github.ibanetchep.msquests.core.quest.config;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
+import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 
-import java.lang.reflect.Field;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Base class for all quest objective configs.

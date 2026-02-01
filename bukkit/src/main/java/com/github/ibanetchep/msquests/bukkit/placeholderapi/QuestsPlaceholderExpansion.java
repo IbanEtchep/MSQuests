@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.placeholderapi;
 
-import com.github.ibanetchep.msquests.bukkit.lang.TranslationKey;
+import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
@@ -95,7 +95,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
 
     @Nullable
     private String getQuestName(@Nullable Quest quest) {
-        return quest != null ? quest.getQuestConfig().getName() : null;
+        return quest != null ? quest.getQuestConfig().getName() : "";
     }
 
     @Nullable

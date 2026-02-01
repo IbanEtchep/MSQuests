@@ -1,9 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.service;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
 import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.common.ScalarStyle;
@@ -18,14 +16,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class GlobalConfigLoaderService {
 
-    private MSQuestsPlugin plugin;
+    private BukkitQuestsPlugin plugin;
     private YamlDocument config;
 
-    public GlobalConfigLoaderService(MSQuestsPlugin plugin) {
+    public GlobalConfigLoaderService(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -12,9 +12,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 public class BlockBreakObjectiveHandler extends QuestObjectiveHandler<BlockBreakObjective> implements Listener {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public BlockBreakObjectiveHandler(MSQuestsPlugin plugin) {
+    public BlockBreakObjectiveHandler(BukkitQuestsPlugin plugin) {
         super(plugin);
         this.plugin = plugin;
     }

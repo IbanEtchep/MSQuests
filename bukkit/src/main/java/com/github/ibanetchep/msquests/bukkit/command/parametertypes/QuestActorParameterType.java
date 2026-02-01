@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.autocomplete.SuggestionProvider;
@@ -12,9 +12,9 @@ import revxrsal.commands.stream.MutableStringStream;
 
 public class QuestActorParameterType implements ParameterType<BukkitCommandActor, QuestActor> {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public QuestActorParameterType(MSQuestsPlugin plugin) {
+    public QuestActorParameterType(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -32,8 +32,7 @@ public class QuestActorParameterType implements ParameterType<BukkitCommandActor
     @Override
     public @NotNull SuggestionProvider<BukkitCommandActor> defaultSuggestions() {
         return (context) -> {
-            String[] args = context.input().source().split(" ");
-            String actorType = args[2];
+            String actorType = context.getResolvedArgument("actor type");
             return plugin.getQuestActorRegistry().getActorsByType(actorType).stream().map(QuestActor::getName).toList();
         };
     }

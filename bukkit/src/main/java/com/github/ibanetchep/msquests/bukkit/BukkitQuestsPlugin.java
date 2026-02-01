@@ -13,8 +13,8 @@ import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
-import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestGlobalActor;
-import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestGlobalActor;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjectiveHandler;
@@ -66,9 +66,10 @@ import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
+public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private EventDispatcher eventDispatcher;
 
@@ -147,6 +148,10 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         registerExpansions();
 
         getScheduler().runTimer(questProgressService::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
+
+        UUID globalActorUUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        BukkitQuestGlobalActor actor = new BukkitQuestGlobalActor(globalActorUUID, "default");
+        questActorService.loadActor(actor);
     }
 
     @Override
@@ -210,7 +215,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
                 })
                 .build();
 
-        BukkitLampConfig.builder(this).disableBrigadier().build();
+        BukkitLampConfig.builder(this).build();
 
         lamp.register(new QuestAdminCommand(this));
         lamp.register(new QuestCommand(this));
@@ -220,9 +225,7 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
-        pluginManager.registerEvents(new QuestStartListener(this), this);
-        pluginManager.registerEvents(new QuestCompleteListener(this), this);
-        pluginManager.registerEvents(new QuestProgressListener(this), this);
+        pluginManager.registerEvents(new QuestListeners(this), this);
     }
 
     private void registerObjectiveTypes() {
@@ -246,8 +249,8 @@ public final class MSQuestsPlugin extends JavaPlugin implements MSQuestsPlatform
     }
 
     public void registerActorTypes() {
-        actorTypeRegistry.registerType("player", QuestPlayerActor.class);
-        actorTypeRegistry.registerType("global", QuestGlobalActor.class);
+        actorTypeRegistry.registerType("player", BukkitQuestPlayerActor.class);
+        actorTypeRegistry.registerType("global", BukkitQuestGlobalActor.class);
     }
 
     public void registerExpansions() {

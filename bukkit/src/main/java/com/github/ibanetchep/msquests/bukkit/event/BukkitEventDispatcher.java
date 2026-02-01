@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.event;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -11,10 +11,10 @@ import java.util.function.Consumer;
 
 public class BukkitEventDispatcher implements EventDispatcher {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
     private final Map<Class<? extends CoreEvent>, Consumer<CoreEvent>> handlers = new HashMap<>();
 
-    public BukkitEventDispatcher(MSQuestsPlugin plugin) {
+    public BukkitEventDispatcher(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
 
         handlers.put(CoreQuestStartEvent.class, e -> callQuestStart((CoreQuestStartEvent) e));

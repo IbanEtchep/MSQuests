@@ -4,19 +4,19 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 
 import java.util.UUID;
 
-public class QuestGlobalActor extends QuestActor {
+public class BukkitQuestPlayerActor extends QuestActor {
 
-    public QuestGlobalActor(UUID id, String name) {
+    public BukkitQuestPlayerActor(UUID id, String name) {
         super(id, name);
     }
 
     @Override
     public boolean isMember(UUID playerId) {
-        return true;
+        return playerId.equals(id);
     }
 
     @Override
     public String getActorType() {
-        return "global";
+        return "player";
     }
 }
