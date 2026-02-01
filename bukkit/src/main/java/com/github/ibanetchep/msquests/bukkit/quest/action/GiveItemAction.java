@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
@@ -24,7 +24,7 @@ public class GiveItemAction extends BukkitQuestAction {
     @ConfigField(name = "amount", required = true)
     private final int amount;
 
-    public GiveItemAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+    public GiveItemAction(QuestActionDTO dto, BukkitQuestsPlugin plugin) {
         super(dto, plugin);
         this.item = Material.valueOf(((String) dto.params().get("material")).toUpperCase());
         this.amount = (int) dto.params().get("amount");

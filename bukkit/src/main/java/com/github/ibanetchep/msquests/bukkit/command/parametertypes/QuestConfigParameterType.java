@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import org.jetbrains.annotations.NotNull;
@@ -13,9 +13,9 @@ import revxrsal.commands.stream.MutableStringStream;
 
 public class QuestConfigParameterType implements ParameterType<BukkitCommandActor, QuestConfig> {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public QuestConfigParameterType(MSQuestsPlugin plugin) {
+    public QuestConfigParameterType(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -33,7 +33,7 @@ public class PlayerTitleAction extends BukkitQuestAction {
     @ConfigField(name = "subtitle_key")
     private final String subtitleKey;
 
-    public PlayerTitleAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+    public PlayerTitleAction(QuestActionDTO dto, BukkitQuestsPlugin plugin) {
         super(dto, plugin);
         this.title = (String) dto.params().get("title");
         this.titleKey = (String) dto.params().get("title_key");

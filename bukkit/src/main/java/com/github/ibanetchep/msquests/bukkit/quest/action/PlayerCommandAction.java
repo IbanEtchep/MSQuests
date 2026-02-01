@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -21,7 +21,7 @@ public class PlayerCommandAction extends BukkitQuestAction {
     @ConfigField(name = "command")
     private final String commandTemplate;
 
-    public PlayerCommandAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+    public PlayerCommandAction(QuestActionDTO dto, BukkitQuestsPlugin plugin) {
         super(dto, plugin);
         this.commandTemplate = (String) dto.params().get("command");
     }

@@ -1,8 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.command.parametertypes;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
-import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
@@ -17,15 +15,14 @@ import revxrsal.commands.parameter.ParameterType;
 import revxrsal.commands.parameter.PrioritySpec;
 import revxrsal.commands.stream.MutableStringStream;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class QuestParameterType implements ParameterType<BukkitCommandActor, Quest> {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public QuestParameterType(MSQuestsPlugin plugin) {
+    public QuestParameterType(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

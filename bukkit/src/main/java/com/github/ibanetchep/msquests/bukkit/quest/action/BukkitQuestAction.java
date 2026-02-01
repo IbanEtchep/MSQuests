@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 
 public abstract class BukkitQuestAction extends QuestAction {
 
-    protected final MSQuestsPlugin plugin;
+    protected final BukkitQuestsPlugin plugin;
 
-    public BukkitQuestAction(QuestActionDTO rewardDto, MSQuestsPlugin plugin) {
+    public BukkitQuestAction(QuestActionDTO rewardDto, BukkitQuestsPlugin plugin) {
         super(rewardDto);
         this.plugin = plugin;
     }

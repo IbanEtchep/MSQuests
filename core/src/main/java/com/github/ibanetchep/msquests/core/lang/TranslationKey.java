@@ -1,6 +1,4 @@
-package com.github.ibanetchep.msquests.bukkit.lang;
-
-import com.github.ibanetchep.msquests.core.lang.Translatable;
+package com.github.ibanetchep.msquests.core.lang;
 
 public enum TranslationKey implements Translatable {
 
@@ -17,7 +15,7 @@ public enum TranslationKey implements Translatable {
     QUEST_COMMAND_UNTRACKED("quest.command.untracked"),
     PLACEHOLDER_QUEST("placeholder.quest"),
     PLACEHOLDER_STAGE("placeholder.stage"),
-    PLACEHOLDER_OBJECTIVE("placeholder.quest");
+    PLACEHOLDER_OBJECTIVE("placeholder.objective");
 
     private final String key;
 

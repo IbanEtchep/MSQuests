@@ -1,7 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.command;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
-import com.github.ibanetchep.msquests.bukkit.lang.TranslationKey;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
@@ -15,9 +15,9 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 @CommandPermission("msquests.player")
 public class QuestCommand {
 
-    private final MSQuestsPlugin plugin;
+    private final BukkitQuestsPlugin plugin;
 
-    public QuestCommand(MSQuestsPlugin plugin) {
+    public QuestCommand(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
     }
 

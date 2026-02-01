@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.event.PlayerQuestHandleEvent;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 
 public class DeliverItemObjectiveHandler extends QuestObjectiveHandler<DeliverItemObjective> implements Listener {
 
-    public DeliverItemObjectiveHandler(MSQuestsPlugin plugin) {
+    public DeliverItemObjectiveHandler(BukkitQuestsPlugin plugin) {
         super(plugin);
     }
 

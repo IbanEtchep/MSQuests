@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.action;
 
-import com.github.ibanetchep.msquests.bukkit.MSQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -34,7 +34,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     @ConfigField(name = "objective_template_key")
     private final @Nullable String objectiveTemplateKey;
 
-    public PlayerMessageAction(QuestActionDTO dto, MSQuestsPlugin plugin) {
+    public PlayerMessageAction(QuestActionDTO dto, BukkitQuestsPlugin plugin) {
         super(dto, plugin);
         this.message = (String) dto.params().get("message");
         this.messageKey = (String) dto.params().get("message_key");

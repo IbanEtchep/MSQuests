@@ -1,6 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.service;
 
-import com.github.ibanetchep.msquests.bukkit.quest.actor.QuestPlayerActor;
+import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestPlayerActor;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.service.PlayerProfileService;
 import com.github.ibanetchep.msquests.core.service.QuestActorService;
@@ -20,7 +20,7 @@ public class QuestPlayerService {
     }
 
     public CompletableFuture<PlayerProfile> loadPlayer(Player player) {
-        QuestPlayerActor actor = new QuestPlayerActor(player.getUniqueId(), player.getName());
+        BukkitQuestPlayerActor actor = new BukkitQuestPlayerActor(player.getUniqueId(), player.getName());
         return questActorService.loadActor(actor)
                         .thenCompose(v -> playerProfileService.loadProfile(player.getUniqueId(), player.getName()));
     }
