@@ -21,6 +21,9 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBre
 import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.DeliverItemObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
@@ -232,10 +235,12 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
         questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class);
         questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class);
         questObjectiveFactory.register(KillEntityObjectiveConfig.class, KillEntityObjective.class);
+        questObjectiveFactory.register(ExecuteCommandObjectiveConfig.class, ExecuteCommandObjective.class);
 
         getServer().getPluginManager().registerEvents(new BlockBreakObjectiveHandler(this), this);
         getServer().getPluginManager().registerEvents(new DeliverItemObjectiveHandler(this), this);
         getServer().getPluginManager().registerEvents(new KillEntityObjectiveHandler(this), this);
+        getServer().getPluginManager().registerEvents(new ExecuteCommandObjectiveHandler(this), this);
     }
 
     public void registerActionTypes() {
