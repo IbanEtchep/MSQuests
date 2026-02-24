@@ -6,6 +6,7 @@ public final class ObjectiveTypes {
     public static final String DELIVER_ITEM = "deliver_item";
     public static final String KILL_ENTITY = "kill_entity";
     public static final String EXECUTE_COMMAND = "execute_command";
+    public static final String FISHING = "fishing";
 
     private ObjectiveTypes() {}
 }
