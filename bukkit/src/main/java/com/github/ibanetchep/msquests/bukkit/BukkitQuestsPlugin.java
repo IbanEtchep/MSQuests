@@ -24,6 +24,9 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem.Deliver
 import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.ExecuteCommandObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
@@ -236,11 +239,13 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
         questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class);
         questObjectiveFactory.register(KillEntityObjectiveConfig.class, KillEntityObjective.class);
         questObjectiveFactory.register(ExecuteCommandObjectiveConfig.class, ExecuteCommandObjective.class);
+        questObjectiveFactory.register(FishingObjectiveConfig.class, FishingObjective.class);
 
         getServer().getPluginManager().registerEvents(new BlockBreakObjectiveHandler(this), this);
         getServer().getPluginManager().registerEvents(new DeliverItemObjectiveHandler(this), this);
         getServer().getPluginManager().registerEvents(new KillEntityObjectiveHandler(this), this);
         getServer().getPluginManager().registerEvents(new ExecuteCommandObjectiveHandler(this), this);
+        getServer().getPluginManager().registerEvents(new FishingObjectiveHandler(this), this);
     }
 
     public void registerActionTypes() {
