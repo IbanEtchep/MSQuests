@@ -1,8 +1,9 @@
 package com.github.ibanetchep.msquests.bukkit.quest.condition.impl;
 
 import com.github.ibanetchep.msquests.bukkit.quest.condition.BukkitObjectiveCondition;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 
@@ -15,11 +16,14 @@ public class BiomeCondition implements BukkitObjectiveCondition {
 
     public BiomeCondition(Map<String, Object> params) {
         NamespacedKey key = NamespacedKey.minecraft(params.get("biome").toString().toLowerCase());
-        this.biome = Objects.requireNonNull(Registry.BIOME.get(key), "Unknown biome: " + key);
+        this.biome = Objects.requireNonNull(
+                RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).get(key),
+                "Unknown biome: " + key
+        );
     }
 
     @Override
     public boolean test(Player player) {
-        return player.getLocation().getBlock().getBiome() == biome;
+        return player.getWorld().getBiome(player.getLocation()) == biome;
     }
 }
