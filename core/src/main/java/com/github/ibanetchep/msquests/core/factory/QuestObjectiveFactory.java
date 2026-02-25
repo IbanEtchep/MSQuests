@@ -1,7 +1,9 @@
 package com.github.ibanetchep.msquests.core.factory;
 
+import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConditionConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.condition.QuestObjectiveCondition;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -10,7 +12,9 @@ import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class QuestObjectiveFactory {
 
@@ -40,6 +44,11 @@ public class QuestObjectiveFactory {
     }
 
     private final Map<String, Type<?, ?>> types = new HashMap<>();
+    private final QuestObjectiveConditionFactory conditionFactory;
+
+    public QuestObjectiveFactory(QuestObjectiveConditionFactory conditionFactory) {
+        this.conditionFactory = conditionFactory;
+    }
 
     public <C extends QuestObjectiveConfig, O extends QuestObjective> void register(
             Class<C> configClass,
@@ -64,7 +73,9 @@ public class QuestObjectiveFactory {
         Type<?, ?> type = types.get(dto.type());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + dto.type());
         JsonSchemaValidator.validate(dto.params(), type.schema());
-        return type.createConfig(dto);
+        QuestObjectiveConfig config = type.createConfig(dto);
+        config.setConditions(resolveConditions(dto.params()));
+        return config;
     }
 
     @SuppressWarnings("unchecked")
@@ -73,5 +84,18 @@ public class QuestObjectiveFactory {
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + config.getType());
         return type.createObjective(stage, config, progress, status);
     }
-}
 
+    @SuppressWarnings("unchecked")
+    private List<QuestObjectiveCondition> resolveConditions(Map<String, Object> params) {
+        Object raw = params.get("conditions");
+        if (!(raw instanceof List<?> list)) return List.of();
+        return list.stream()
+                .filter(item -> item instanceof Map)
+                .map(item -> {
+                    Map<String, Object> map = (Map<String, Object>) item;
+                    return conditionFactory.build(new QuestObjectiveConditionConfigDTO((String) map.get("type"), map));
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+}

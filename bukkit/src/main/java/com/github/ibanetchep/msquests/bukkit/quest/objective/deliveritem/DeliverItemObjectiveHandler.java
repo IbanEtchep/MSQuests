@@ -2,14 +2,14 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.deliveritem;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.event.PlayerQuestHandleEvent;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.BukkitQuestObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-public class DeliverItemObjectiveHandler extends QuestObjectiveHandler<DeliverItemObjective> implements Listener {
+public class DeliverItemObjectiveHandler extends BukkitQuestObjectiveHandler<DeliverItemObjective> implements Listener {
 
     public DeliverItemObjectiveHandler(BukkitQuestsPlugin plugin) {
         super(plugin);

@@ -68,11 +68,19 @@ quests:
             params:
               material: "STONE"
               amount: 10
+              conditions:
+                - type: world
+                  world: world
           - key: objective_2
             type: "kill_entity"
             params:
               entity_type: "ZOMBIE"
               amount: 5
+              conditions:
+                - type: world
+                  world: world_nether
+                - type: biome
+                  biome: soul_sand_valley
       - key: stage_2
         name: "Deuxième stage"
         flow: PARALLEL
