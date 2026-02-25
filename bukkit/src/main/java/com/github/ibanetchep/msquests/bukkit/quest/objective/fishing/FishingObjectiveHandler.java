@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.fishing;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.BukkitQuestObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
@@ -11,13 +11,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerFishEvent;
 
-public class FishingObjectiveHandler extends QuestObjectiveHandler<FishingObjective> implements Listener {
-
-    private final BukkitQuestsPlugin plugin;
+public class FishingObjectiveHandler extends BukkitQuestObjectiveHandler<FishingObjective> implements Listener {
 
     public FishingObjectiveHandler(BukkitQuestsPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
     }
 
     @Override
@@ -34,8 +31,7 @@ public class FishingObjectiveHandler extends QuestObjectiveHandler<FishingObject
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
         Material caughtMaterial = caughtItem.getItemStack().getType();
 
-        for (FishingObjective objective : getQuestObjectives(profile)) {
-            if (objective.isCompleted()) continue;
+        for (FishingObjective objective : getEligibleObjectives(profile)) {
             Material fishType = objective.getObjectiveConfig().getFishType();
             if (fishType == null || fishType == caughtMaterial) {
                 plugin.getQuestProgressService().progressObjective(objective, 1, profile);

@@ -13,6 +13,9 @@ import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
+import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.BiomeCondition;
+import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.WorldCondition;
+import com.github.ibanetchep.msquests.core.factory.QuestObjectiveConditionFactory;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
@@ -114,10 +117,11 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
         questConfigRegistry = new QuestConfigRegistry();
         questRegistry = new QuestRegistry();
         actorTypeRegistry = new ActorTypeRegistry();
-        questObjectiveFactory = new QuestObjectiveFactory();
         questActionFactory = new QuestActionFactory();
         playerProfileRegistry = new PlayerProfileRegistry();
         questActorRegistry = new QuestActorRegistry();
+
+        questObjectiveFactory = new QuestObjectiveFactory(buildConditionFactory());
 
         registerObjectiveTypes();
         registerActionTypes();
@@ -234,6 +238,13 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
         pluginManager.registerEvents(new QuestListeners(this), this);
     }
 
+    private QuestObjectiveConditionFactory buildConditionFactory() {
+        QuestObjectiveConditionFactory factory = new QuestObjectiveConditionFactory();
+        factory.register("world", WorldCondition::new);
+        factory.register("biome", BiomeCondition::new);
+        return factory;
+    }
+
     private void registerObjectiveTypes() {
         questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class);
         questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class);
@@ -346,4 +357,5 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
     public QuestDistributionService getQuestDistributionService() {
         return questDistributionService;
     }
+
 }

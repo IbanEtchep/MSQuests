@@ -1,8 +1,8 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.killentity;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.BukkitQuestObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
-import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -11,13 +11,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
-public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntityObjective> implements Listener {
-
-    private final BukkitQuestsPlugin plugin;
+public class KillEntityObjectiveHandler extends BukkitQuestObjectiveHandler<KillEntityObjective> implements Listener {
 
     public KillEntityObjectiveHandler(BukkitQuestsPlugin plugin) {
         super(plugin);
-        this.plugin = plugin;
     }
 
     @Override
@@ -36,10 +33,8 @@ public class KillEntityObjectiveHandler extends QuestObjectiveHandler<KillEntity
 
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
 
-        for (KillEntityObjective objective : getQuestObjectives(profile)) {
-            EntityType entityType = entity.getType();
-
-            if(entityType == objective.getObjectiveConfig().getEntityType() && !objective.isCompleted()) {
+        for (KillEntityObjective objective : getEligibleObjectives(profile)) {
+            if (entity.getType() == objective.getObjectiveConfig().getEntityType()) {
                 plugin.getQuestProgressService().progressObjective(objective, 1, profile);
             }
         }
