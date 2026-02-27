@@ -22,6 +22,16 @@ public class KillEntityObjectiveHandler extends BukkitQuestObjectiveHandler<Kill
         return ObjectiveTypes.KILL_ENTITY;
     }
 
+    @Override
+    public void init() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
     @EventHandler
     public void onKillEntity(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();

@@ -22,6 +22,14 @@ public class FishingObjectiveHandler extends BukkitQuestObjectiveHandler<Fishing
         return ObjectiveTypes.FISHING;
     }
 
+    @Override
+    public void init() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void destroy() {}
+
     @EventHandler
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;

@@ -7,6 +7,7 @@ repositories {
     maven {
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
+    maven { url = 'https://repo.groupez.dev/releases' }
 }
 
 dependencies {
@@ -15,6 +16,7 @@ dependencies {
 
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
     compileOnly('me.clip:placeholderapi:2.11.6')
+    compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
     implementation("com.tcoded:FoliaLib:0.5.1")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.12")
     implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.12")
@@ -26,6 +28,7 @@ dependencies {
     implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
 
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
+    testImplementation("org.mockito:mockito-core:5.14.2")
 }
 
 processResources {
