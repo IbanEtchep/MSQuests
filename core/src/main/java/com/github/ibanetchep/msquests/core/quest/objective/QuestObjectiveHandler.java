@@ -17,6 +17,10 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective> {
 
     protected abstract String getObjectiveType();
 
+    public abstract void init();
+
+    public abstract void destroy();
+
     protected PlayerProfile getPlayerProfile(UUID playerId) {
         return platform.getPlayerProfileRegistry().getPlayerProfile(playerId);
     }

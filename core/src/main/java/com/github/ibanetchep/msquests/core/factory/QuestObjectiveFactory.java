@@ -7,6 +7,7 @@ import com.github.ibanetchep.msquests.core.quest.condition.QuestObjectiveConditi
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
@@ -52,7 +53,8 @@ public class QuestObjectiveFactory {
 
     public <C extends QuestObjectiveConfig, O extends QuestObjective> void register(
             Class<C> configClass,
-            Class<O> objectiveClass
+            Class<O> objectiveClass,
+            QuestObjectiveHandler<O> handler
     ) {
         ObjectiveType annotation = configClass.getAnnotation(ObjectiveType.class);
         if (annotation == null) {
@@ -67,6 +69,8 @@ public class QuestObjectiveFactory {
         }
 
         types.put(type, new Type<>(configClass, objectiveClass, JsonSchemaGenerator.generateSchema(configClass)));
+
+        handler.init();
     }
 
     public QuestObjectiveConfig createConfig(QuestObjectiveConfigDTO dto) {

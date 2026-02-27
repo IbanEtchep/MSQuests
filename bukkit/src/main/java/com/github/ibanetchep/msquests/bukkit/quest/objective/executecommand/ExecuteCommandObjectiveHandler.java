@@ -21,6 +21,14 @@ public class ExecuteCommandObjectiveHandler extends BukkitQuestObjectiveHandler<
         return ObjectiveTypes.EXECUTE_COMMAND;
     }
 
+    @Override
+    public void init() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void destroy() {}
+
     @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();

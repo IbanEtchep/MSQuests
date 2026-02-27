@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /c/Users/ibane/IdeaProjects/MSQuests && git stash pop 2>&1)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.zmenu.dev)",
+      "WebFetch(domain:docs.groupez.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:repo.groupez.dev)",
+      "Bash(tail:*)",
+      "Bash(grep zmenu:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}

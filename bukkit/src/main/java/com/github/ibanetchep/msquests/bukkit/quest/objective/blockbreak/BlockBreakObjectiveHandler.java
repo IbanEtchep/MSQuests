@@ -21,6 +21,14 @@ public class BlockBreakObjectiveHandler extends BukkitQuestObjectiveHandler<Bloc
         return ObjectiveTypes.BLOCK_BREAK;
     }
 
+    @Override
+    public void init() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void destroy() {}
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();

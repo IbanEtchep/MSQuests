@@ -12,6 +12,7 @@ import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
+import com.github.ibanetchep.msquests.bukkit.zmenu.ZMenuIntegration;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.BiomeCondition;
 import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.WorldCondition;
@@ -30,6 +31,9 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.executecommand.Exec
 import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
@@ -78,7 +82,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
+public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private EventDispatcher eventDispatcher;
 
@@ -246,17 +250,12 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
     }
 
     private void registerObjectiveTypes() {
-        questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class);
-        questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class);
-        questObjectiveFactory.register(KillEntityObjectiveConfig.class, KillEntityObjective.class);
-        questObjectiveFactory.register(ExecuteCommandObjectiveConfig.class, ExecuteCommandObjective.class);
-        questObjectiveFactory.register(FishingObjectiveConfig.class, FishingObjective.class);
-
-        getServer().getPluginManager().registerEvents(new BlockBreakObjectiveHandler(this), this);
-        getServer().getPluginManager().registerEvents(new DeliverItemObjectiveHandler(this), this);
-        getServer().getPluginManager().registerEvents(new KillEntityObjectiveHandler(this), this);
-        getServer().getPluginManager().registerEvents(new ExecuteCommandObjectiveHandler(this), this);
-        getServer().getPluginManager().registerEvents(new FishingObjectiveHandler(this), this);
+        questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class, new BlockBreakObjectiveHandler(this));
+        questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class, new DeliverItemObjectiveHandler(this));
+        questObjectiveFactory.register(KillEntityObjectiveConfig.class, KillEntityObjective.class, new KillEntityObjectiveHandler(this));
+        questObjectiveFactory.register(ExecuteCommandObjectiveConfig.class, ExecuteCommandObjective.class, new ExecuteCommandObjectiveHandler(this));
+        questObjectiveFactory.register(FishingObjectiveConfig.class, FishingObjective.class, new FishingObjectiveHandler(this));
+        questObjectiveFactory.register(PlaceholderObjectiveConfig.class, PlaceholderObjective.class, new PlaceholderObjectiveHandler(this));
     }
 
     public void registerActionTypes() {
@@ -277,6 +276,9 @@ public final class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlat
     public void registerExpansions() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new QuestsPlaceholderExpansion(playerProfileRegistry).register();
+        }
+        if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
+            new ZMenuIntegration(this).register();
         }
     }
 

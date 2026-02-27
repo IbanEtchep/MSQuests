@@ -20,6 +20,14 @@ public class DeliverItemObjectiveHandler extends BukkitQuestObjectiveHandler<Del
         return ObjectiveTypes.DELIVER_ITEM;
     }
 
+    @Override
+    public void init() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @Override
+    public void destroy() {}
+
     @EventHandler
     public void onHandle(PlayerQuestHandleEvent event) {
         Player player = event.getPlayer();
