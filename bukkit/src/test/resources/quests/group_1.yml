@@ -69,18 +69,20 @@ quests:
               material: "STONE"
               amount: 10
               conditions:
-                - type: world
-                  world: world
+                - type: placeholder
+                  placeholder: "%player_world%"
+                  action: EQUALS_STRING
+                  value: "world"
           - key: objective_2
             type: "kill_entity"
             params:
               entity_type: "ZOMBIE"
               amount: 5
               conditions:
-                - type: world
-                  world: world_nether
-                - type: biome
-                  biome: soul_sand_valley
+                - type: placeholder
+                  placeholder: "%player_world%"
+                  action: EQUALS_STRING
+                  value: "world_nether"
       - key: stage_2
         name: "Deuxième stage"
         flow: PARALLEL
