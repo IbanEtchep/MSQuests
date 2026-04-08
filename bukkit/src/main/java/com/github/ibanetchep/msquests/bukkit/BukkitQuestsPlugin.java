@@ -161,7 +161,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
 
-        QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory);
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory, conditionFactory);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper, questActionFactory);
 
         AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor(questRegistry);

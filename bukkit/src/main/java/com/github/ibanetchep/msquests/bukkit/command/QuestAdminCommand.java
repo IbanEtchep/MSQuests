@@ -10,6 +10,7 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
+import com.github.ibanetchep.msquests.core.quest.result.QuestRotateResult;
 import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.*;
@@ -102,7 +103,6 @@ public class QuestAdminCommand {
             QuestGroupConfig group,
             @Default("1") @Range(min = 1) @Named("amount") int amount
     ) {
-        System.out.println(group);
         int startedCount = plugin.getQuestLifecycleService().distributeQuests(actor, group, QuestDistributionStrategy.RANDOM, amount);
 
         sender.reply(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_DISTRIBUTED_GROUP)
@@ -137,7 +137,19 @@ public class QuestAdminCommand {
             QuestGroupConfig group,
             QuestConfig questConfig
     ) {
-        QuestStartResult result = plugin.getQuestLifecycleService().startQuest(actor, questConfig, QuestDistributionStrategy.NONE);
+        QuestStartResult result = plugin.getQuestLifecycleService().startQuest(actor, questConfig, QuestDistributionStrategy.NONE, null);
+        sender.reply(MessageBuilder.translatable(result).toComponent());
+    }
+
+    @Subcommand("actor <actor type> <actor> rotate <group> <quest>")
+    public void rotateActorQuest(
+            BukkitCommandActor sender,
+            @QuestActorType String actorType,
+            QuestActor actor,
+            QuestGroupConfig group,
+            Quest quest
+    ) {
+        QuestRotateResult result = plugin.getQuestLifecycleService().rotateQuest(actor, quest);
         sender.reply(MessageBuilder.translatable(result).toComponent());
     }
 

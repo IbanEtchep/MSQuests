@@ -70,8 +70,8 @@ public class QuestLifecycleService {
      * @param strategy the distribution strategy to use
      * @return the result of the quest start attempt
      */
-    public QuestStartResult startQuest(QuestActor actor, QuestConfig questConfig, QuestDistributionStrategy strategy) {
-        QuestStartResult validationResult = distributionManager.canStartQuest(actor, questConfig, strategy);
+    public QuestStartResult startQuest(QuestActor actor, QuestConfig questConfig, QuestDistributionStrategy strategy, @Nullable PlayerProfile profile) {
+        QuestStartResult validationResult = distributionManager.canStartQuest(actor, questConfig, strategy, profile);
         if(validationResult.isFailure()) {
             return validationResult;
         }
@@ -209,7 +209,7 @@ public class QuestLifecycleService {
 
         // Start new quest
         for (QuestConfig candidate : candidates) {
-            QuestStartResult startResult = startQuest(actor, candidate, QuestDistributionStrategy.RANDOM);
+            QuestStartResult startResult = startQuest(actor, candidate, QuestDistributionStrategy.RANDOM, null);
             if (startResult.isSuccess()) {
                 actorGroup.incrementRotations();
                 rotationRepository.save(actor.getId(), groupConfig.getKey()).exceptionally(e -> {
@@ -275,7 +275,7 @@ public class QuestLifecycleService {
                 break;
             }
 
-            QuestStartResult result = startQuest(actor, candidate, strategy);
+            QuestStartResult result = startQuest(actor, candidate, strategy, null);
 
             if (result.isFailure()) {
                 continue;

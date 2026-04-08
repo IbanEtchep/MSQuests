@@ -213,7 +213,12 @@ public class QuestConfigYamlRepositoryTest {
                 originalGroup.startAt(),
                 originalGroup.endAt(),
                 originalGroup.actorType(),
-                originalGroup.actions()
+                originalGroup.actions(),
+                originalGroup.tiers(),
+                originalGroup.tierDistribution(),
+                originalGroup.rotatable(),
+                originalGroup.maxRotationsPerPeriod(),
+                originalGroup.distribution()
         );
 
         // Save
@@ -251,8 +256,15 @@ public class QuestConfigYamlRepositoryTest {
                         List.of(),
                         List.of(),
                         List.of(),
+                        List.of(),
+                        List.of(),
                         List.of()
-                )
+                ),
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         // Save (path should be auto-created)
@@ -296,7 +308,8 @@ public class QuestConfigYamlRepositoryTest {
         QuestActionDTO reward = new QuestActionDTO(
                 "command",
                 "Diamond Pickaxe Reward",
-                rewardConfig
+                rewardConfig,
+                null
         );
 
         QuestConfigDTO quest = new QuestConfigDTO(
@@ -304,8 +317,10 @@ public class QuestConfigYamlRepositoryTest {
                 "Mining Quest",
                 "Mine some diamonds",
                 3600L,
+                null,
                 List.of(reward),
-                List.of(stage)  // ✅ List
+                List.of(stage),  // ✅ List
+                null
         );
 
         QuestGroupConfigDTO group = new QuestGroupConfigDTO(
@@ -323,8 +338,15 @@ public class QuestConfigYamlRepositoryTest {
                         List.of(),
                         List.of(),
                         List.of(),
+                        List.of(),
+                        List.of(),
                         List.of()
-                )
+                ),
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         // Save
