@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
@@ -53,6 +54,15 @@ public class PlayerTitleAction extends BukkitQuestAction {
         });
     }
 
+    @Override
+    public void execute(QuestActor actor) {
+        Component titleComponent = resolveTitle().toComponent();
+        Component subtitleComponent = resolveSubtitle().toComponent();
+        getOnlinePlayers(actor).forEach(player ->
+                player.showTitle(Title.title(titleComponent, subtitleComponent))
+        );
+    }
+
     private MessageBuilder resolveTitle() {
         if (titleKey != null) return MessageBuilder.translatable(titleKey);
         return MessageBuilder.raw(Objects.requireNonNullElse(title, ""));
@@ -70,7 +80,7 @@ public class PlayerTitleAction extends BukkitQuestAction {
         if (titleKey != null) config.put("title_key", titleKey);
         if (subtitle != null) config.put("subtitle", subtitle);
         if (subtitleKey != null) config.put("subtitle_key", subtitleKey);
-        return new QuestActionDTO(getType(), getName(), config);
+        return new QuestActionDTO(getType(), getName(), config, null);
     }
 
     @Override

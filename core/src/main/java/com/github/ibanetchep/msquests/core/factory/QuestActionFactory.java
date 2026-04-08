@@ -1,17 +1,25 @@
 package com.github.ibanetchep.msquests.core.factory;
 
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
+import com.github.ibanetchep.msquests.core.quest.condition.Condition;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 public class QuestActionFactory {
+    private final ConditionFactory conditionFactory;
     private final Map<String, RegisteredAction<?>> registeredTypes = new HashMap<>();
+
+    public QuestActionFactory(ConditionFactory conditionFactory) {
+        this.conditionFactory = conditionFactory;
+    }
 
     public record RegisteredAction<T extends QuestAction>(
             Class<T> actionClass,
@@ -48,6 +56,16 @@ public class QuestActionFactory {
 
         JsonSchemaValidator.validate(config.params(), registered.schema());
 
-        return registered.factory().apply(config);
+        QuestAction action = registered.factory().apply(config);
+
+        if (config.conditions() != null) {
+            List<Condition> conditions = config.conditions().stream()
+                    .map(conditionFactory::build)
+                    .filter(Objects::nonNull)
+                    .toList();
+            action.setConditions(conditions);
+        }
+
+        return action;
     }
 }

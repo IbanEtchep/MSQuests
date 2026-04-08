@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.AtLeastOneOfFields;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
@@ -64,6 +65,15 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
+    public void execute(QuestActor actor) {
+        getOnlinePlayers(actor).forEach(player ->
+                player.sendMessage(MessageBuilder.raw(resolveMessage())
+                        .placeholder("player", player.getName())
+                        .toComponent())
+        );
+    }
+
+    @Override
     public void execute(QuestObjective objective) {
         Quest quest = objective.getQuest();
 
@@ -99,7 +109,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
         if(messageKey != null) config.put("message_key", messageKey);
         if(objectiveTemplate != null) config.put("objective_template", objectiveTemplate);
         if(objectiveTemplateKey != null) config.put("objective_template_key", objectiveTemplateKey);
-        return new QuestActionDTO(getType(), getName(), config);
+        return new QuestActionDTO(getType(), getName(), config, null);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class PlayerCommandAction extends BukkitQuestAction {
 
     @Override
     public QuestActionDTO toDTO() {
-        return new QuestActionDTO(getType(), getName(), Map.of("command", commandTemplate));
+        return new QuestActionDTO(getType(), getName(), Map.of("command", commandTemplate), null);
     }
 
     @Override

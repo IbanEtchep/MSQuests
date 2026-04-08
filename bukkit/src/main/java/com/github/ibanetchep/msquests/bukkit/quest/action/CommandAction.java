@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ActionType;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import org.bukkit.Bukkit;
@@ -38,8 +39,19 @@ public class CommandAction extends BukkitQuestAction {
     }
 
     @Override
+    public void execute(QuestActor actor) {
+        String command = PlaceholderEngine.getInstance().apply(commandTemplate, actor);
+
+        try {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        } catch (Exception e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to execute quest action command " + command, e);
+        }
+    }
+
+    @Override
     public QuestActionDTO toDTO() {
-        return new QuestActionDTO(getType(), getName(), Map.of("command", commandTemplate));
+        return new QuestActionDTO(getType(), getName(), Map.of("command", commandTemplate), null);
     }
 
     @Override

@@ -59,6 +59,10 @@ public class QuestProgressService {
         var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
         dispatcher.dispatch(progressedEvent);
 
+        objective.getQuest().getQuestGroup().getObjectiveProgressActions().stream()
+                .filter(a -> profile == null || a.testConditions(profile))
+                .forEach(a -> a.execute(objective));
+
         if (objective.isCompleted()) {
             return questLifecycleService.completeObjective(objective, profile);
         }

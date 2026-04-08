@@ -119,7 +119,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
         config.put("style", style.name());
         config.put("show_progress", showProgress);
         config.put("duration", duration);
-        return new QuestActionDTO(getType(), getName(), config);
+        return new QuestActionDTO(getType(), getName(), config, null);
     }
 
     @Override

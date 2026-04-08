@@ -44,7 +44,7 @@ public class GiveItemAction extends BukkitQuestAction {
 
     @Override
     public QuestActionDTO toDTO() {
-        return new QuestActionDTO(getType(), getName(), Map.of("material", item.name(), "amount", amount));
+        return new QuestActionDTO(getType(), getName(), Map.of("material", item.name(), "amount", amount), null);
     }
 
     @Override
