@@ -16,6 +16,7 @@ public enum QuestStartResult implements Translatable {
     ALREADY_COMPLETED,
     MAX_ACTIVE_REACHED,
     PERIOD_LIMIT_REACHED,
+    CONDITIONS_NOT_MET,
     CANCELLED_BY_EVENT;
 
     @Override

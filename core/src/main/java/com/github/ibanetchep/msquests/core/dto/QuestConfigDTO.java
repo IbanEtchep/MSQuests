@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.dto;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -8,8 +10,10 @@ public record QuestConfigDTO(
         String name,
         String description,
         Long duration,
+        String tier,
         List<QuestActionDTO> rewards,
-        List<QuestStageConfigDTO> stages
+        List<QuestStageConfigDTO> stages,
+        @Nullable List<ConditionConfigDTO> conditions
 ) {
     /**
      * Compact constructor avec validation
