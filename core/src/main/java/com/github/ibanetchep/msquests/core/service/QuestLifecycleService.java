@@ -8,21 +8,31 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.group.DistributionConfig;
+import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigger;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import com.github.ibanetchep.msquests.core.quest.result.QuestRotateResult;
 import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
+import com.github.ibanetchep.msquests.core.repository.RotationRepository;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class QuestLifecycleService {
+
+    private static final Logger logger = Logger.getLogger(QuestLifecycleService.class.getName());
 
     private final EventDispatcher dispatcher;
     private final AtomicQuestExecutor executor;
@@ -31,6 +41,7 @@ public class QuestLifecycleService {
     private final QuestRegistry questRegistry;
     private final QuestConfigRegistry questConfigRegistry;
     private final QuestDistributionService distributionManager;
+    private final RotationRepository rotationRepository;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
@@ -39,7 +50,8 @@ public class QuestLifecycleService {
             QuestRegistry questRegistry,
             QuestConfigRegistry questConfigRegistry,
             AtomicQuestExecutor executor,
-            QuestDistributionService distributionManager
+            QuestDistributionService distributionManager,
+            RotationRepository rotationRepository
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
@@ -48,6 +60,7 @@ public class QuestLifecycleService {
         this.questConfigRegistry = questConfigRegistry;
         this.executor = executor;
         this.distributionManager = distributionManager;
+        this.rotationRepository = rotationRepository;
     }
 
     /**
@@ -75,8 +88,10 @@ public class QuestLifecycleService {
         CoreQuestStartedEvent startedEvent = new CoreQuestStartedEvent(quest);
         dispatcher.dispatch(startedEvent);
 
+        quest.getQuestGroup().getQuestStartActions().forEach(a -> a.execute(quest));
+
         questRegistry.add(quest);
-        persistenceService.saveQuest(quest).join();
+        persistenceService.saveQuest(quest);
 
         return QuestStartResult.SUCCESS;
     }
@@ -89,10 +104,21 @@ public class QuestLifecycleService {
             var objectiveCompletedEvent = new CoreQuestObjectiveCompletedEvent(objective, profile);
             dispatcher.dispatch(objectiveCompletedEvent);
 
+            QuestGroupConfig groupConfig = quest.getQuestGroup();
+            groupConfig.getObjectiveCompleteActions().stream()
+                    .filter(a -> profile == null || a.testConditions(profile))
+                    .forEach(a -> a.execute(objective));
+
             if (quest.shouldComplete()) {
                 var questCompleteEvent = new CoreQuestCompletedEvent(quest);
                 dispatcher.dispatch(questCompleteEvent);
                 quest.setStatus(QuestStatus.COMPLETED);
+
+                groupConfig.getQuestCompleteActions().forEach(a -> a.execute(quest));
+
+                if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
+                    triggerDistribution(quest.getActor(), groupConfig);
+                }
             }
 
             persistenceService.saveQuest(objective.getQuest()).join();
@@ -110,31 +136,119 @@ public class QuestLifecycleService {
                 questAction.execute(updatedQuest);
             }
 
+            QuestGroupConfig groupConfig = updatedQuest.getQuestGroup();
+            if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
+                triggerDistribution(updatedQuest.getActor(), groupConfig);
+            }
+
             persistenceService.saveQuest(updatedQuest).join();
         });
     }
 
     /**
      * Expires all quests that should expire for the given actor.
+     * Sets status synchronously in memory, persists asynchronously.
      * @param actor the actor to expire quests for
+     * @return true if any quests were expired
      */
-    public void expireQuests(QuestActor actor) {
-        actor.getQuests().values().stream()
+    public boolean expireQuests(QuestActor actor) {
+        List<Quest> toExpire = actor.getQuests().values().stream()
                 .filter(Quest::shouldExpire)
-                .forEach(this::expireQuestIfNeeded);
+                .toList();
+
+        toExpire.forEach(quest -> {
+            quest.setStatus(QuestStatus.EXPIRED);
+            persistenceService.saveQuest(quest);
+        });
+
+        return !toExpire.isEmpty();
     }
 
     /**
-     * Expires the given quest.
-     * @param quest the quest to expire
+     * Rotates a quest for the given actor, replacing it with a random alternative from the same group.
+     * The old quest is deleted and a new one is started.
+     * @param actor the actor to rotate the quest for
+     * @param quest the quest to rotate
+     * @return the result of the rotation attempt
      */
-    public void expireQuestIfNeeded(Quest quest) {
-        executor.execute(quest.getId(), updatedQuest -> {
-            if (updatedQuest.shouldExpire()) {
-                updatedQuest.setStatus(QuestStatus.EXPIRED);
-                persistenceService.saveQuest(updatedQuest);
+    public QuestRotateResult rotateQuest(QuestActor actor, Quest quest) {
+        QuestGroupConfig groupConfig = quest.getQuestGroup();
+
+        if (!groupConfig.isRotatable()) {
+            return QuestRotateResult.NOT_ROTATABLE;
+        }
+
+        if (!quest.isActive()) {
+            return QuestRotateResult.QUEST_NOT_ACTIVE;
+        }
+
+        ActorQuestGroup actorGroup = actor.getActorQuestGroup(groupConfig);
+        if (actorGroup == null) {
+            return QuestRotateResult.GROUP_NOT_FOUND;
+        }
+
+        if (!actorGroup.canRotate()) {
+            return QuestRotateResult.MAX_ROTATIONS_REACHED;
+        }
+
+        String oldQuestKey = quest.getQuestConfig().getKey();
+
+        List<QuestConfig> candidates = new ArrayList<>(actorGroup.getNotInProgress());
+        candidates.removeIf(qc -> qc.getKey().equals(oldQuestKey));
+        Collections.shuffle(candidates);
+
+        if (candidates.isEmpty()) {
+            return QuestRotateResult.NO_ALTERNATIVE_AVAILABLE;
+        }
+
+        // Delete old quest
+        actorGroup.removeQuest(quest);
+        actor.removeQuest(quest);
+        questRegistry.remove(quest);
+        persistenceService.deleteQuest(quest).join();
+
+        // Start new quest
+        for (QuestConfig candidate : candidates) {
+            QuestStartResult startResult = startQuest(actor, candidate, QuestDistributionStrategy.RANDOM);
+            if (startResult.isSuccess()) {
+                actorGroup.incrementRotations();
+                rotationRepository.save(actor.getId(), groupConfig.getKey()).exceptionally(e -> {
+                    logger.log(Level.WARNING, "Failed to save rotation count", e);
+                    return null;
+                });
+                return QuestRotateResult.SUCCESS;
             }
-        });
+        }
+
+        return QuestRotateResult.NO_ALTERNATIVE_AVAILABLE;
+    }
+
+    /**
+     * Expires outdated quests and fires actor_load actions for all matching groups.
+     * @param actor the actor to refresh
+     */
+    public void refreshActor(QuestActor actor) {
+        boolean expired = expireQuests(actor);
+        if (expired) {
+            fireActorLoadActions(actor);
+        }
+    }
+
+    /**
+     * Fires actor_load actions for all matching groups.
+     * @param actor the actor to fire actions for
+     */
+    public void fireActorLoadActions(QuestActor actor) {
+        for (QuestGroupConfig groupConfig : questConfigRegistry.getQuestGroupConfigs().values()) {
+            if (!groupConfig.getActorType().equalsIgnoreCase(actor.getActorType())) continue;
+            if (!groupConfig.isActive()) continue;
+
+            groupConfig.getActorLoadActions().forEach(action -> action.execute(actor, groupConfig));
+
+            if (groupConfig.hasDistributionTrigger(DistributionTrigger.ACTOR_LOAD)) {
+                triggerDistribution(actor, groupConfig);
+            }
+        }
     }
 
     /**
@@ -149,6 +263,7 @@ public class QuestLifecycleService {
         ActorQuestGroup actorQuestGroup = actor.getActorQuestGroup(groupConfig);
 
         if(actorQuestGroup == null) {
+            logger.warning("distributeQuests: actorQuestGroup is null for actor " + actor.getName() + " (type=" + actor.getActorType() + ") group " + groupConfig.getKey() + " (type=" + groupConfig.getActorType() + ")");
             return 0;
         }
 
@@ -170,5 +285,21 @@ public class QuestLifecycleService {
         }
 
         return startedCount;
+    }
+
+    /**
+     * Triggers distribution for an actor based on the group's distribution config.
+     * Also fires quest_distribution actions if any quests were distributed.
+     * @param actor the actor to distribute quests to
+     * @param groupConfig the group configuration with distribution settings
+     */
+    public void triggerDistribution(QuestActor actor, QuestGroupConfig groupConfig) {
+        DistributionConfig dc = groupConfig.getDistributionConfig();
+        if (dc == null) return;
+
+        int distributed = distributeQuests(actor, groupConfig, dc.getStrategy(), dc.getAmount());
+        if (distributed > 0) {
+            groupConfig.getQuestDistributionActions().forEach(a -> a.execute(actor, groupConfig));
+        }
     }
 }

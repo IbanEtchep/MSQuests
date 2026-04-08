@@ -137,11 +137,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questConfigRegistry = new QuestConfigRegistry();
         questRegistry = new QuestRegistry();
         actorTypeRegistry = new ActorTypeRegistry();
-        questActionFactory = new QuestActionFactory();
         playerProfileRegistry = new PlayerProfileRegistry();
         questActorRegistry = new QuestActorRegistry();
 
-        questObjectiveFactory = new QuestObjectiveFactory(buildConditionFactory());
+        ConditionFactory conditionFactory = buildConditionFactory();
+        questActionFactory = new QuestActionFactory(conditionFactory);
+        questObjectiveFactory = new QuestObjectiveFactory(conditionFactory);
 
         registerObjectiveTypes();
         registerActionTypes();
