@@ -34,12 +34,25 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.fishing.FishingObje
 import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.placeholder.PlaceholderObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.breedanimal.BreedAnimalObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.breedanimal.BreedAnimalObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.breedanimal.BreedAnimalObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.craftitem.CraftItemObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.craftitem.CraftItemObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.craftitem.CraftItemObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.harvestcrop.HarvestCropObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.harvestcrop.HarvestCropObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.harvestcrop.HarvestCropObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjective;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveConfig;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.killentity.KillEntityObjectiveHandler;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.travel.TravelObjective;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.travel.TravelObjectiveConfig;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.travel.TravelObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
+import com.github.ibanetchep.msquests.core.service.CronDistributionService;
 import com.github.ibanetchep.msquests.core.service.QuestDistributionService;
 import com.github.ibanetchep.msquests.core.service.QuestProgressService;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
@@ -67,6 +80,7 @@ import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.PlayerProfileSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
+import com.github.ibanetchep.msquests.database.repository.RotationSqlRepository;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
 import org.bukkit.Bukkit;
@@ -80,6 +94,7 @@ import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
@@ -104,6 +119,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
     private QuestProgressService questProgressService;
     private QuestPlayerService questPlayerService;
     private QuestDistributionService questDistributionService;
+    private CronDistributionService cronDistributionService;
 
     private GlobalConfig globalConfig;
 
@@ -141,6 +157,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger());
         ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
         QuestSqlRepository questRepository = new QuestSqlRepository(dbAccess);
+        RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory);
@@ -148,12 +165,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
         AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor(questRegistry);
 
-        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, questFactory, questRegistry, questMapper);
-        questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService);
+        questService = new QuestService(getLogger(), questConfigRegistry, questRepository, rotationRepository, questFactory, questRegistry, questMapper);
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
         questDistributionService = new QuestDistributionService();
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository);
+        questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService, questLifecycleService, this);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
         questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher);
 
@@ -161,17 +178,31 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         registerCommands();
         registerExpansions();
 
+        cronDistributionService = new CronDistributionService(questConfigRegistry, questActorRegistry, questLifecycleService);
+
         getScheduler().runTimer(questProgressService::flushPendingProgress, 1, 1, TimeUnit.SECONDS);
+        getScheduler().runTimer(this::refreshActors, 1, 1, TimeUnit.MINUTES);
+        getScheduler().runTimer(task -> cronDistributionService.tick(), 30, 30, TimeUnit.SECONDS);
 
         UUID globalActorUUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
         BukkitQuestGlobalActor actor = new BukkitQuestGlobalActor(globalActorUUID, "default");
         questActorService.loadActor(actor);
     }
 
+    private void refreshActors(Object task) {
+        for (QuestActor actor : questActorRegistry.getActors().values()) {
+            questLifecycleService.refreshActor(actor);
+        }
+    }
+
     @Override
     public void onDisable() {
-        dbAccess.closePool();
-        questProgressService.flushPendingProgress().join();
+        if (questProgressService != null) {
+            questProgressService.flushPendingProgress().join();
+        }
+        if (dbAccess != null) {
+            dbAccess.closePool();
+        }
     }
 
     public void loadConfig() {
@@ -239,7 +270,6 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
-        pluginManager.registerEvents(new QuestListeners(this), this);
     }
 
     private QuestObjectiveConditionFactory buildConditionFactory() {
@@ -251,11 +281,15 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private void registerObjectiveTypes() {
         questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class, new BlockBreakObjectiveHandler(this));
+        questObjectiveFactory.register(BreedAnimalObjectiveConfig.class, BreedAnimalObjective.class, new BreedAnimalObjectiveHandler(this));
+        questObjectiveFactory.register(CraftItemObjectiveConfig.class, CraftItemObjective.class, new CraftItemObjectiveHandler(this));
+        questObjectiveFactory.register(HarvestCropObjectiveConfig.class, HarvestCropObjective.class, new HarvestCropObjectiveHandler(this));
         questObjectiveFactory.register(DeliverItemObjectiveConfig.class, DeliverItemObjective.class, new DeliverItemObjectiveHandler(this));
         questObjectiveFactory.register(KillEntityObjectiveConfig.class, KillEntityObjective.class, new KillEntityObjectiveHandler(this));
         questObjectiveFactory.register(ExecuteCommandObjectiveConfig.class, ExecuteCommandObjective.class, new ExecuteCommandObjectiveHandler(this));
         questObjectiveFactory.register(FishingObjectiveConfig.class, FishingObjective.class, new FishingObjectiveHandler(this));
         questObjectiveFactory.register(PlaceholderObjectiveConfig.class, PlaceholderObjective.class, new PlaceholderObjectiveHandler(this));
+        questObjectiveFactory.register(TravelObjectiveConfig.class, TravelObjective.class, new TravelObjectiveHandler(this));
     }
 
     public void registerActionTypes() {
@@ -275,7 +309,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public void registerExpansions() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new QuestsPlaceholderExpansion(playerProfileRegistry).register();
+            new QuestsPlaceholderExpansion(playerProfileRegistry, questConfigRegistry).register();
         }
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();
@@ -350,6 +384,11 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public PlatformScheduler getScheduler() {
         return foliaLib.getScheduler();
+    }
+
+    @Override
+    public void runSync(Runnable task) {
+        getScheduler().runNextTick(t -> task.run());
     }
 
     public QuestProgressService getQuestProgressService() {

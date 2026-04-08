@@ -4,15 +4,21 @@ import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
+import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,12 +26,16 @@ import java.util.regex.Pattern;
 public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
 
     private static final Pattern OBJECTIVE_PATTERN = Pattern.compile("tracked_quest_objective_(\\d+)");
+    private static final Pattern GROUP_PATTERN = Pattern.compile("group_(.+)_(period_end|countdown)");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault());
     private static final int MAX_OBJECTIVES = 9;
 
     private final PlayerProfileRegistry playerProfileRegistry;
+    private final QuestConfigRegistry questConfigRegistry;
 
-    public QuestsPlaceholderExpansion(PlayerProfileRegistry playerProfileRegistry) {
+    public QuestsPlaceholderExpansion(PlayerProfileRegistry playerProfileRegistry, QuestConfigRegistry questConfigRegistry) {
         this.playerProfileRegistry = playerProfileRegistry;
+        this.questConfigRegistry = questConfigRegistry;
     }
 
     @NotNull
@@ -88,6 +98,24 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
             if (objectiveIndex >= 1 && objectiveIndex <= MAX_OBJECTIVES) {
                 return getObjectivePlaceholder(quest, objectiveIndex);
             }
+        }
+
+        Matcher groupMatcher = GROUP_PATTERN.matcher(params.toLowerCase());
+        if (groupMatcher.matches()) {
+            String groupKey = groupMatcher.group(1);
+            String type = groupMatcher.group(2);
+            QuestGroupConfig group = questConfigRegistry.getQuestGroupConfigs().get(groupKey);
+            if (group == null) return "";
+
+            Instant nextReset = group.getNextReset();
+            Instant periodEnd = nextReset != null ? nextReset : group.getPeriodEnd();
+            if (periodEnd == null) return "";
+
+            return switch (type) {
+                case "period_end" -> formatTime(periodEnd);
+                case "countdown" -> formatCountdown(periodEnd);
+                default -> "";
+            };
         }
 
         return "";
@@ -191,5 +219,22 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     private QuestObjective getFirstActiveObjective(@Nullable Quest quest) {
         QuestStage stage = getCurrentStage(quest);
         return stage != null ? stage.getFirstActiveObjective() : null;
+    }
+
+    private String formatTime(Instant instant) {
+        return TIME_FORMATTER.format(instant);
+    }
+
+    private String formatCountdown(Instant periodEnd) {
+        Duration remaining = Duration.between(Instant.now(), periodEnd);
+        if (remaining.isNegative() || remaining.isZero()) return "0s";
+
+        long hours = remaining.toHours();
+        long minutes = remaining.toMinutesPart();
+        long seconds = remaining.toSecondsPart();
+
+        if (hours > 0) return hours + "h " + minutes + "m " + seconds + "s";
+        if (minutes > 0) return minutes + "m " + seconds + "s";
+        return seconds + "s";
     }
 }
