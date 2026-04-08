@@ -1,9 +1,9 @@
 package com.github.ibanetchep.msquests.core.factory;
 
-import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConditionConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.ConditionConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
-import com.github.ibanetchep.msquests.core.quest.condition.QuestObjectiveCondition;
+import com.github.ibanetchep.msquests.core.quest.condition.Condition;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -45,9 +45,9 @@ public class QuestObjectiveFactory {
     }
 
     private final Map<String, Type<?, ?>> types = new HashMap<>();
-    private final QuestObjectiveConditionFactory conditionFactory;
+    private final ConditionFactory conditionFactory;
 
-    public QuestObjectiveFactory(QuestObjectiveConditionFactory conditionFactory) {
+    public QuestObjectiveFactory(ConditionFactory conditionFactory) {
         this.conditionFactory = conditionFactory;
     }
 
@@ -90,14 +90,14 @@ public class QuestObjectiveFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private List<QuestObjectiveCondition> resolveConditions(Map<String, Object> params) {
+    private List<Condition> resolveConditions(Map<String, Object> params) {
         Object raw = params.get("conditions");
         if (!(raw instanceof List<?> list)) return List.of();
         return list.stream()
                 .filter(item -> item instanceof Map)
                 .map(item -> {
                     Map<String, Object> map = (Map<String, Object>) item;
-                    return conditionFactory.build(new QuestObjectiveConditionConfigDTO((String) map.get("type"), map));
+                    return conditionFactory.build(new ConditionConfigDTO((String) map.get("type"), map));
                 })
                 .filter(Objects::nonNull)
                 .toList();
