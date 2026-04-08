@@ -3,7 +3,7 @@ package com.github.ibanetchep.msquests.core.quest.config;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import com.github.ibanetchep.msquests.core.quest.condition.QuestObjectiveCondition;
+import com.github.ibanetchep.msquests.core.quest.condition.Condition;
 
 import java.util.List;
 
@@ -14,18 +14,18 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
 
     protected final String key;
     protected final String type;
-    private List<QuestObjectiveCondition> conditions = List.of();
+    private List<Condition> conditions = List.of();
 
     protected QuestObjectiveConfig(QuestObjectiveConfigDTO dto) {
         this.key = dto.key();
         this.type = dto.type();
     }
 
-    public void setConditions(List<QuestObjectiveCondition> conditions) {
+    public void setConditions(List<Condition> conditions) {
         this.conditions = conditions;
     }
 
-    public List<QuestObjectiveCondition> getConditions() {
+    public List<Condition> getConditions() {
         return conditions;
     }
 

@@ -17,6 +17,7 @@ public abstract class BukkitQuestObjectiveHandler<T extends QuestObjective> exte
     }
 
     public List<T> getEligibleObjectives(PlayerProfile profile) {
+        if (profile == null) return List.of();
         return getQuestObjectives(profile).stream()
                 .filter(obj -> !obj.isCompleted())
                 .filter(obj -> obj.getObjectiveConfig().getConditions().stream().allMatch(c -> c.test(profile)))

@@ -14,9 +14,9 @@ import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.zmenu.ZMenuIntegration;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
-import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.BiomeCondition;
-import com.github.ibanetchep.msquests.bukkit.quest.condition.impl.WorldCondition;
-import com.github.ibanetchep.msquests.core.factory.QuestObjectiveConditionFactory;
+import com.github.ibanetchep.msquests.bukkit.quest.condition.PlaceholderCondition;
+import com.github.ibanetchep.msquests.bukkit.quest.condition.PermissionCondition;
+import com.github.ibanetchep.msquests.core.factory.ConditionFactory;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
@@ -272,10 +272,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
     }
 
-    private QuestObjectiveConditionFactory buildConditionFactory() {
-        QuestObjectiveConditionFactory factory = new QuestObjectiveConditionFactory();
-        factory.register("world", WorldCondition::new);
-        factory.register("biome", BiomeCondition::new);
+    private ConditionFactory buildConditionFactory() {
+        ConditionFactory factory = new ConditionFactory();
+        factory.register("placeholder", PlaceholderCondition::new);
+        factory.register("permission", PermissionCondition::new);
         return factory;
     }
 
