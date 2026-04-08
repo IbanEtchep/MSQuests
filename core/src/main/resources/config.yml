@@ -49,3 +49,11 @@ actor_type:
       - type: title
         title_key: global_quest.complete.title.title
         subtitle_key: global_quest.complete.title.subtitle
+
+tracking:
+  bossbar:
+    enabled: false
+    message: '%objective_name% - %objective_progress%'
+    color: WHITE
+    style: PROGRESS
+    show_progress: true

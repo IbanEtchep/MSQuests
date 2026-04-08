@@ -52,6 +52,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.travel.TravelObject
 import com.github.ibanetchep.msquests.bukkit.repository.QuestConfigYamlRepository;
 import com.github.ibanetchep.msquests.bukkit.service.GlobalConfigLoaderService;
 import com.github.ibanetchep.msquests.bukkit.service.QuestPlayerService;
+import com.github.ibanetchep.msquests.bukkit.service.TrackingBossBarService;
 import com.github.ibanetchep.msquests.core.service.CronDistributionService;
 import com.github.ibanetchep.msquests.core.service.QuestDistributionService;
 import com.github.ibanetchep.msquests.core.service.QuestProgressService;
@@ -120,6 +121,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
     private QuestPlayerService questPlayerService;
     private QuestDistributionService questDistributionService;
     private CronDistributionService cronDistributionService;
+    private TrackingBossBarService trackingBossBarService;
 
     private GlobalConfig globalConfig;
 
@@ -174,6 +176,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService, questLifecycleService, this);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
         questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher);
+        trackingBossBarService = new TrackingBossBarService(globalConfig.trackingBossBar(), playerProfileRegistry);
 
         registerListeners();
         registerCommands();
@@ -271,6 +274,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         PluginManager pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
+        pluginManager.registerEvents(new QuestTrackingListener(trackingBossBarService), this);
     }
 
     private ConditionFactory buildConditionFactory() {
@@ -398,6 +402,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public QuestDistributionService getQuestDistributionService() {
         return questDistributionService;
+    }
+
+    public TrackingBossBarService getTrackingBossBarService() {
+        return trackingBossBarService;
     }
 
 }
