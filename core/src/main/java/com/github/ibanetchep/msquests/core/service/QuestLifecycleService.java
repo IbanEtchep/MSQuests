@@ -126,7 +126,7 @@ public class QuestLifecycleService {
                 }
 
                 // Check if all quests in the group are completed
-                checkAllQuestsComplete(quest.getActor(), groupConfig);
+                checkAllPeriodQuestsComplete(quest.getActor(), groupConfig);
             }
 
             persistenceService.saveQuest(objective.getQuest()).join();
@@ -295,8 +295,8 @@ public class QuestLifecycleService {
         return startedCount;
     }
 
-    private void checkAllQuestsComplete(QuestActor actor, QuestGroupConfig groupConfig) {
-        List<QuestAction> actions = groupConfig.getAllQuestsCompleteActions();
+    private void checkAllPeriodQuestsComplete(QuestActor actor, QuestGroupConfig groupConfig) {
+        List<QuestAction> actions = groupConfig.getAllPeriodQuestsCompleteActions();
         if (actions.isEmpty()) {
             return;
         }

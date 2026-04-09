@@ -1,7 +1,7 @@
 # Daily Quest Code Features — Design Spec
 
 **Date:** 2026-04-09
-**Scope:** Anti-place-break PDC, harvest_crop objective, all_quests_complete hook
+**Scope:** Anti-place-break PDC, harvest_crop objective, all_period_quests_complete hook
 **Depends on:** Nothing (prerequisite for daily quest rebalancing spec)
 
 ---
@@ -12,7 +12,7 @@ Daily quests need rebalancing: harder difficulties, better XP ratios vs passive 
 
 1. Anti-place-break protection to prevent players gaming block_break objectives
 2. A new `harvest_crop` objective type for farming quests
-3. An `all_quests_complete` group hook for bonus rewards
+3. An `all_period_quests_complete` group hook for bonus rewards
 
 ## A. Anti-Place-Break (PDC Tag)
 
@@ -73,7 +73,7 @@ No objective type exists for farming. `block_break` doesn't verify crop maturity
 4. Add `HARVEST_CROP` constant to `ObjectiveTypes.java`
 5. Register in `BukkitQuestsPlugin.registerObjectiveTypes()`
 
-## C. Hook: `all_quests_complete`
+## C. Hook: `all_period_quests_complete`
 
 ### Problem
 
@@ -84,7 +84,7 @@ No way to reward players for completing all their daily quests. The group action
 **YAML config:**
 ```yaml
 actions:
-  all_quests_complete:
+  all_period_quests_complete:
     - type: message
       message: "<#FFD166>★ <white>Tu as complété toutes tes quêtes du jour ! Bravo !"
     - type: command
@@ -94,18 +94,18 @@ actions:
 **Detection logic (in `QuestLifecycleService`):**
 - After a quest is marked as completed, check: are all quests distributed to this actor in this group now completed?
 - Query: get all quests for the actor in the group, check if all have status `COMPLETED`
-- If yes, execute the `all_quests_complete` actions
+- If yes, execute the `all_period_quests_complete` actions
 
 **Code changes:**
-1. `QuestGroupConfigActionsDTO` — add `allQuestsComplete` field
-2. `QuestGroupConfigYamlRepository` (or mapper) — deserialize `all_quests_complete` from YAML
+1. `QuestGroupConfigActionsDTO` — add `allPeriodQuestsComplete` field
+2. `QuestGroupConfigYamlRepository` (or mapper) — deserialize `all_period_quests_complete` from YAML
 3. `QuestLifecycleService.completeQuest()` — after completing, check if all group quests are done, if so dispatch actions
 4. `QuestGroupMapper` — map the new field
 
 ### Edge Cases
 
 - Player completes last quest after reconnecting: the check happens at completion time, so this works normally
-- Group with no `all_quests_complete` actions configured: the field is an empty list, nothing happens (consistent with other optional hooks)
+- Group with no `all_period_quests_complete` actions configured: the field is an empty list, nothing happens (consistent with other optional hooks)
 
 ## XP Balance Reference
 

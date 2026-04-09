@@ -58,7 +58,7 @@ actions:
   objective_complete:
     - type: boss_bar
       message: '<green>%objective_name% - %objective_progress%</green>'
-  all_quests_complete:
+  all_period_quests_complete:
     - type: message
       message: "<#FFD166>★ <white>Bravo ! Tu as complété toutes tes <#FFD166>quêtes du jour<white> ! Voici ton bonus !"
     - type: title

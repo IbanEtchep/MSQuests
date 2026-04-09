@@ -39,7 +39,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
     private final List<QuestAction> objectiveCompleteActions;
     private final List<QuestAction> questDistributionActions;
     private final List<QuestAction> actorLoadActions;
-    private final List<QuestAction> allQuestsCompleteActions;
+    private final List<QuestAction> allPeriodQuestsCompleteActions;
 
     private final Map<String, QuestTierConfig> tiers;
     private final @Nullable Map<String, Integer> tierDistribution;
@@ -67,7 +67,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
         this.objectiveCompleteActions = builder.objectiveCompleteActions;
         this.questDistributionActions = builder.questDistributionActions;
         this.actorLoadActions = builder.actorLoadActions;
-        this.allQuestsCompleteActions = builder.allQuestsCompleteActions;
+        this.allPeriodQuestsCompleteActions = builder.allPeriodQuestsCompleteActions;
         this.tiers = builder.tiers != null ? builder.tiers : Map.of();
         this.tierDistribution = builder.tierDistribution;
         this.rotatable = builder.rotatable;
@@ -159,8 +159,8 @@ public class QuestGroupConfig implements PlaceholderProvider {
         return Collections.unmodifiableList(actorLoadActions);
     }
 
-    public List<QuestAction> getAllQuestsCompleteActions() {
-        return Collections.unmodifiableList(allQuestsCompleteActions);
+    public List<QuestAction> getAllPeriodQuestsCompleteActions() {
+        return Collections.unmodifiableList(allPeriodQuestsCompleteActions);
     }
 
     public Map<String, QuestTierConfig> getTiers() {
@@ -258,7 +258,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
         private List<QuestAction> objectiveCompleteActions;
         private List<QuestAction> questDistributionActions;
         private List<QuestAction> actorLoadActions;
-        private List<QuestAction> allQuestsCompleteActions;
+        private List<QuestAction> allPeriodQuestsCompleteActions;
 
         private @Nullable Map<String, QuestTierConfig> tiers;
         private @Nullable Map<String, Integer> tierDistribution;
@@ -279,7 +279,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
             this.objectiveCompleteActions = new ArrayList<>();
             this.questDistributionActions = new ArrayList<>();
             this.actorLoadActions = new ArrayList<>();
-            this.allQuestsCompleteActions = new ArrayList<>();
+            this.allPeriodQuestsCompleteActions = new ArrayList<>();
         }
 
         public Builder startAt(Instant startAt) {
@@ -337,8 +337,8 @@ public class QuestGroupConfig implements PlaceholderProvider {
             return this;
         }
 
-        public Builder allQuestsCompleteActions(List<QuestAction> allQuestsCompleteActions) {
-            this.allQuestsCompleteActions = allQuestsCompleteActions;
+        public Builder allPeriodQuestsCompleteActions(List<QuestAction> allPeriodQuestsCompleteActions) {
+            this.allPeriodQuestsCompleteActions = allPeriodQuestsCompleteActions;
             return this;
         }
 

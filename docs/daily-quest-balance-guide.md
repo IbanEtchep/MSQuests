@@ -123,5 +123,5 @@ Oak, birch, spruce, dark oak, jungle, acacia, mangrove, cherry, crimson/warped s
 
 ## Bonus toutes quetes completees
 
-Configure via le hook `all_quests_complete` dans les actions du groupe.
+Configure via le hook `all_period_quests_complete` dans les actions du groupe.
 Valeur recommandee : 1000 XP (soit ~34% de bonus par rapport aux quetes seules).
