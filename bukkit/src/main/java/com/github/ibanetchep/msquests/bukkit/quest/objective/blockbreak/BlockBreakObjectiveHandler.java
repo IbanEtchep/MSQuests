@@ -31,6 +31,10 @@ public class BlockBreakObjectiveHandler extends BukkitQuestObjectiveHandler<Bloc
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        if (plugin.getBlockPlaceTagListener().isPlaced(event.getBlock())) {
+            return;
+        }
+
         Player player = event.getPlayer();
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
 
