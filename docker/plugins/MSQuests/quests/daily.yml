@@ -1,0 +1,1846 @@
+key: daily
+name: "Quêtes journalières"
+description: "Complète des quêtes quotidiennes pour gagner de l'XP !"
+max_active: 6
+max_per_period: 6
+reset_cron: "0 0 * * *"
+start_at: "2024-01-01T00:00:00Z"
+end_at: "2099-12-31T23:59:59Z"
+actor_type: "PLAYER"
+rotatable: true
+
+distribution:
+  strategy: RANDOM
+  amount: 6
+  triggers:
+    - actor_load
+    - period_reset
+
+tiers:
+  easy:
+    name: "<green>Facile"
+  medium:
+    name: "<yellow>Moyen"
+  hard:
+    name: "<red>Difficile"
+
+tier_distribution:
+  easy: 3
+  medium: 2
+  hard: 1
+
+actions:
+  actor_load: []
+  quest_distribution:
+    - type: message
+      message: "<#FFD166>✦ <white>Tes <#FFD166>6 quêtes journalières <white>ont été distribuées ! Utilise <#FFD166>/daily <white>pour les consulter."
+    - type: title
+      title: "<#FFD166>Quêtes journalières"
+      subtitle: "<white>Tes quêtes du jour sont disponibles !"
+  quest_start: []
+  quest_complete:
+    - type: message
+      message: |-
+        <#2ecc71>Tu as complété la quête %quest_name% !
+        Objectifs : %objectives%
+      objective_template: <newline>   - %objective_name%
+    - type: title
+      title: <#2ecc71>Quête complétée !
+      subtitle: '%quest_name%'
+  objective_progress:
+    - type: boss_bar
+      conditions:
+        - type: placeholder
+          placeholder: "%msquests_tracked_name%"
+          action: DIFFERENT_STRING
+          value: "%quest_name%"
+      message: '%objective_name% - %objective_progress%'
+  objective_complete:
+    - type: boss_bar
+      message: '<green>%objective_name% - %objective_progress%</green>'
+  all_quests_complete:
+    - type: message
+      message: "<#FFD166>★ <white>Bravo ! Tu as complété toutes tes <#FFD166>quêtes du jour<white> ! Voici ton bonus !"
+    - type: title
+      title: "<#FFD166>★ Toutes les quêtes complétées !"
+      subtitle: "<white>+1000 XP bonus"
+    - type: command
+      command: "levels addxp %actor_name% 1000"
+
+quests:
+
+  # ========================================
+  # MINAGE - BLOCS COMMUNS
+  # ========================================
+
+  # --- Stone ---
+  - key: mine_stone_64
+    tier: easy
+    name: "Apprenti carrier"
+    description: "Mine 64 blocs de pierre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "STONE"
+            amount: 64
+
+  - key: mine_stone_128
+    tier: easy
+    name: "Carrier de pierre"
+    description: "Mine 128 blocs de pierre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "STONE"
+            amount: 128
+
+  - key: mine_stone_256
+    tier: medium
+    name: "Maître carrier"
+    description: "Mine 256 blocs de pierre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "STONE"
+            amount: 256
+
+  - key: mine_stone_512
+    tier: medium
+    name: "Titan de la roche"
+    description: "Mine 512 blocs de pierre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "STONE"
+            amount: 512
+
+  # --- Cobblestone ---
+  - key: mine_cobblestone_128
+    tier: easy
+    name: "Ramasseur de pavés"
+    description: "Mine 128 blocs de cobblestone"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COBBLESTONE"
+            amount: 128
+
+  - key: mine_cobblestone_512
+    tier: medium
+    name: "Montagne de pavés"
+    description: "Mine 512 blocs de cobblestone"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COBBLESTONE"
+            amount: 512
+
+  # --- Deepslate ---
+  - key: mine_deepslate_128
+    tier: easy
+    name: "Ardoise profonde"
+    description: "Mine 128 blocs de deepslate"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DEEPSLATE"
+            amount: 128
+
+  - key: mine_deepslate_384
+    tier: medium
+    name: "Foreur des abysses"
+    description: "Mine 384 blocs de deepslate"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DEEPSLATE"
+            amount: 384
+
+  # --- Sand / Gravel / Dirt ---
+  - key: mine_sand_128
+    tier: easy
+    name: "Châteaux de sable"
+    description: "Mine 128 blocs de sable"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "SAND"
+            amount: 128
+
+  - key: mine_gravel_128
+    tier: easy
+    name: "Pelleteuse de gravier"
+    description: "Mine 128 blocs de gravier"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "GRAVEL"
+            amount: 128
+
+  - key: mine_dirt_128
+    tier: easy
+    name: "Terrassier"
+    description: "Mine 128 blocs de terre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIRT"
+            amount: 128
+
+  # --- Granite / Diorite / Andesite ---
+  - key: mine_granite_128
+    tier: easy
+    name: "Granit poli"
+    description: "Mine 128 blocs de granite"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "GRANITE"
+            amount: 128
+
+  - key: mine_diorite_128
+    tier: easy
+    name: "Tailleur de diorite"
+    description: "Mine 128 blocs de diorite"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIORITE"
+            amount: 128
+
+  - key: mine_andesite_128
+    tier: easy
+    name: "Sculpteur d'andésite"
+    description: "Mine 128 blocs d'andésite"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "ANDESITE"
+            amount: 128
+
+  - key: mine_clay_64
+    tier: easy
+    name: "Potier"
+    description: "Mine 64 blocs d'argile"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "CLAY"
+            amount: 64
+
+  # --- Netherrack ---
+  - key: mine_netherrack_256
+    tier: medium
+    name: "Profondeurs du Nether"
+    description: "Mine 256 blocs de netherrack"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "NETHERRACK"
+            amount: 256
+
+  # ========================================
+  # MINAGE - MINERAIS COMMUNS
+  # ========================================
+
+  # --- Coal ---
+  - key: mine_coal_16
+    tier: easy
+    name: "Mineur de charbon"
+    description: "Mine 16 minerais de charbon"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COAL_ORE"
+            amount: 16
+
+  - key: mine_coal_32
+    tier: easy
+    name: "Fournisseur de charbon"
+    description: "Mine 32 minerais de charbon"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COAL_ORE"
+            amount: 32
+
+  - key: mine_coal_64
+    tier: medium
+    name: "Baron du charbon"
+    description: "Mine 64 minerais de charbon"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COAL_ORE"
+            amount: 64
+
+  # --- Iron ---
+  - key: mine_iron_16
+    tier: easy
+    name: "Mineur de fer"
+    description: "Mine 16 minerais de fer"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "IRON_ORE"
+            amount: 16
+
+  - key: mine_iron_32
+    tier: medium
+    name: "Forgeron des mines"
+    description: "Mine 32 minerais de fer"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "IRON_ORE"
+            amount: 32
+
+  - key: mine_iron_64
+    tier: hard
+    name: "Seigneur du fer"
+    description: "Mine 64 minerais de fer"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "IRON_ORE"
+            amount: 64
+
+  # --- Copper ---
+  - key: mine_copper_16
+    tier: easy
+    name: "Mineur de cuivre"
+    description: "Mine 16 minerais de cuivre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COPPER_ORE"
+            amount: 16
+
+  - key: mine_copper_48
+    tier: medium
+    name: "Prospecteur de cuivre"
+    description: "Mine 48 minerais de cuivre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "COPPER_ORE"
+            amount: 48
+
+  # --- Redstone ---
+  - key: mine_redstone_16
+    tier: easy
+    name: "Apprenti ingénieur"
+    description: "Mine 16 minerais de redstone"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "REDSTONE_ORE"
+            amount: 16
+
+  - key: mine_redstone_48
+    tier: medium
+    name: "Maître redstone"
+    description: "Mine 48 minerais de redstone"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "REDSTONE_ORE"
+            amount: 48
+
+  - key: mine_redstone_96
+    tier: hard
+    name: "Génie de la redstone"
+    description: "Mine 96 minerais de redstone"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "REDSTONE_ORE"
+            amount: 96
+
+  # --- Lapis ---
+  - key: mine_lapis_16
+    tier: easy
+    name: "Chercheur de lapis"
+    description: "Mine 16 minerais de lapis-lazuli"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "LAPIS_ORE"
+            amount: 16
+
+  - key: mine_lapis_40
+    tier: medium
+    name: "Collectionneur de lapis"
+    description: "Mine 40 minerais de lapis-lazuli"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "LAPIS_ORE"
+            amount: 40
+
+  # --- Nether Quartz ---
+  - key: mine_quartz_24
+    tier: easy
+    name: "Mineur de quartz"
+    description: "Mine 24 minerais de quartz du Nether"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "NETHER_QUARTZ_ORE"
+            amount: 24
+
+  - key: mine_quartz_64
+    tier: medium
+    name: "Baron du quartz"
+    description: "Mine 64 minerais de quartz du Nether"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "NETHER_QUARTZ_ORE"
+            amount: 64
+
+  - key: mine_quartz_128
+    tier: hard
+    name: "Empereur du quartz"
+    description: "Mine 128 minerais de quartz du Nether"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "NETHER_QUARTZ_ORE"
+            amount: 128
+
+  # ========================================
+  # MINAGE - MINERAIS RARES
+  # ========================================
+
+  # --- Gold ---
+  - key: mine_gold_16
+    tier: medium
+    name: "Chercheur d'or"
+    description: "Mine 16 minerais d'or"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "GOLD_ORE"
+            amount: 16
+
+  - key: mine_gold_32
+    tier: hard
+    name: "Roi de l'or"
+    description: "Mine 32 minerais d'or"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "GOLD_ORE"
+            amount: 32
+
+  # --- Diamond ---
+  - key: mine_diamond_4
+    tier: medium
+    name: "Chasseur de diamants"
+    description: "Mine 4 minerais de diamant"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIAMOND_ORE"
+            amount: 4
+
+  - key: mine_diamond_8
+    tier: medium
+    name: "Prospecteur de diamants"
+    description: "Mine 8 minerais de diamant"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIAMOND_ORE"
+            amount: 8
+
+  - key: mine_diamond_16
+    tier: hard
+    name: "Seigneur du diamant"
+    description: "Mine 16 minerais de diamant"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIAMOND_ORE"
+            amount: 16
+
+  - key: mine_diamond_32
+    tier: hard
+    name: "Empereur du diamant"
+    description: "Mine 32 minerais de diamant"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DIAMOND_ORE"
+            amount: 32
+
+  # --- Emerald ---
+  - key: mine_emerald_8
+    tier: hard
+    name: "Chasseur d'émeraudes"
+    description: "Mine 8 minerais d'émeraude"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "EMERALD_ORE"
+            amount: 8
+
+  - key: mine_emerald_16
+    tier: hard
+    name: "Seigneur des émeraudes"
+    description: "Mine 16 minerais d'émeraude"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "EMERALD_ORE"
+            amount: 16
+
+  # --- Ancient Debris ---
+  - key: mine_ancient_debris_4
+    tier: hard
+    name: "Chasseur de netherite"
+    description: "Mine 4 ancient debris"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "ANCIENT_DEBRIS"
+            amount: 4
+
+  - key: mine_ancient_debris_8
+    tier: hard
+    name: "Maître de la netherite"
+    description: "Mine 8 ancient debris"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Minage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "ANCIENT_DEBRIS"
+            amount: 8
+
+  # ========================================
+  # MOBS - COMMUNS
+  # ========================================
+
+  - key: kill_zombie_15
+    tier: easy
+    name: "Chasseur de zombies"
+    description: "Tue 15 zombies"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "ZOMBIE"
+            amount: 15
+
+  - key: kill_zombie_40
+    tier: medium
+    name: "Fléau des morts-vivants"
+    description: "Tue 40 zombies"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "ZOMBIE"
+            amount: 40
+
+  - key: kill_skeleton_15
+    tier: easy
+    name: "Briseur d'os"
+    description: "Tue 15 squelettes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "SKELETON"
+            amount: 15
+
+  - key: kill_skeleton_40
+    tier: medium
+    name: "Exterminateur de squelettes"
+    description: "Tue 40 squelettes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "SKELETON"
+            amount: 40
+
+  - key: kill_spider_10
+    tier: easy
+    name: "Arachnophobe"
+    description: "Tue 10 araignées"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "SPIDER"
+            amount: 10
+
+  - key: kill_creeper_10
+    tier: easy
+    name: "Désamorceur"
+    description: "Tue 10 creepers"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "CREEPER"
+            amount: 10
+
+  - key: kill_creeper_30
+    tier: medium
+    name: "Expert en explosifs"
+    description: "Tue 30 creepers"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "CREEPER"
+            amount: 30
+
+  - key: kill_drowned_15
+    tier: easy
+    name: "Nettoyeur des océans"
+    description: "Tue 15 noyés"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "DROWNED"
+            amount: 15
+
+  # ========================================
+  # MOBS - RARES / DANGEREUX
+  # ========================================
+
+  - key: kill_enderman_10
+    tier: medium
+    name: "Défieur de l'End"
+    description: "Tue 10 endermen"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "ENDERMAN"
+            amount: 10
+
+  - key: kill_enderman_30
+    tier: hard
+    name: "Terreur de l'End"
+    description: "Tue 30 endermen"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "ENDERMAN"
+            amount: 30
+
+  - key: kill_blaze_10
+    tier: medium
+    name: "Chasseur de flammes"
+    description: "Tue 10 blazes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "BLAZE"
+            amount: 10
+
+  - key: kill_blaze_25
+    tier: hard
+    name: "Maître des flammes"
+    description: "Tue 25 blazes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "BLAZE"
+            amount: 25
+
+  - key: kill_wither_skeleton_10
+    tier: medium
+    name: "Chasseur de crânes"
+    description: "Tue 10 wither squelettes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "WITHER_SKELETON"
+            amount: 10
+
+  - key: kill_wither_skeleton_25
+    tier: hard
+    name: "Fléau du Wither"
+    description: "Tue 25 wither squelettes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "WITHER_SKELETON"
+            amount: 25
+
+  - key: kill_guardian_15
+    tier: medium
+    name: "Plongeur intrépide"
+    description: "Tue 15 gardiens"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "GUARDIAN"
+            amount: 15
+
+  - key: kill_guardian_30
+    tier: hard
+    name: "Conquérant des océans"
+    description: "Tue 30 gardiens"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "GUARDIAN"
+            amount: 30
+
+  - key: kill_witch_10
+    tier: medium
+    name: "Chasseur de sorcières"
+    description: "Tue 10 sorcières"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "WITCH"
+            amount: 10
+
+  - key: kill_phantom_20
+    tier: hard
+    name: "Cauchemar des fantômes"
+    description: "Tue 20 phantoms"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Combat"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "kill_entity"
+            entity_type: "PHANTOM"
+            amount: 20
+
+  # ========================================
+  # PECHE
+  # ========================================
+
+  - key: fish_10
+    tier: easy
+    name: "Pêcheur du dimanche"
+    description: "Pêche 10 poissons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Pêche"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "fishing"
+            amount: 10
+
+  - key: fish_16
+    tier: easy
+    name: "Apprenti pêcheur"
+    description: "Pêche 16 poissons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Pêche"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "fishing"
+            amount: 16
+
+  - key: fish_28
+    tier: medium
+    name: "Pêcheur confirmé"
+    description: "Pêche 28 poissons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Pêche"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "fishing"
+            amount: 28
+
+  - key: fish_48
+    tier: hard
+    name: "Maître pêcheur"
+    description: "Pêche 48 poissons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Pêche"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "fishing"
+            amount: 48
+
+  - key: fish_64
+    tier: hard
+    name: "Légende de la pêche"
+    description: "Pêche 64 poissons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Pêche"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "fishing"
+            amount: 64
+
+  # ========================================
+  # ELEVAGE (BREEDING)
+  # ========================================
+
+  - key: breed_cow_5
+    tier: easy
+    name: "Éleveur de vaches"
+    description: "Fais se reproduire 5 vaches"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "COW"
+            amount: 5
+
+  - key: breed_sheep_8
+    tier: easy
+    name: "Berger"
+    description: "Fais se reproduire 8 moutons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "SHEEP"
+            amount: 8
+
+  - key: breed_chicken_10
+    tier: easy
+    name: "Aviculteur"
+    description: "Fais se reproduire 10 poules"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "CHICKEN"
+            amount: 10
+
+  - key: breed_pig_8
+    tier: easy
+    name: "Éleveur de porcs"
+    description: "Fais se reproduire 8 cochons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "PIG"
+            amount: 8
+
+  - key: breed_cow_15
+    tier: medium
+    name: "Ranch de vaches"
+    description: "Fais se reproduire 15 vaches"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "COW"
+            amount: 15
+
+  - key: breed_sheep_20
+    tier: medium
+    name: "Grand berger"
+    description: "Fais se reproduire 20 moutons"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Élevage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "breed_animal"
+            entity_type: "SHEEP"
+            amount: 20
+
+  # ========================================
+  # FARMING (RECOLTES)
+  # ========================================
+
+  - key: harvest_wheat_32
+    tier: easy
+    name: "Moissonneur"
+    description: "Récolte 32 blés"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "WHEAT"
+            amount: 32
+
+  - key: harvest_wheat_64
+    tier: easy
+    name: "Fermier de blé"
+    description: "Récolte 64 blés"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "WHEAT"
+            amount: 64
+
+  - key: harvest_carrots_32
+    tier: easy
+    name: "Cultivateur de carottes"
+    description: "Récolte 32 carottes"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "CARROTS"
+            amount: 32
+
+  - key: harvest_potatoes_32
+    tier: easy
+    name: "Cultivateur de patates"
+    description: "Récolte 32 pommes de terre"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "POTATOES"
+            amount: 32
+
+  - key: harvest_beetroot_32
+    tier: easy
+    name: "Cultivateur de betteraves"
+    description: "Récolte 32 betteraves"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "BEETROOTS"
+            amount: 32
+
+  - key: harvest_nether_wart_64
+    tier: medium
+    name: "Alchimiste"
+    description: "Récolte 64 verrues du Nether"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "NETHER_WART"
+            amount: 64
+
+  - key: harvest_nether_wart_128
+    tier: medium
+    name: "Maître alchimiste"
+    description: "Récolte 128 verrues du Nether"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "NETHER_WART"
+            amount: 128
+
+  - key: harvest_melon_64
+    tier: medium
+    name: "Cultivateur de pastèques"
+    description: "Récolte 64 pastèques"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "MELON"
+            amount: 64
+
+  - key: harvest_pumpkin_64
+    tier: medium
+    name: "Cultivateur de citrouilles"
+    description: "Récolte 64 citrouilles"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Récolte"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "harvest_crop"
+            crop: "PUMPKIN"
+            amount: 64
+
+  # ========================================
+  # WOODCUTTING (BUCHES)
+  # ========================================
+
+  - key: chop_oak_64
+    tier: easy
+    name: "Bûcheron de chêne"
+    description: "Coupe 64 bûches de chêne"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "OAK_LOG"
+            amount: 64
+
+  - key: chop_birch_64
+    tier: easy
+    name: "Bûcheron de bouleau"
+    description: "Coupe 64 bûches de bouleau"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "BIRCH_LOG"
+            amount: 64
+
+  - key: chop_spruce_64
+    tier: easy
+    name: "Bûcheron de sapin"
+    description: "Coupe 64 bûches de sapin"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+150 XP"
+        command: "levels addxp %actor_name% 150"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "SPRUCE_LOG"
+            amount: 64
+
+  - key: chop_spruce_128
+    tier: medium
+    name: "Forestier de sapins"
+    description: "Coupe 128 bûches de sapin"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "SPRUCE_LOG"
+            amount: 128
+
+  - key: chop_dark_oak_128
+    tier: medium
+    name: "Bûcheron de chêne noir"
+    description: "Coupe 128 bûches de chêne noir"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "DARK_OAK_LOG"
+            amount: 128
+
+  - key: chop_jungle_128
+    tier: medium
+    name: "Bûcheron de la jungle"
+    description: "Coupe 128 bûches d'acajou"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "JUNGLE_LOG"
+            amount: 128
+
+  - key: chop_acacia_128
+    tier: medium
+    name: "Bûcheron d'acacia"
+    description: "Coupe 128 bûches d'acacia"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+500 XP"
+        command: "levels addxp %actor_name% 500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "ACACIA_LOG"
+            amount: 128
+
+  - key: chop_mangrove_128
+    tier: hard
+    name: "Bûcheron de mangrove"
+    description: "Coupe 128 bûches de mangrove"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "MANGROVE_LOG"
+            amount: 128
+
+  - key: chop_cherry_128
+    tier: hard
+    name: "Bûcheron de cerisier"
+    description: "Coupe 128 bûches de cerisier"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "CHERRY_LOG"
+            amount: 128
+
+  - key: chop_crimson_256
+    tier: hard
+    name: "Bûcheron du Nether"
+    description: "Coupe 256 tiges cramoisies"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "CRIMSON_STEM"
+            amount: 256
+
+  - key: chop_warped_256
+    tier: hard
+    name: "Bûcheron des abysses"
+    description: "Coupe 256 tiges biscornues"
+    duration: 86400
+    rewards:
+      - type: "command"
+        name: "+1500 XP"
+        command: "levels addxp %actor_name% 1500"
+    stages:
+      - key: stage_1
+        name: "Bûcheronnage"
+        flow: PARALLEL
+        objectives:
+          - key: obj_1
+            type: "block_break"
+            material: "WARPED_STEM"
+            amount: 256
