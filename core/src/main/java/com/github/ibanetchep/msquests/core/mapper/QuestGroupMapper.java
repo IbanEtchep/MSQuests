@@ -73,7 +73,7 @@ public class QuestGroupMapper {
                         entity.getObjectiveCompleteActions().stream().map(QuestAction::toDTO).toList(),
                         entity.getQuestDistributionActions().stream().map(QuestAction::toDTO).toList(),
                         entity.getActorLoadActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getAllQuestsCompleteActions().stream().map(QuestAction::toDTO).toList()
+                        entity.getAllPeriodQuestsCompleteActions().stream().map(QuestAction::toDTO).toList()
                 ),
                 tierDtos,
                 entity.getTierDistribution(),
@@ -117,8 +117,8 @@ public class QuestGroupMapper {
                 ? dto.actions().actorLoad().stream().map(questActionFactory::createAction).toList()
                 : List.of();
 
-        List<QuestAction> allQuestsCompleteActions = dto.actions().allQuestsComplete() != null
-                ? dto.actions().allQuestsComplete().stream().map(questActionFactory::createAction).toList()
+        List<QuestAction> allPeriodQuestsCompleteActions = dto.actions().allPeriodQuestsComplete() != null
+                ? dto.actions().allPeriodQuestsComplete().stream().map(questActionFactory::createAction).toList()
                 : List.of();
 
         Map<String, QuestTierConfig> tiers = null;
@@ -152,7 +152,7 @@ public class QuestGroupMapper {
                 .objectiveCompleteActions(objectiveCompleteActions)
                 .questDistributionActions(questDistributionActions)
                 .actorLoadActions(actorLoadActions)
-                .allQuestsCompleteActions(allQuestsCompleteActions)
+                .allPeriodQuestsCompleteActions(allPeriodQuestsCompleteActions)
                 .tiers(tiers)
                 .tierDistribution(dto.tierDistribution())
                 .rotatable(dto.rotatable() != null && dto.rotatable())

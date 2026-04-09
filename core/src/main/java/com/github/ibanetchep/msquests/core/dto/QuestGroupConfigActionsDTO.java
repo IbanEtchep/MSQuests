@@ -9,6 +9,6 @@ public record QuestGroupConfigActionsDTO(
         List<QuestActionDTO> objectiveComplete,
         List<QuestActionDTO> questDistribution,
         List<QuestActionDTO> actorLoad,
-        List<QuestActionDTO> allQuestsComplete
+        List<QuestActionDTO> allPeriodQuestsComplete
 ) {
 }

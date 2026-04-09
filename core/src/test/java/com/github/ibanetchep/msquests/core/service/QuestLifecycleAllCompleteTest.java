@@ -125,11 +125,11 @@ class QuestLifecycleAllCompleteTest {
     }
 
     // -------------------------------------------------------------------------
-    // Helper: create a QuestGroupConfig with the allQuestsCompleteActions list
+    // Helper: create a QuestGroupConfig with the allPeriodQuestsCompleteActions list
     // -------------------------------------------------------------------------
     private QuestGroupConfig buildGroupConfig(List<QuestAction> allCompleteActions) {
         return new QuestGroupConfig.Builder("group1", "Group 1", "desc", "player")
-                .allQuestsCompleteActions(allCompleteActions)
+                .allPeriodQuestsCompleteActions(allCompleteActions)
                 .build();
     }
 
@@ -187,10 +187,10 @@ class QuestLifecycleAllCompleteTest {
     }
 
     // =========================================================================
-    // Test 1: allQuestsCompleteAction fired when last quest completes
+    // Test 1: allPeriodQuestsCompleteAction fired when last quest completes
     // =========================================================================
     @Test
-    void allQuestsCompleteActionFiredWhenLastQuestCompletes() {
+    void allPeriodQuestsCompleteActionFiredWhenLastQuestCompletes() {
         QuestAction allCompleteAction = mock(QuestAction.class);
         QuestGroupConfig groupConfig = buildGroupConfig(List.of(allCompleteAction));
 
@@ -211,10 +211,10 @@ class QuestLifecycleAllCompleteTest {
     }
 
     // =========================================================================
-    // Test 2: allQuestsCompleteAction NOT fired when quests still in progress
+    // Test 2: allPeriodQuestsCompleteAction NOT fired when quests still in progress
     // =========================================================================
     @Test
-    void allQuestsCompleteActionNotFiredWhenQuestsStillInProgress() {
+    void allPeriodQuestsCompleteActionNotFiredWhenQuestsStillInProgress() {
         QuestAction allCompleteAction = mock(QuestAction.class);
         QuestGroupConfig groupConfig = buildGroupConfig(List.of(allCompleteAction));
 
@@ -231,12 +231,12 @@ class QuestLifecycleAllCompleteTest {
 
         lifecycleService.completeObjective(objective2, null).join();
 
-        // Quest 1 is still in progress -> allQuestsCompleteAction must NOT fire
+        // Quest 1 is still in progress -> allPeriodQuestsCompleteAction must NOT fire
         verify(allCompleteAction, never()).execute(actor, groupConfig);
     }
 
     // =========================================================================
-    // Test 3: No error when allQuestsCompleteActions is empty
+    // Test 3: No error when allPeriodQuestsCompleteActions is empty
     // =========================================================================
     @Test
     void noErrorWhenNoAllCompleteActionsConfigured() {

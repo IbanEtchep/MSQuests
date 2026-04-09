@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add anti-place-break PDC protection, harvest_crop objective type, and all_quests_complete group action hook.
+**Goal:** Add anti-place-break PDC protection, harvest_crop objective type, and all_period_quests_complete group action hook.
 
-**Architecture:** Three independent features added to the existing quest plugin. Anti-place-break uses a BlockPlaceEvent listener + PDC tag checked in BlockBreakObjectiveHandler. harvest_crop follows the existing objective pattern (config/objective/handler). all_quests_complete adds a new action list to QuestGroupConfig, triggered when all group quests for an actor are completed.
+**Architecture:** Three independent features added to the existing quest plugin. Anti-place-break uses a BlockPlaceEvent listener + PDC tag checked in BlockBreakObjectiveHandler. harvest_crop follows the existing objective pattern (config/objective/handler). all_period_quests_complete adds a new action list to QuestGroupConfig, triggered when all group quests for an actor are completed.
 
 **Tech Stack:** Java 21, Paper 1.21+ API, MockBukkit 4.41.0, Mockito 5.14.2, JUnit 5
 
@@ -25,7 +25,7 @@
 - **Modify:** `bukkit/src/main/java/com/github/ibanetchep/msquests/bukkit/BukkitQuestsPlugin.java` (register objective type)
 - **Create:** `bukkit/src/test/java/com/github/ibanetchep/msquests/bukkit/quest/objective/harvestcrop/HarvestCropObjectiveHandlerTest.java`
 
-### Feature C: all_quests_complete Hook
+### Feature C: all_period_quests_complete Hook
 - **Modify:** `core/src/main/java/com/github/ibanetchep/msquests/core/dto/QuestGroupConfigActionsDTO.java`
 - **Modify:** `core/src/main/java/com/github/ibanetchep/msquests/core/quest/config/group/QuestGroupConfig.java`
 - **Modify:** `core/src/main/java/com/github/ibanetchep/msquests/core/mapper/QuestGroupMapper.java`
@@ -762,13 +762,13 @@ git commit -m "test: add HarvestCropObjectiveHandler tests"
 
 ---
 
-## Task 8: all_quests_complete — DTO + QuestGroupConfig
+## Task 8: all_period_quests_complete — DTO + QuestGroupConfig
 
 **Files:**
 - Modify: `core/src/main/java/com/github/ibanetchep/msquests/core/dto/QuestGroupConfigActionsDTO.java`
 - Modify: `core/src/main/java/com/github/ibanetchep/msquests/core/quest/config/group/QuestGroupConfig.java`
 
-- [ ] **Step 1: Add allQuestsComplete to QuestGroupConfigActionsDTO**
+- [ ] **Step 1: Add allPeriodQuestsComplete to QuestGroupConfigActionsDTO**
 
 Replace the record in `QuestGroupConfigActionsDTO.java`:
 
@@ -784,46 +784,46 @@ public record QuestGroupConfigActionsDTO(
         List<QuestActionDTO> objectiveComplete,
         List<QuestActionDTO> questDistribution,
         List<QuestActionDTO> actorLoad,
-        List<QuestActionDTO> allQuestsComplete
+        List<QuestActionDTO> allPeriodQuestsComplete
 ) {
 }
 ```
 
-- [ ] **Step 2: Add allQuestsCompleteActions to QuestGroupConfig**
+- [ ] **Step 2: Add allPeriodQuestsCompleteActions to QuestGroupConfig**
 
 In `QuestGroupConfig.java`, add the field, builder method, and getter following the existing pattern:
 
 Field (after `actorLoadActions`):
 ```java
-private final List<QuestAction> allQuestsCompleteActions;
+private final List<QuestAction> allPeriodQuestsCompleteActions;
 ```
 
 In constructor (after `this.actorLoadActions = builder.actorLoadActions;`):
 ```java
-this.allQuestsCompleteActions = builder.allQuestsCompleteActions;
+this.allPeriodQuestsCompleteActions = builder.allPeriodQuestsCompleteActions;
 ```
 
 Getter (after `getActorLoadActions()`):
 ```java
 public List<QuestAction> getAllQuestsCompleteActions() {
-    return Collections.unmodifiableList(allQuestsCompleteActions);
+    return Collections.unmodifiableList(allPeriodQuestsCompleteActions);
 }
 ```
 
 In Builder, field (after `actorLoadActions`):
 ```java
-private List<QuestAction> allQuestsCompleteActions;
+private List<QuestAction> allPeriodQuestsCompleteActions;
 ```
 
 In Builder constructor (after `this.actorLoadActions = new ArrayList<>();`):
 ```java
-this.allQuestsCompleteActions = new ArrayList<>();
+this.allPeriodQuestsCompleteActions = new ArrayList<>();
 ```
 
 Builder method (after `actorLoadActions` method):
 ```java
-public Builder allQuestsCompleteActions(List<QuestAction> allQuestsCompleteActions) {
-    this.allQuestsCompleteActions = allQuestsCompleteActions;
+public Builder allPeriodQuestsCompleteActions(List<QuestAction> allPeriodQuestsCompleteActions) {
+    this.allPeriodQuestsCompleteActions = allPeriodQuestsCompleteActions;
     return this;
 }
 ```
@@ -838,12 +838,12 @@ Expected: FAIL — `QuestGroupMapper` and other callers need updating (expected,
 ```bash
 git add core/src/main/java/com/github/ibanetchep/msquests/core/dto/QuestGroupConfigActionsDTO.java
 git add core/src/main/java/com/github/ibanetchep/msquests/core/quest/config/group/QuestGroupConfig.java
-git commit -m "feat: add allQuestsComplete field to QuestGroupConfigActionsDTO and QuestGroupConfig"
+git commit -m "feat: add allPeriodQuestsComplete field to QuestGroupConfigActionsDTO and QuestGroupConfig"
 ```
 
 ---
 
-## Task 9: all_quests_complete — Mapper
+## Task 9: all_period_quests_complete — Mapper
 
 **Files:**
 - Modify: `core/src/main/java/com/github/ibanetchep/msquests/core/mapper/QuestGroupMapper.java`
@@ -869,15 +869,15 @@ new QuestGroupConfigActionsDTO(
 After the `actorLoadActions` mapping block (line 115-116), add:
 
 ```java
-List<QuestAction> allQuestsCompleteActions = dto.actions().allQuestsComplete() != null
-        ? dto.actions().allQuestsComplete().stream().map(questActionFactory::createAction).toList()
+List<QuestAction> allPeriodQuestsCompleteActions = dto.actions().allPeriodQuestsComplete() != null
+        ? dto.actions().allPeriodQuestsComplete().stream().map(questActionFactory::createAction).toList()
         : List.of();
 ```
 
 In the builder chain, after `.actorLoadActions(actorLoadActions)`, add:
 
 ```java
-.allQuestsCompleteActions(allQuestsCompleteActions)
+.allPeriodQuestsCompleteActions(allPeriodQuestsCompleteActions)
 ```
 
 - [ ] **Step 3: Compile check**
@@ -898,12 +898,12 @@ Expected: BUILD SUCCESSFUL, all tests pass
 
 ```bash
 git add core/src/main/java/com/github/ibanetchep/msquests/core/mapper/QuestGroupMapper.java
-git commit -m "feat: map allQuestsComplete actions in QuestGroupMapper"
+git commit -m "feat: map allPeriodQuestsComplete actions in QuestGroupMapper"
 ```
 
 ---
 
-## Task 10: all_quests_complete — Trigger in QuestLifecycleService
+## Task 10: all_period_quests_complete — Trigger in QuestLifecycleService
 
 **Files:**
 - Modify: `core/src/main/java/com/github/ibanetchep/msquests/core/service/QuestLifecycleService.java`
@@ -972,19 +972,19 @@ Expected: BUILD SUCCESSFUL
 
 ```bash
 git add core/src/main/java/com/github/ibanetchep/msquests/core/service/QuestLifecycleService.java
-git commit -m "feat: trigger all_quests_complete actions when all group quests are done"
+git commit -m "feat: trigger all_period_quests_complete actions when all group quests are done"
 ```
 
 ---
 
-## Task 11: all_quests_complete — Tests
+## Task 11: all_period_quests_complete — Tests
 
 **Files:**
 - Create: `core/src/test/java/com/github/ibanetchep/msquests/core/service/QuestLifecycleAllCompleteTest.java`
 
-- [ ] **Step 1: Write tests for the all_quests_complete hook**
+- [ ] **Step 1: Write tests for the all_period_quests_complete hook**
 
-This test needs to verify that when the last quest in a group completes, the `allQuestsCompleteActions` are executed. The test will need to mock the dependencies of `QuestLifecycleService` and set up a scenario with multiple quests in a group.
+This test needs to verify that when the last quest in a group completes, the `allPeriodQuestsCompleteActions` are executed. The test will need to mock the dependencies of `QuestLifecycleService` and set up a scenario with multiple quests in a group.
 
 ```java
 package com.github.ibanetchep.msquests.core.service;
@@ -1063,7 +1063,7 @@ public class QuestLifecycleAllCompleteTest {
     // that delegates to the actual quest, verifying the action was called.
 
     @Test
-    void allQuestsCompleteActionFiredWhenLastQuestCompletes() {
+    void allPeriodQuestsCompleteActionFiredWhenLastQuestCompletes() {
         // This test structure depends on AtomicQuestExecutor implementation.
         // The implementing agent should adapt this based on the actual executor pattern.
         // Key assertion: verify(allCompleteAction).execute(actor, groupConfig)
@@ -1071,7 +1071,7 @@ public class QuestLifecycleAllCompleteTest {
     }
 
     @Test
-    void allQuestsCompleteActionNotFiredWhenQuestsStillInProgress() {
+    void allPeriodQuestsCompleteActionNotFiredWhenQuestsStillInProgress() {
         // Key assertion: verify(allCompleteAction, never()).execute(any(), any())
         // when there are still IN_PROGRESS quests in the group.
     }
@@ -1079,9 +1079,9 @@ public class QuestLifecycleAllCompleteTest {
 ```
 
 **Note to implementing agent:** The test skeleton above needs to be adapted based on how `AtomicQuestExecutor` works. The key logic to test is:
-1. When the last quest in a group completes → `allQuestsCompleteActions` are executed
+1. When the last quest in a group completes → `allPeriodQuestsCompleteActions` are executed
 2. When quests are still in progress → actions are NOT executed
-3. When no `allQuestsComplete` actions are configured → no error
+3. When no `allPeriodQuestsComplete` actions are configured → no error
 
 The simplest approach may be to test `checkAllQuestsComplete` directly by making it package-private, or to use a real `AtomicQuestExecutor` that delegates synchronously in tests.
 
@@ -1094,7 +1094,7 @@ Expected: All tests PASS
 
 ```bash
 git add core/src/test/java/com/github/ibanetchep/msquests/core/service/QuestLifecycleAllCompleteTest.java
-git commit -m "test: add all_quests_complete hook tests"
+git commit -m "test: add all_period_quests_complete hook tests"
 ```
 
 ---
