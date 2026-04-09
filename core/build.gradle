@@ -4,7 +4,12 @@ plugins {
 
 dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-    implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
-    implementation 'com.cronutils:cron-utils:9.2.1'
+    api("com.fasterxml.jackson.core:jackson-databind:2.20.0")
+    api(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9')
+    api('com.cronutils:cron-utils:9.2.1')
+
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
+    testImplementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9')
+    testImplementation('com.cronutils:cron-utils:9.2.1')
+    testImplementation("org.mockito:mockito-core:5.14.2")
 }
