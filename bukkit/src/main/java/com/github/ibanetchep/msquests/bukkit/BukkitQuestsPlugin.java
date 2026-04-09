@@ -127,6 +127,8 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private BukkitTranslator translator;
 
+    private BlockPlaceTagListener blockPlaceTagListener;
+
     private DbAccess dbAccess;
     private FoliaLib foliaLib;
 
@@ -272,6 +274,8 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public void registerListeners() {
         PluginManager pluginManager = getServer().getPluginManager();
+        blockPlaceTagListener = new BlockPlaceTagListener(this);
+        pluginManager.registerEvents(blockPlaceTagListener, this);
         pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
         pluginManager.registerEvents(new QuestTrackingListener(trackingBossBarService), this);
@@ -406,6 +410,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public TrackingBossBarService getTrackingBossBarService() {
         return trackingBossBarService;
+    }
+
+    public BlockPlaceTagListener getBlockPlaceTagListener() {
+        return blockPlaceTagListener;
     }
 
 }
