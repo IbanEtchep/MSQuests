@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -105,8 +106,12 @@ public class QuestLifecycleService {
             dispatcher.dispatch(objectiveCompletedEvent);
 
             QuestGroupConfig groupConfig = quest.getQuestGroup();
+            Map<String, String> context = Map.of(
+                    "quest_name", quest.getQuestConfig().getName(),
+                    "quest_key", quest.getQuestConfig().getKey()
+            );
             groupConfig.getObjectiveCompleteActions().stream()
-                    .filter(a -> profile == null || a.testConditions(profile))
+                    .filter(a -> profile == null || a.testConditions(profile, context))
                     .forEach(a -> a.execute(objective));
 
             if (quest.shouldComplete()) {
@@ -119,6 +124,9 @@ public class QuestLifecycleService {
                 if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
                     triggerDistribution(quest.getActor(), groupConfig);
                 }
+
+                // Check if all quests in the group are completed
+                checkAllQuestsComplete(quest.getActor(), groupConfig);
             }
 
             persistenceService.saveQuest(objective.getQuest()).join();
@@ -285,6 +293,26 @@ public class QuestLifecycleService {
         }
 
         return startedCount;
+    }
+
+    private void checkAllQuestsComplete(QuestActor actor, QuestGroupConfig groupConfig) {
+        List<QuestAction> actions = groupConfig.getAllQuestsCompleteActions();
+        if (actions.isEmpty()) {
+            return;
+        }
+
+        ActorQuestGroup actorGroup = actor.getActorQuestGroup(groupConfig);
+        if (actorGroup == null) {
+            return;
+        }
+
+        // All quests complete = none still active (in progress) AND at least one completed
+        boolean allCompleted = actorGroup.getInProgressCount() == 0
+                && actorGroup.getCompletedCount() > 0;
+
+        if (allCompleted) {
+            actions.forEach(a -> a.execute(actor, groupConfig));
+        }
     }
 
     /**
