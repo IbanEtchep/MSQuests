@@ -6,6 +6,9 @@ public record QuestGroupConfigActionsDTO(
         List<QuestActionDTO> questStart,
         List<QuestActionDTO> questComplete,
         List<QuestActionDTO> objectiveProgress,
-        List<QuestActionDTO> objectiveComplete
+        List<QuestActionDTO> objectiveComplete,
+        List<QuestActionDTO> questDistribution,
+        List<QuestActionDTO> actorLoad,
+        List<QuestActionDTO> allQuestsComplete
 ) {
 }

@@ -258,6 +258,7 @@ public class QuestConfigYamlRepositoryTest {
                         List.of(),
                         List.of(),
                         List.of(),
+                        List.of(),
                         List.of()
                 ),
                 null,
@@ -335,6 +336,7 @@ public class QuestConfigYamlRepositoryTest {
                 Instant.parse("2025-12-31T23:59:59Z"),
                 "player",
                 new QuestGroupConfigActionsDTO(
+                        List.of(),
                         List.of(),
                         List.of(),
                         List.of(),
