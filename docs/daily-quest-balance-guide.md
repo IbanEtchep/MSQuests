@@ -2,14 +2,14 @@
 
 ## Vue d'ensemble
 
-| Tier | Quetes/jour | XP/quete | XP total | Temps cible |
-|------|------------|---------|---------|------------|
-| Easy | 3 | 150 | 450 | 5-10 min |
-| Medium | 2 | 500 | 1000 | 10-20 min |
-| Hard | 1 | 1500 | 1500 | 20-30 min |
-| **Total** | **6** | | **2950** | **~60-90 min** |
-| Bonus all complete | | configurable | 1000 | |
-| **Grand total** | | | **3950** | |
+| Tier | Quetes/jour | XP/quete | XP total | $/quete | $ total | Temps cible |
+|------|------------|---------|---------|--------|--------|------------|
+| Easy | 3 | 150 | 450 | 500 | 1500 | 5-10 min |
+| Medium | 2 | 500 | 1000 | 1000 | 2000 | 10-20 min |
+| Hard | 1 | 1500 | 1500 | 1500 | 1500 | 20-30 min |
+| **Total** | **6** | | **2950** | | **5000** | **~60-90 min** |
+| Bonus all complete | | | 1000 | | 5000 | |
+| **Grand total** | | | **3950** | | **10000** | |
 
 ## Comparaison XP quetes vs actions
 
