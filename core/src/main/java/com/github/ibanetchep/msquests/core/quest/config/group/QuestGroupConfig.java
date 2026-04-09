@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.core.quest.config.group;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestTierConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,17 @@ public class QuestGroupConfig implements PlaceholderProvider {
     private final List<QuestAction> questCompleteActions;
     private final List<QuestAction> objectiveProgressActions;
     private final List<QuestAction> objectiveCompleteActions;
+    private final List<QuestAction> questDistributionActions;
+    private final List<QuestAction> actorLoadActions;
+    private final List<QuestAction> allQuestsCompleteActions;
+
+    private final Map<String, QuestTierConfig> tiers;
+    private final @Nullable Map<String, Integer> tierDistribution;
+
+    private final boolean rotatable;
+    private final @Nullable Integer maxRotationsPerPeriod;
+
+    private final @Nullable DistributionConfig distributionConfig;
 
     private QuestGroupConfig(Builder builder) {
         this.key = builder.key;
@@ -53,6 +65,14 @@ public class QuestGroupConfig implements PlaceholderProvider {
         this.questCompleteActions = builder.questCompleteActions;
         this.objectiveProgressActions = builder.objectiveProgressActions;
         this.objectiveCompleteActions = builder.objectiveCompleteActions;
+        this.questDistributionActions = builder.questDistributionActions;
+        this.actorLoadActions = builder.actorLoadActions;
+        this.allQuestsCompleteActions = builder.allQuestsCompleteActions;
+        this.tiers = builder.tiers != null ? builder.tiers : Map.of();
+        this.tierDistribution = builder.tierDistribution;
+        this.rotatable = builder.rotatable;
+        this.maxRotationsPerPeriod = builder.maxRotationsPerPeriod;
+        this.distributionConfig = builder.distributionConfig;
     }
 
     public String getKey() {
@@ -131,6 +151,54 @@ public class QuestGroupConfig implements PlaceholderProvider {
         return Collections.unmodifiableList(objectiveCompleteActions);
     }
 
+    public List<QuestAction> getQuestDistributionActions() {
+        return Collections.unmodifiableList(questDistributionActions);
+    }
+
+    public List<QuestAction> getActorLoadActions() {
+        return Collections.unmodifiableList(actorLoadActions);
+    }
+
+    public List<QuestAction> getAllQuestsCompleteActions() {
+        return Collections.unmodifiableList(allQuestsCompleteActions);
+    }
+
+    public Map<String, QuestTierConfig> getTiers() {
+        return Collections.unmodifiableMap(tiers);
+    }
+
+    public @Nullable QuestTierConfig getTier(String key) {
+        return tiers.get(key);
+    }
+
+    public @Nullable Map<String, Integer> getTierDistribution() {
+        return tierDistribution;
+    }
+
+    public boolean hasTierDistribution() {
+        return tierDistribution != null && !tierDistribution.isEmpty();
+    }
+
+    public boolean isRotatable() {
+        return rotatable;
+    }
+
+    public @Nullable Integer getMaxRotationsPerPeriod() {
+        return maxRotationsPerPeriod;
+    }
+
+    public @Nullable DistributionConfig getDistributionConfig() {
+        return distributionConfig;
+    }
+
+    public boolean hasDistribution() {
+        return distributionConfig != null;
+    }
+
+    public boolean hasDistributionTrigger(DistributionTrigger trigger) {
+        return distributionConfig != null && distributionConfig.hasTrigger(trigger);
+    }
+
     public @Nullable Instant getNextReset() {
         if(resetCron == null) {
             return null;
@@ -188,6 +256,17 @@ public class QuestGroupConfig implements PlaceholderProvider {
         private List<QuestAction> questCompleteActions;
         private List<QuestAction> objectiveProgressActions;
         private List<QuestAction> objectiveCompleteActions;
+        private List<QuestAction> questDistributionActions;
+        private List<QuestAction> actorLoadActions;
+        private List<QuestAction> allQuestsCompleteActions;
+
+        private @Nullable Map<String, QuestTierConfig> tiers;
+        private @Nullable Map<String, Integer> tierDistribution;
+
+        private boolean rotatable = false;
+        private @Nullable Integer maxRotationsPerPeriod;
+
+        private @Nullable DistributionConfig distributionConfig;
 
         public Builder(String key, String name, String description, String actorType) {
             this.key = key;
@@ -198,6 +277,9 @@ public class QuestGroupConfig implements PlaceholderProvider {
             this.questCompleteActions = new ArrayList<>();
             this.objectiveProgressActions = new ArrayList<>();
             this.objectiveCompleteActions = new ArrayList<>();
+            this.questDistributionActions = new ArrayList<>();
+            this.actorLoadActions = new ArrayList<>();
+            this.allQuestsCompleteActions = new ArrayList<>();
         }
 
         public Builder startAt(Instant startAt) {
@@ -242,6 +324,46 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
         public Builder objectiveCompleteActions(List<QuestAction> objectiveCompleteActions) {
             this.objectiveCompleteActions = objectiveCompleteActions;
+            return this;
+        }
+
+        public Builder questDistributionActions(List<QuestAction> questDistributionActions) {
+            this.questDistributionActions = questDistributionActions;
+            return this;
+        }
+
+        public Builder actorLoadActions(List<QuestAction> actorLoadActions) {
+            this.actorLoadActions = actorLoadActions;
+            return this;
+        }
+
+        public Builder allQuestsCompleteActions(List<QuestAction> allQuestsCompleteActions) {
+            this.allQuestsCompleteActions = allQuestsCompleteActions;
+            return this;
+        }
+
+        public Builder tiers(Map<String, QuestTierConfig> tiers) {
+            this.tiers = tiers;
+            return this;
+        }
+
+        public Builder tierDistribution(Map<String, Integer> tierDistribution) {
+            this.tierDistribution = tierDistribution;
+            return this;
+        }
+
+        public Builder rotatable(boolean rotatable) {
+            this.rotatable = rotatable;
+            return this;
+        }
+
+        public Builder maxRotationsPerPeriod(Integer maxRotationsPerPeriod) {
+            this.maxRotationsPerPeriod = maxRotationsPerPeriod;
+            return this;
+        }
+
+        public Builder distributionConfig(DistributionConfig distributionConfig) {
+            this.distributionConfig = distributionConfig;
             return this;
         }
 
