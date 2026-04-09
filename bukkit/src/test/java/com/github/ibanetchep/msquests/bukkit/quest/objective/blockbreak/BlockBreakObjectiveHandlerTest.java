@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak;
 
+import com.github.ibanetchep.msquests.bukkit.listener.BlockPlaceTagListener;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.AbstractObjectiveHandlerTest;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
@@ -19,6 +20,9 @@ public class BlockBreakObjectiveHandlerTest extends AbstractObjectiveHandlerTest
 
     @BeforeEach
     void setUp() {
+        BlockPlaceTagListener blockPlaceTagListener = mock(BlockPlaceTagListener.class);
+        when(plugin.getBlockPlaceTagListener()).thenReturn(blockPlaceTagListener);
+        when(blockPlaceTagListener.isPlaced(any())).thenReturn(false);
         handler = new BlockBreakObjectiveHandler(plugin);
     }
 
