@@ -1,0 +1,97 @@
+name: "&8✦ Quêtes journalières"
+size: 54
+items:
+
+  info:
+    type: NONE
+    isPermanent: true
+    slot: 4
+    update: true
+    item:
+      material: CLOCK
+      name: "&e✦ Quêtes journalières"
+      lore:
+        - ""
+        - "&7Complète tes quêtes quotidiennes pour"
+        - "&7faire progresser ton niveau serveur !"
+        - ""
+        - "&7Réinitialisation dans &e%msquests_group_daily_countdown%"
+        - "&7Prochaine rotation à &f%msquests_group_daily_period_end%"
+        - ""
+        - "&6Bonus toutes quêtes complétées :"
+        - "&7 +&e1000 XP &7+ &e5000$"
+
+  quest_list:
+    type: MSQUESTS_QUEST_GROUP
+    group: "daily"
+    assigned_only: true
+    available_material: GRAY_DYE
+    active_material: LIGHT_BLUE_DYE
+    completed_material: LIME_DYE
+    actions-lore:
+      - ""
+      - "&7Clic droit: &fRotate (&e50 SpartaCoins&f)"
+      - "&7Clic gauche: &fSuivre la quête"
+    slots:
+      - "21-23"
+      - "30-32"
+    item:
+      material: LIGHT_BLUE_DYE
+      name: "&e%quest_name%"
+      lore:
+        - "&7%quest_description%"
+        - ""
+        - "&7Difficulté : %quest_tier_name%"
+        - "&7Statut: &f%quest_status%"
+        - "&7Progression: &f%quest_objective_progress%"
+        - ""
+        - "&6Récompenses: &f%quest_rewards%"
+        - "%quest_actions_lore%"
+    click-requirement:
+      rotate:
+        clicks:
+          - RIGHT
+        requirements:
+          - type: placeholder
+            placeholder: "%boutique_tokens%"
+            action: SUPERIOR_OR_EQUAL
+            value: 50
+            deny:
+              - type: message
+                messages:
+                  - "&cVous n'avez pas assez de SpartaCoins ! (&e50 requis&c, vous avez &e%boutique_tokens%&c)"
+        success:
+          - type: dialog
+            dialog: "confirm_rotate"
+          - type: data
+            action: SET
+            key: "rotate_quest_key"
+            value: "%quest_key%"
+            math: false
+      track:
+        clicks:
+          - LEFT
+        success:
+          - type: player-command
+            commands:
+              - "quest toggletrack daily %quest_key%"
+
+  border:
+    type: NONE
+    isPermanent: true
+    slots:
+      - 0
+      - 1
+      - 9
+      - 7
+      - 8
+      - 17
+      - 36
+      - 45
+      - 46
+      - 44
+      - 52
+      - 53
+    item:
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
