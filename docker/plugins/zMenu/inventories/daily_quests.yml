@@ -45,7 +45,7 @@ items:
         - "&7Statut: &f%quest_status%"
         - "&7Progression: &f%quest_objective_progress%"
         - ""
-        - "&6Récompenses: &f%quest_rewards%"
+        - "&6Récompenses: \n&f%quest_rewards%"
         - "%quest_actions_lore%"
     click-requirement:
       rotate:

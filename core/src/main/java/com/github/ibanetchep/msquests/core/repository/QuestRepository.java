@@ -11,4 +11,6 @@ public interface QuestRepository {
     CompletableFuture<Map<UUID, QuestDTO>> getAllByActor(UUID actorUniqueId);
 
     CompletableFuture<Void> save(QuestDTO quest);
+
+    CompletableFuture<Void> delete(UUID questId);
 }

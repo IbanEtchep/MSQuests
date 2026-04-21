@@ -40,6 +40,7 @@ public class ExecuteCommandObjectiveConfig extends QuestObjectiveConfig {
         return command;
     }
 
+
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(

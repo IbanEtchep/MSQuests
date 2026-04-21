@@ -1,4 +1,4 @@
-config_version: 1
+config_version: 2
 
 language: en_EN
 
@@ -57,3 +57,6 @@ tracking:
     color: WHITE
     style: PROGRESS
     show_progress: true
+
+placeholders:
+  cycle_duration_seconds: 5

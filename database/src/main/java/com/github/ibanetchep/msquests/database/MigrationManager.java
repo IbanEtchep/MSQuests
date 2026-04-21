@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.database;
 
+import com.github.ibanetchep.msquests.database.migrations.AddRotationTableMigration;
 import com.github.ibanetchep.msquests.database.migrations.CreateTablesMigration;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ public class MigrationManager {
         this.jdbi = jdbi;
         this.logger = logger;
         migrations.add(new CreateTablesMigration(jdbi));
+        migrations.add(new AddRotationTableMigration(jdbi));
     }
 
     public void initialize() {

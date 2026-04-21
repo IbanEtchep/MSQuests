@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.harvestcrop;
 
-import com.github.ibanetchep.msquests.bukkit.listener.BlockPlaceTagListener;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.AbstractObjectiveHandlerTest;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
@@ -18,13 +17,9 @@ import static org.mockito.Mockito.*;
 public class HarvestCropObjectiveHandlerTest extends AbstractObjectiveHandlerTest {
 
     private HarvestCropObjectiveHandler handler;
-    private BlockPlaceTagListener blockPlaceTagListener;
 
     @BeforeEach
     void setUp() {
-        blockPlaceTagListener = mock(BlockPlaceTagListener.class);
-        when(plugin.getBlockPlaceTagListener()).thenReturn(blockPlaceTagListener);
-        when(blockPlaceTagListener.isPlaced(any())).thenReturn(false);
         handler = new HarvestCropObjectiveHandler(plugin);
     }
 
@@ -121,15 +116,19 @@ public class HarvestCropObjectiveHandlerTest extends AbstractObjectiveHandlerTes
     }
 
     @Test
-    void placedBlockDoesNotProgress() {
-        createWheatObjective(10);
+    void harvestingPlayerPlacedMatureCropProgresses() {
+        HarvestCropObjective objective = createWheatObjective(10);
 
         Block block = mock(Block.class);
         when(block.getType()).thenReturn(Material.WHEAT);
-        when(blockPlaceTagListener.isPlaced(block)).thenReturn(true);
+
+        Ageable ageable = mock(Ageable.class);
+        when(ageable.getAge()).thenReturn(7);
+        when(ageable.getMaximumAge()).thenReturn(7);
+        when(block.getBlockData()).thenReturn(ageable);
 
         handler.onBlockBreak(new BlockBreakEvent(block, player));
 
-        verify(questProgressService, never()).progressObjective(any(), anyInt(), any());
+        verify(questProgressService).progressObjective(objective, 1, profile);
     }
 }

@@ -30,7 +30,7 @@ public class FishingObjectiveHandler extends BukkitQuestObjectiveHandler<Fishing
     @Override
     public void destroy() {}
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
         if (!(event.getCaught() instanceof Item caughtItem)) return;

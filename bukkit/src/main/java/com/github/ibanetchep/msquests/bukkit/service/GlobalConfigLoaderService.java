@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.service;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
+import com.github.ibanetchep.msquests.bukkit.config.PlaceholdersConfig;
 import com.github.ibanetchep.msquests.bukkit.config.TrackingBossBarConfig;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import net.kyori.adventure.bossbar.BossBar;
@@ -80,6 +81,9 @@ public class GlobalConfigLoaderService {
                 bossBarEnabled, bossBarMessage, bossBarColor, bossBarStyle, bossBarShowProgress
         );
 
-        return new GlobalConfig(language, database, trackingBossBarConfig);
+        int cycleDurationSeconds = Math.max(1, config.getInt("placeholders.cycle_duration_seconds", 5));
+        PlaceholdersConfig placeholdersConfig = new PlaceholdersConfig(cycleDurationSeconds);
+
+        return new GlobalConfig(language, database, trackingBossBarConfig, placeholdersConfig);
     }
 }

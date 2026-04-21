@@ -49,6 +49,10 @@ public abstract class QuestAction implements Translatable, PlaceholderProvider {
         return conditions.stream().allMatch(c -> c.test(profile));
     }
 
+    public boolean testConditions(PlayerProfile profile, Map<String, String> contextPlaceholders) {
+        return conditions.stream().allMatch(c -> c.test(profile, contextPlaceholders));
+    }
+
     public abstract void execute(Quest quest);
 
     public void execute(QuestObjective objective) {

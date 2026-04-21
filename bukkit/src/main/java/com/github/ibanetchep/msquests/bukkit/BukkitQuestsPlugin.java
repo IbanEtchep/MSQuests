@@ -174,7 +174,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
         questDistributionService = new QuestDistributionService();
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository, this);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService, questLifecycleService, this);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
         questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher);
@@ -199,6 +199,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         for (QuestActor actor : questActorRegistry.getActors().values()) {
             questLifecycleService.refreshActor(actor);
         }
+        trackingBossBarService.refreshAll();
     }
 
     @Override
@@ -278,7 +279,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         pluginManager.registerEvents(blockPlaceTagListener, this);
         pluginManager.registerEvents(new ServerLoadListener(this), this);
         pluginManager.registerEvents(new PlayerJoinListener(this), this);
-        pluginManager.registerEvents(new QuestTrackingListener(trackingBossBarService), this);
+        pluginManager.registerEvents(new QuestTrackingListener(trackingBossBarService, questPlayerService), this);
     }
 
     private ConditionFactory buildConditionFactory() {
@@ -318,7 +319,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public void registerExpansions() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new QuestsPlaceholderExpansion(playerProfileRegistry, questConfigRegistry).register();
+            new QuestsPlaceholderExpansion(playerProfileRegistry, questConfigRegistry, globalConfig.placeholders()).register();
         }
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();

@@ -15,7 +15,12 @@ public record QuestGroupConfigDTO(
         Instant startAt,
         Instant endAt,
         String actorType,
-        QuestGroupConfigActionsDTO actions
+        QuestGroupConfigActionsDTO actions,
+        Map<String, QuestTierConfigDTO> tiers,
+        Map<String, Integer> tierDistribution,
+        Boolean rotatable,
+        Integer maxRotationsPerPeriod,
+        DistributionConfigDTO distribution
 ) {
     public QuestGroupConfigDTO {
         if (key == null || key.isBlank()) {

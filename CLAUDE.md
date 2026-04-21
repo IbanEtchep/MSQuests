@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-./gradlew build          # Build all modules
+./gradlew build          # Build all modules and run tests
 ./gradlew clean build    # Clean rebuild
 ./gradlew shadowJar      # Build deployable plugin JAR (bukkit module)
 ./gradlew test           # Run all tests

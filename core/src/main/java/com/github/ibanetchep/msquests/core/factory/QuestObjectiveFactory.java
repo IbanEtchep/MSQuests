@@ -97,7 +97,7 @@ public class QuestObjectiveFactory {
                 .filter(item -> item instanceof Map)
                 .map(item -> {
                     Map<String, Object> map = (Map<String, Object>) item;
-                    return conditionFactory.build(new ConditionConfigDTO((String) map.get("type"), map));
+                    return conditionFactory.build(ConditionConfigDTO.of((String) map.get("type"), map));
                 })
                 .filter(Objects::nonNull)
                 .toList();

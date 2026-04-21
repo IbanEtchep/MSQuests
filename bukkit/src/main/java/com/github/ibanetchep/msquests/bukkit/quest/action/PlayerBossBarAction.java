@@ -12,11 +12,15 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,8 +49,8 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     @ConfigField(name = "duration")
     private final int duration;
 
-    private BossBar bossBar;
-    private WrappedTask removeTask;
+    private final Map<UUID, BossBar> bossBars = new ConcurrentHashMap<>();
+    private final Map<UUID, WrappedTask> removeTasks = new ConcurrentHashMap<>();
 
     public PlayerBossBarAction(QuestActionDTO dto, BukkitQuestsPlugin plugin) {
         super(dto, plugin);
@@ -86,21 +90,35 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     }
 
     private void showOrUpdateBossBar(Quest quest, Component text, double progress) {
-        if (bossBar != null) {
-            bossBar.name(text);
-            bossBar.progress(showProgress ? (float) progress : 1.0f);
-            bossBar.color(color);
-            bossBar.overlay(style);
-            if (removeTask != null) removeTask.cancel();
-        } else {
-            bossBar = BossBar.bossBar(text, showProgress ? (float) progress : 1.0f, color, style);
-            getOnlinePlayers(quest).forEach(player -> player.showBossBar(bossBar));
-        }
+        float barProgress = showProgress ? (float) progress : 1.0f;
 
-        removeTask = plugin.getScheduler().runLater(() -> {
-            getOnlinePlayers(quest).forEach(player -> player.hideBossBar(bossBar));
-            bossBar = null;
-        }, duration, TimeUnit.SECONDS);
+        for (Player player : getOnlinePlayers(quest)) {
+            UUID uuid = player.getUniqueId();
+            BossBar existing = bossBars.get(uuid);
+
+            if (existing != null) {
+                existing.name(text);
+                existing.progress(barProgress);
+                existing.color(color);
+                existing.overlay(style);
+            } else {
+                BossBar bar = BossBar.bossBar(text, barProgress, color, style);
+                bossBars.put(uuid, bar);
+                player.showBossBar(bar);
+            }
+
+            WrappedTask previous = removeTasks.remove(uuid);
+            if (previous != null) previous.cancel();
+
+            WrappedTask task = plugin.getScheduler().runLater(() -> {
+                BossBar bar = bossBars.remove(uuid);
+                removeTasks.remove(uuid);
+                if (bar == null) return;
+                Player viewer = Bukkit.getPlayer(uuid);
+                if (viewer != null) viewer.hideBossBar(bar);
+            }, duration, TimeUnit.SECONDS);
+            removeTasks.put(uuid, task);
+        }
     }
 
     private String resolveMessage() {

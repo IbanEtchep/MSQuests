@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.action;
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,7 +22,11 @@ public abstract class BukkitQuestAction extends QuestAction {
     }
 
     protected Set<Player> getOnlinePlayers(Quest quest) {
-        return quest.getActor().getProfiles().stream()
+        return getOnlinePlayers(quest.getActor());
+    }
+
+    protected Set<Player> getOnlinePlayers(QuestActor actor) {
+        return actor.getProfiles().stream()
                 .map(profile -> Bukkit.getPlayer(profile.getId()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());

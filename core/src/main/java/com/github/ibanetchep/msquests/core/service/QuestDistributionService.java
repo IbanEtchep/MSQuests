@@ -41,6 +41,10 @@ public class QuestDistributionService {
             return QuestStartResult.ALREADY_COMPLETED;
         }
 
+        if (groupConfig.getMaxPerPeriod() != null && group.hasStartedInCurrentPeriod(questConfig.getKey())) {
+            return QuestStartResult.ALREADY_COMPLETED;
+        }
+
         int maxActive = groupConfig.getMaxActive();
         int inProgress = group.getInProgressCount();
         if (inProgress >= maxActive) {

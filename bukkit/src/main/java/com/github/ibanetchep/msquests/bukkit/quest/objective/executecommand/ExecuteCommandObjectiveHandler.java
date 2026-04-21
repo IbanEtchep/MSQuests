@@ -29,7 +29,7 @@ public class ExecuteCommandObjectiveHandler extends BukkitQuestObjectiveHandler<
     @Override
     public void destroy() {}
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());

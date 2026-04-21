@@ -1,11 +1,13 @@
 package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.dto.PlayerProfileDTO;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -52,6 +54,20 @@ public class PlayerProfileService {
             logger.log(Level.SEVERE, "Failed to load profile " + id, e);
             return null;
         });
+    }
+
+    public CompletableFuture<Void> unloadProfile(UUID id) {
+        PlayerProfile profile = playerProfileRegistry.getPlayerProfile(id);
+        if (profile == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        for (QuestActor actor : new ArrayList<>(profile.getActors().values())) {
+            profile.removeActor(actor);
+        }
+
+        playerProfileRegistry.unregisterPlayerProfile(id);
+        return saveProfile(profile);
     }
 
     public CompletableFuture<Void> saveProfile(PlayerProfile profile) {
