@@ -11,7 +11,6 @@ public class QuestRegistry {
     private final Set<Quest> dirtyQuests = ConcurrentHashMap.newKeySet();
 
     public void add(Quest quest) {
-        quest.getActor().addQuest(quest);
         quests.put(quest.getId(), quest);
     }
 

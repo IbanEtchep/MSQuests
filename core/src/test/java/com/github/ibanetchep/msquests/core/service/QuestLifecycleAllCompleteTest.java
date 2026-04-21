@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
+import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
@@ -98,6 +99,7 @@ class QuestLifecycleAllCompleteTest {
     private QuestConfigRegistry questConfigRegistry;
     private QuestDistributionService distributionService;
     private RotationRepository rotationRepository;
+    private MSQuestsPlatform platform;
 
     @BeforeEach
     void setUp() {
@@ -109,6 +111,12 @@ class QuestLifecycleAllCompleteTest {
         questConfigRegistry = mock(QuestConfigRegistry.class);
         distributionService = mock(QuestDistributionService.class);
         rotationRepository = mock(RotationRepository.class);
+        platform = mock(MSQuestsPlatform.class);
+        doAnswer(invocation -> {
+            Runnable r = invocation.getArgument(0);
+            r.run();
+            return null;
+        }).when(platform).runSync(any());
 
         when(persistenceService.saveQuest(any())).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -120,7 +128,8 @@ class QuestLifecycleAllCompleteTest {
                 questConfigRegistry,
                 executor,
                 distributionService,
-                rotationRepository
+                rotationRepository,
+                platform
         );
     }
 

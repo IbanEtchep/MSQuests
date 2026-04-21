@@ -13,6 +13,7 @@ import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigge
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
+import com.github.ibanetchep.msquests.core.platform.MSQuestsPlatform;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.quest.result.QuestRotateResult;
@@ -43,6 +44,7 @@ public class QuestLifecycleService {
     private final QuestConfigRegistry questConfigRegistry;
     private final QuestDistributionService distributionManager;
     private final RotationRepository rotationRepository;
+    private final MSQuestsPlatform platform;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
@@ -52,7 +54,8 @@ public class QuestLifecycleService {
             QuestConfigRegistry questConfigRegistry,
             AtomicQuestExecutor executor,
             QuestDistributionService distributionManager,
-            RotationRepository rotationRepository
+            RotationRepository rotationRepository,
+            MSQuestsPlatform platform
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
@@ -62,6 +65,7 @@ public class QuestLifecycleService {
         this.executor = executor;
         this.distributionManager = distributionManager;
         this.rotationRepository = rotationRepository;
+        this.platform = platform;
     }
 
     /**
@@ -115,18 +119,7 @@ public class QuestLifecycleService {
                     .forEach(a -> a.execute(objective));
 
             if (quest.shouldComplete()) {
-                var questCompleteEvent = new CoreQuestCompletedEvent(quest);
-                dispatcher.dispatch(questCompleteEvent);
-                quest.setStatus(QuestStatus.COMPLETED);
-
-                groupConfig.getQuestCompleteActions().forEach(a -> a.execute(quest));
-
-                if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
-                    triggerDistribution(quest.getActor(), groupConfig);
-                }
-
-                // Check if all quests in the group are completed
-                checkAllPeriodQuestsComplete(quest.getActor(), groupConfig);
+                finalizeQuestCompletion(quest);
             }
 
             persistenceService.saveQuest(objective.getQuest()).join();
@@ -135,21 +128,28 @@ public class QuestLifecycleService {
 
     public void completeQuest(Quest quest) {
         executor.execute(quest.getId(), updatedQuest -> {
-            updatedQuest.setStatus(QuestStatus.COMPLETED);
-
-            CoreQuestCompletedEvent event = new CoreQuestCompletedEvent(updatedQuest);
-            dispatcher.dispatch(event);
-
-            for (QuestAction questAction : updatedQuest.getQuestConfig().getRewards()) {
-                questAction.execute(updatedQuest);
-            }
-
-            QuestGroupConfig groupConfig = updatedQuest.getQuestGroup();
-            if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
-                triggerDistribution(updatedQuest.getActor(), groupConfig);
-            }
-
+            finalizeQuestCompletion(updatedQuest);
             persistenceService.saveQuest(updatedQuest).join();
+        });
+    }
+
+    private void finalizeQuestCompletion(Quest quest) {
+        var questCompleteEvent = new CoreQuestCompletedEvent(quest);
+        dispatcher.dispatch(questCompleteEvent);
+        quest.setStatus(QuestStatus.COMPLETED);
+
+        QuestGroupConfig groupConfig = quest.getQuestGroup();
+
+        if (groupConfig.hasDistributionTrigger(DistributionTrigger.QUEST_COMPLETE)) {
+            triggerDistribution(quest.getActor(), groupConfig);
+        }
+
+        platform.runSync(() -> {
+            for (QuestAction reward : quest.getQuestConfig().getRewards()) {
+                reward.execute(quest);
+            }
+            groupConfig.getQuestCompleteActions().forEach(a -> a.execute(quest));
+            checkAllPeriodQuestsComplete(quest.getActor(), groupConfig);
         });
     }
 

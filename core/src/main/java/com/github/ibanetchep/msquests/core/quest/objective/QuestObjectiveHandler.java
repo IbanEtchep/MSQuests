@@ -26,6 +26,7 @@ public abstract class QuestObjectiveHandler<T extends QuestObjective> {
     }
 
     public List<T> getQuestObjectives(PlayerProfile profile) {
+        if (profile == null) return List.of();
         return profile.getActiveObjectivesByType(getObjectiveType());
     }
 }

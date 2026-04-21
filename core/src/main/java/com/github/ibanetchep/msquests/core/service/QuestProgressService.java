@@ -8,6 +8,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,8 +60,9 @@ public class QuestProgressService {
         var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
         dispatcher.dispatch(progressedEvent);
 
+        Map<String, String> context = buildContext(objective);
         objective.getQuest().getQuestGroup().getObjectiveProgressActions().stream()
-                .filter(a -> profile == null || a.testConditions(profile))
+                .filter(a -> profile == null || a.testConditions(profile, context))
                 .forEach(a -> a.execute(objective));
 
         if (objective.isCompleted()) {
@@ -76,6 +78,14 @@ public class QuestProgressService {
                 .toList();
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
+
+    private Map<String, String> buildContext(QuestObjective objective) {
+        Map<String, String> context = new HashMap<>();
+        Quest quest = objective.getQuest();
+        context.put("quest_name", quest.getQuestConfig().getName());
+        context.put("quest_key", quest.getQuestConfig().getKey());
+        return context;
     }
 
     private record PendingObjectiveProgress(

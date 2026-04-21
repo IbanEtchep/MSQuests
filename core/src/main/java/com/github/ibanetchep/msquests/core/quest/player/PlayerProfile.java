@@ -48,7 +48,7 @@ public class PlayerProfile {
 
     public void removeActor(QuestActor actor) {
         actor.removeProfile(this);
-        actors.remove(id);
+        actors.remove(actor.getId());
     }
 
     public Map<UUID, QuestActor> getActors() {

@@ -22,11 +22,19 @@ public class PlaceholderCondition implements Condition {
 
     @Override
     public boolean test(PlayerProfile profile) {
+        return test(profile, Map.of());
+    }
+
+    @Override
+    public boolean test(PlayerProfile profile, Map<String, String> contextPlaceholders) {
         Player player = Bukkit.getPlayer(profile.getId());
         if (player == null) return false;
 
-        String resolved = PlaceholderAPI.setPlaceholders(player, placeholder);
-        String resolvedValue = PlaceholderAPI.setPlaceholders(player, value);
+        String resolvedPlaceholder = applyContext(placeholder, contextPlaceholders);
+        String resolvedValue = applyContext(value, contextPlaceholders);
+
+        String resolved = PlaceholderAPI.setPlaceholders(player, resolvedPlaceholder);
+        resolvedValue = PlaceholderAPI.setPlaceholders(player, resolvedValue);
 
         return switch (action) {
             case "EQUALS_STRING" -> resolved.equals(resolvedValue);
@@ -35,6 +43,14 @@ public class PlaceholderCondition implements Condition {
             case "DIFFERENT_STRING" -> !resolved.equals(resolvedValue);
             default -> compareNumeric(resolved, resolvedValue);
         };
+    }
+
+    private String applyContext(String text, Map<String, String> context) {
+        String result = text;
+        for (Map.Entry<String, String> entry : context.entrySet()) {
+            result = result.replace("%" + entry.getKey() + "%", entry.getValue());
+        }
+        return result;
     }
 
     private boolean compareNumeric(String resolved, String resolvedValue) {

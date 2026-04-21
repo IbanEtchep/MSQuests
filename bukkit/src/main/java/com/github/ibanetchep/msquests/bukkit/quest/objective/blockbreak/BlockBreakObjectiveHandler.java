@@ -29,7 +29,7 @@ public class BlockBreakObjectiveHandler extends BukkitQuestObjectiveHandler<Bloc
     @Override
     public void destroy() {}
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (plugin.getBlockPlaceTagListener().isPlaced(event.getBlock())) {
             return;

@@ -30,16 +30,26 @@ public class TrackingBossBarService {
         return config.enabled();
     }
 
-    public void showBossBar(Player player) {
+    public void refreshBossBar(Player player) {
         if (!config.enabled()) return;
 
         PlayerProfile profile = profileRegistry.getPlayerProfile(player.getUniqueId());
-        if (profile == null) return;
+        if (profile == null) {
+            hideBossBar(player);
+            return;
+        }
 
         Quest quest = profile.getTrackedQuest();
-        if (quest == null) return;
+        if (quest == null || !quest.isActive()) {
+            hideBossBar(player);
+            return;
+        }
 
         QuestObjective objective = quest.getFirstActiveObjective();
+        if (objective == null) {
+            hideBossBar(player);
+            return;
+        }
 
         Component text = resolveMessage(quest, objective);
         float progress = computeProgress(objective);
@@ -55,25 +65,8 @@ public class TrackingBossBarService {
         }
     }
 
-    public void updateBossBar(Player player) {
-        BossBar existing = bossBars.get(player.getUniqueId());
-        if (existing == null) return;
-
-        PlayerProfile profile = profileRegistry.getPlayerProfile(player.getUniqueId());
-        if (profile == null) return;
-
-        Quest quest = profile.getTrackedQuest();
-        if (quest == null) {
-            hideBossBar(player);
-            return;
-        }
-
-        QuestObjective objective = quest.getFirstActiveObjective();
-        Component text = resolveMessage(quest, objective);
-        float progress = computeProgress(objective);
-
-        existing.name(text);
-        existing.progress(progress);
+    public void showBossBar(Player player) {
+        refreshBossBar(player);
     }
 
     public void hideBossBar(Player player) {
@@ -89,7 +82,7 @@ public class TrackingBossBarService {
             if (!quest.getId().equals(profile.getTrackedQuestId())) continue;
             Player player = Bukkit.getPlayer(profile.getId());
             if (player != null) {
-                updateBossBar(player);
+                refreshBossBar(player);
             }
         }
     }
@@ -104,10 +97,17 @@ public class TrackingBossBarService {
         }
     }
 
+    public void refreshAll() {
+        if (!config.enabled()) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            refreshBossBar(player);
+        }
+    }
+
     private float computeProgress(QuestObjective objective) {
         if (objective == null) return 1.0f;
         if (!config.showProgress()) return 1.0f;
-        float progress = (float) objective.getProgressRatio() / 100f;
+        float progress = (float) objective.getProgressRatio();
         return Math.min(1.0f, Math.max(0.0f, progress));
     }
 

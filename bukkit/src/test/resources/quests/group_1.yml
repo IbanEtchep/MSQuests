@@ -11,37 +11,30 @@ actor_type: "PLAYER"
 actions:
   quest_start:
     - type: message
-      params:
-        message: |-
-          <#2ecc71>You have started the quest %quest_name%.
-          Objectives : %objectives%
-        objective_template: <newline>   - %objective_name%
+      message: |-
+        <#2ecc71>You have started the quest %quest_name%.
+        Objectives : %objectives%
+      objective_template: <newline>   - %objective_name%
     - type: title
-      params:
-        title: <#FFD166>Quest started
-        subtitle: '%quest_name% %quest_description%'
+      title: <#FFD166>Quest started
+      subtitle: '%quest_name% %quest_description%'
     - type: action_bar
-      params:
-        message: <#FFD166>Quest %quest_name% started!
+      message: <#FFD166>Quest %quest_name% started!
   quest_complete:
     - type: message
-      params:
-        message: |-
-          <#2ecc71>You have completed the quest %quest_name%.
-          Objectives : %objectives%
-        objective: <newline>   - %objective_name%
+      message: |-
+        <#2ecc71>You have completed the quest %quest_name%.
+        Objectives : %objectives%
+      objective: <newline>   - %objective_name%
     - type: title
-      params:
-        title: <#2ecc71>Quest completed
-        subtitle: '%quest_name% %quest_description%'
+      title: <#2ecc71>Quest completed
+      subtitle: '%quest_name% %quest_description%'
   objective_progress:
     - type: boss_bar
-      params:
-        message: '%objective_name% - %objective_progress%'
+      message: '%objective_name% - %objective_progress%'
   objective_complete:
     - type: boss_bar
-      params:
-        message: '<green>%objective_name% - %objective_progress%</green>'
+      message: '<green>%objective_name% - %objective_progress%</green>'
 
 quests:
   - key: quest_1
@@ -51,13 +44,11 @@ quests:
     rewards:
       - type: "command"
         name: "Command Reward"
-        params:
-          command: "give %actor_name% diamond 1"
+        command: "give %actor_name% diamond 1"
       - type: "give_item"
         name: "Item Reward"
-        params:
-          material: "DIAMOND"
-          amount: 10
+        material: "DIAMOND"
+        amount: 10
     stages:
       - key: stage_1
         name: "Premier stage"
@@ -65,33 +56,30 @@ quests:
         objectives:
           - key: objective_1
             type: "block_break"
-            params:
-              material: "STONE"
-              amount: 10
-              conditions:
-                - type: placeholder
-                  placeholder: "%player_world%"
-                  action: EQUALS_STRING
-                  value: "world"
+            material: "STONE"
+            amount: 10
+            conditions:
+              - type: placeholder
+                placeholder: "%player_world%"
+                action: EQUALS_STRING
+                value: "world"
           - key: objective_2
             type: "kill_entity"
-            params:
-              entity_type: "ZOMBIE"
-              amount: 5
-              conditions:
-                - type: placeholder
-                  placeholder: "%player_world%"
-                  action: EQUALS_STRING
-                  value: "world_nether"
+            entity_type: "ZOMBIE"
+            amount: 5
+            conditions:
+              - type: placeholder
+                placeholder: "%player_world%"
+                action: EQUALS_STRING
+                value: "world_nether"
       - key: stage_2
         name: "Deuxième stage"
         flow: PARALLEL
         objectives:
           - key: stage_2_1
             type: "block_break"
-            params:
-              material: "DIRT"
-              amount: 5
+            material: "DIRT"
+            amount: 5
 
   - key: quest_2
     name: "Second Quest"
@@ -100,13 +88,11 @@ quests:
     rewards:
       - type: "command"
         name: "Command Reward"
-        params:
-          command: "give %actor_name% dirt 5"
+        command: "give %actor_name% dirt 5"
       - type: "give_item"
         name: "Item Reward"
-        params:
-          material: "DIRT"
-          amount: 1
+        material: "DIRT"
+        amount: 1
     stages:
       - key: stage_1
         name: "Stage unique"
@@ -114,6 +100,5 @@ quests:
         objectives:
           - key: objective_1
             type: "kill_entity"
-            params:
-              entity_type: "PIG"
-              amount: 1
+            entity_type: "PIG"
+            amount: 1

@@ -30,14 +30,9 @@ public class HarvestCropObjectiveHandler extends BukkitQuestObjectiveHandler<Har
     @Override
     public void destroy() {}
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-
-        if (plugin.getBlockPlaceTagListener().isPlaced(block)) {
-            return;
-        }
-
         Player player = event.getPlayer();
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
 

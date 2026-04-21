@@ -5,10 +5,13 @@ plugins {
 dependencies {
     api(project(":core"))
 
-    implementation("org.jdbi:jdbi3-core:3.49.6")
-    implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("com.h2database:h2:2.3.232")
+    api("org.jdbi:jdbi3-core:3.49.6")
+    api("com.zaxxer:HikariCP:5.1.0")
+    api("com.h2database:h2:2.3.232")
 
+    testImplementation("org.jdbi:jdbi3-core:3.49.6")
+    testImplementation("com.zaxxer:HikariCP:5.1.0")
+    testImplementation("com.h2database:h2:2.3.232")
     testImplementation("mysql:mysql-connector-java:8.0.33")
     testImplementation("org.slf4j:slf4j-simple:2.0.9")
     testImplementation("org.testcontainers:testcontainers:1.19.7")

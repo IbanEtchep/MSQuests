@@ -6,7 +6,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 
 public class ExecuteCommandObjective extends AbstractQuestObjective<ExecuteCommandObjectiveConfig> {
 
-    public ExecuteCommandObjective(QuestStage questStage, ExecuteCommandObjectiveConfig objectiveConfig, int progress, int target, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, target, status);
+    public ExecuteCommandObjective(QuestStage questStage, ExecuteCommandObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
+        super(questStage, objectiveConfig, progress, 1, status);
     }
 }

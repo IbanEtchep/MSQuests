@@ -155,8 +155,8 @@ public class Quest implements PlaceholderProvider {
         Instant now = Instant.now();
 
         Instant endAt = group.getEndAt();
-        if (endAt != null) {
-            return now.isAfter(endAt);
+        if (endAt != null && now.isAfter(endAt)) {
+            return true;
         }
 
         String resetCron = group.getResetCron();
@@ -194,6 +194,7 @@ public class Quest implements PlaceholderProvider {
         placeholders.put("quest_id", id.toString());
         placeholders.put("quest_key", questConfig.getKey());
         placeholders.put("quest_status", translator.getRaw(status));
+        placeholders.put("actor_name", actor.getName());
         placeholders.put("quest_actor_name", actor.getName());
         placeholders.put("quest_actor_type", actor.getActorType());
         placeholders.put("quest_name", questConfig.getName());

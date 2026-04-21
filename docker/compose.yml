@@ -4,7 +4,7 @@ services:
     environment:
       EULA: "TRUE"
       TYPE: "PAPER"
-      VERSION: "1.21.8"
+      VERSION: "1.21.11"
       MEMORY: ""
       JVM_XX_OPTS: "-XX:MaxRAMPercentage=75"
       JVM_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"

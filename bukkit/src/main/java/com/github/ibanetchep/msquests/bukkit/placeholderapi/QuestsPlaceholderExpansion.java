@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.placeholderapi;
 
+import com.github.ibanetchep.msquests.bukkit.config.PlaceholdersConfig;
 import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
@@ -10,7 +11,6 @@ import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,15 +28,27 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
 
     private static final Pattern OBJECTIVE_PATTERN = Pattern.compile("tracked_quest_objective_(\\d+)");
     private static final Pattern GROUP_PATTERN = Pattern.compile("group_(.+)_(period_end|countdown)");
+    private static final Pattern GROUP_ACTIVE_PATTERN = Pattern.compile(
+            "group_(.+)_active_(count|quest|quest_name|quest_description|quest_progress|quest_objective|quest_objective_progress|quest_index)"
+    );
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault());
     private static final int MAX_OBJECTIVES = 9;
+    private static final Comparator<Quest> QUEST_CYCLE_ORDER = Comparator
+            .comparing(Quest::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(q -> q.getId().toString());
 
     private final PlayerProfileRegistry playerProfileRegistry;
     private final QuestConfigRegistry questConfigRegistry;
+    private final PlaceholdersConfig placeholdersConfig;
 
-    public QuestsPlaceholderExpansion(PlayerProfileRegistry playerProfileRegistry, QuestConfigRegistry questConfigRegistry) {
+    public QuestsPlaceholderExpansion(
+            PlayerProfileRegistry playerProfileRegistry,
+            QuestConfigRegistry questConfigRegistry,
+            PlaceholdersConfig placeholdersConfig
+    ) {
         this.playerProfileRegistry = playerProfileRegistry;
         this.questConfigRegistry = questConfigRegistry;
+        this.placeholdersConfig = placeholdersConfig;
     }
 
     @NotNull
@@ -118,7 +131,69 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
             };
         }
 
+        Matcher activeMatcher = GROUP_ACTIVE_PATTERN.matcher(params.toLowerCase());
+        if (activeMatcher.matches()) {
+            String groupKey = activeMatcher.group(1);
+            String type = activeMatcher.group(2);
+            QuestGroupConfig group = questConfigRegistry.getQuestGroupConfigs().get(groupKey);
+            if (group == null) return "";
+
+            List<Quest> active = getActiveQuests(profile, group);
+
+            if ("count".equals(type)) {
+                return String.valueOf(active.size());
+            }
+            if (active.isEmpty()) return "";
+
+            int index = currentCycleIndex(active.size());
+            Quest current = active.get(index);
+
+            return switch (type) {
+                case "quest" -> getQuestPlaceholder(current);
+                case "quest_name" -> getQuestName(current);
+                case "quest_description" -> current.getQuestConfig().getDescription() != null
+                        ? current.getQuestConfig().getDescription() : "";
+                case "quest_progress" -> formatPercent(averageObjectiveRatio(current));
+                case "quest_objective" -> getFirstActiveObjectivePlaceholder(current);
+                case "quest_objective_progress" -> {
+                    QuestObjective objective = getFirstActiveObjective(current);
+                    yield objective != null ? formatPercent(objective.getProgressRatio()) : "";
+                }
+                case "quest_index" -> (index + 1) + "/" + active.size();
+                default -> "";
+            };
+        }
+
         return "";
+    }
+
+    private List<Quest> getActiveQuests(PlayerProfile profile, QuestGroupConfig group) {
+        return profile.getQuests().values().stream()
+                .filter(q -> q.getQuestGroup() == group)
+                .filter(Quest::isActive)
+                .sorted(QUEST_CYCLE_ORDER)
+                .toList();
+    }
+
+    private int currentCycleIndex(int size) {
+        int cycle = Math.max(1, placeholdersConfig.cycleDurationSeconds());
+        long tick = (System.currentTimeMillis() / 1000L) / cycle;
+        return (int) Math.floorMod(tick, (long) size);
+    }
+
+    private double averageObjectiveRatio(Quest quest) {
+        return quest.getObjectives().stream()
+                .mapToDouble(QuestObjective::getProgressRatio)
+                .average()
+                .orElse(0.0);
+    }
+
+    private String formatPercent(double ratio) {
+        double percent = Math.clamp(ratio, 0.0, 1.0) * 100.0;
+        if (percent == (int) percent) {
+            return ((int) percent) + "%";
+        }
+        return String.format("%.1f%%", percent);
     }
 
     @Nullable

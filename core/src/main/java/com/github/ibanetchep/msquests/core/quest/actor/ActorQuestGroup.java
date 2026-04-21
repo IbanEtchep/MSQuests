@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class ActorQuestGroup {
@@ -17,6 +18,7 @@ public class ActorQuestGroup {
     private final QuestActor actor;
     private final QuestGroupConfig groupConfig;
     private final Map<String, List<Quest>> questsByKey = new ConcurrentHashMap<>();
+    private final AtomicInteger rotationsInPeriod = new AtomicInteger(0);
 
     public ActorQuestGroup(QuestActor actor, QuestGroupConfig groupConfig) {
         this.actor = actor;
@@ -73,6 +75,20 @@ public class ActorQuestGroup {
         return list != null && !list.isEmpty();
     }
 
+    /** Returns true if the actor has a quest with this key created within the current period (any status except EXPIRED). */
+    public boolean hasStartedInCurrentPeriod(String questKey) {
+        List<Quest> list = questsByKey.get(questKey);
+        if (list == null || list.isEmpty()) return false;
+        Instant periodStart = groupConfig.getPeriodStart();
+        Instant periodEnd = groupConfig.getPeriodEnd();
+        return list.stream().anyMatch(q -> {
+            if (q.getStatus() == QuestStatus.EXPIRED) return false;
+            Instant createdAt = q.getCreatedAt().toInstant();
+            return (periodStart == null || !createdAt.isBefore(periodStart))
+                    && (periodEnd == null || createdAt.isBefore(periodEnd));
+        });
+    }
+
     public boolean hasActive(String questKey) {
         return getActiveQuestByKey(questKey) != null;
     }
@@ -106,12 +122,33 @@ public class ActorQuestGroup {
         Instant periodEnd = groupConfig.getPeriodEnd();
 
         return (int) allQuestsStream()
+                .filter(q -> q.getStatus() != QuestStatus.EXPIRED)
                 .filter(q -> {
                     Instant createdAt = q.getCreatedAt().toInstant();
                     return (periodStart == null || createdAt.isAfter(periodStart))
                             && (periodEnd == null || createdAt.isBefore(periodEnd));
                 })
                 .count();
+    }
+
+    public int getRotationsInPeriod() {
+        return rotationsInPeriod.get();
+    }
+
+    public void incrementRotations() {
+        rotationsInPeriod.incrementAndGet();
+    }
+
+    public void resetRotations() {
+        rotationsInPeriod.set(0);
+    }
+
+    public boolean canRotate() {
+        if (!groupConfig.isRotatable()) {
+            return false;
+        }
+        Integer max = groupConfig.getMaxRotationsPerPeriod();
+        return max == null || rotationsInPeriod.get() < max;
     }
 
 }

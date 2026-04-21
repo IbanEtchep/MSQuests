@@ -6,7 +6,7 @@ public record DbCredentials(String type, String host, String user, String pass, 
                             File dataFolder) {
 
     public String toURI() {
-		return "jdbc:mysql://" + host + ":" + port + "/" + dbName;
+		return "jdbc:mysql://" + host + ":" + port + "/" + dbName + "?serverTimezone=UTC";
 	}
 	
 }

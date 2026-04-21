@@ -50,7 +50,8 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
                                 UUID actorId = UUID.fromString(rs.getString("q_actor_id"));
                                 QuestStatus status = QuestStatus.valueOf(rs.getString("q_status"));
 
-                                long completedAt = rs.getTimestamp("q_completed_at") != null ? rs.getTimestamp("q_completed_at").getTime() : 0;
+                                java.sql.Timestamp completedAtTs = rs.getTimestamp("q_completed_at");
+                                Long completedAt = (completedAtTs != null && completedAtTs.getTime() > 0) ? completedAtTs.getTime() : null;
                                 long createdAt = rs.getTimestamp("q_created_at").getTime();
                                 long updatedAt = rs.getTimestamp("q_updated_at").getTime();
 
@@ -97,6 +98,19 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
     }
 
     @Override
+    public CompletableFuture<Void> delete(UUID questId) {
+        return runAsync(() -> getJdbi().useTransaction(handle -> {
+            String id = questId.toString();
+            handle.createUpdate("DELETE FROM msquests_objective WHERE quest_id = :questId")
+                    .bind("questId", id)
+                    .execute();
+            handle.createUpdate("DELETE FROM msquests_quest WHERE id = :id")
+                    .bind("id", id)
+                    .execute();
+        }));
+    }
+
+    @Override
     public CompletableFuture<Void> save(QuestDTO quest) {
         return runAsync(() -> getJdbi().useTransaction(handle -> {
             String questId = quest.id().toString();
@@ -110,13 +124,15 @@ public class QuestSqlRepository extends SqlRepository implements QuestRepository
 
             if (updatedQuest == 0) {
                 handle.createUpdate(
-                                "INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, actor_id) " +
-                                        "VALUES (:id, :questKey, :groupKey, :status, :actorId)")
+                                "INSERT INTO msquests_quest (id, quest_key, quest_group_key, quest_status, actor_id, created_at, updated_at) " +
+                                        "VALUES (:id, :questKey, :groupKey, :status, :actorId, :createdAt, :updatedAt)")
                         .bind("id", questId)
                         .bind("questKey", quest.questKey())
                         .bind("groupKey", quest.groupKey())
                         .bind("status", quest.status().toString())
                         .bind("actorId", quest.actorId().toString())
+                        .bind("createdAt", quest.createdAt() != null ? new Timestamp(quest.createdAt()) : new Timestamp(System.currentTimeMillis()))
+                        .bind("updatedAt", quest.updatedAt() != null ? new Timestamp(quest.updatedAt()) : new Timestamp(System.currentTimeMillis()))
                         .execute();
             }
 

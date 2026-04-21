@@ -23,4 +23,6 @@ public interface MSQuestsPlatform {
     ActorTypeRegistry getActorTypeRegistry();
     QuestObjectiveFactory getObjectiveTypeRegistry();
 
+    void runSync(Runnable task);
+
 }

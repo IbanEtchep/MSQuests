@@ -22,12 +22,18 @@ public class QuestPlayerService {
     public CompletableFuture<PlayerProfile> loadPlayer(Player player) {
         BukkitQuestPlayerActor actor = new BukkitQuestPlayerActor(player.getUniqueId(), player.getName());
         return questActorService.loadActor(actor)
-                        .thenCompose(v -> playerProfileService.loadProfile(player.getUniqueId(), player.getName()));
+                .thenCompose(v -> playerProfileService.loadProfile(player.getUniqueId(), player.getName()));
+    }
+
+    public CompletableFuture<Void> unloadPlayer(Player player) {
+        return playerProfileService.unloadProfile(player.getUniqueId())
+                .thenRun(() -> questActorService.unloadActor(player.getUniqueId()));
     }
 
     public CompletableFuture<Void> loadAllPlayers() {
-        return CompletableFuture.runAsync(() -> {
-            Bukkit.getOnlinePlayers().forEach(this::loadPlayer);
-        });
+        CompletableFuture<?>[] futures = Bukkit.getOnlinePlayers().stream()
+                .map(this::loadPlayer)
+                .toArray(CompletableFuture[]::new);
+        return CompletableFuture.allOf(futures);
     }
 }

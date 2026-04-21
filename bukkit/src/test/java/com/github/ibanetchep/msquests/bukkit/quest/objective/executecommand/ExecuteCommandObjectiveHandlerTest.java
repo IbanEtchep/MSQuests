@@ -26,7 +26,7 @@ public class ExecuteCommandObjectiveHandlerTest extends AbstractObjectiveHandler
                     "obj_spawn", "execute_command",
                     Map.of("command", "spawn")
             );
-            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 0, 1, QuestObjectiveStatus.IN_PROGRESS);
+            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 0, QuestObjectiveStatus.IN_PROGRESS);
         });
     }
 
@@ -76,7 +76,7 @@ public class ExecuteCommandObjectiveHandlerTest extends AbstractObjectiveHandler
                     "obj_spawn", "execute_command",
                     Map.of("command", "spawn")
             );
-            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 1, 1, QuestObjectiveStatus.COMPLETED);
+            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 1, QuestObjectiveStatus.COMPLETED);
         });
 
         handler.onCommand(new PlayerCommandPreprocessEvent(player, "/spawn"));
@@ -92,7 +92,7 @@ public class ExecuteCommandObjectiveHandlerTest extends AbstractObjectiveHandler
                     "obj_home", "execute_command",
                     Map.of("command", "home")
             );
-            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 0, 1, QuestObjectiveStatus.IN_PROGRESS);
+            return new ExecuteCommandObjective(stage, new ExecuteCommandObjectiveConfig(dto), 0, QuestObjectiveStatus.IN_PROGRESS);
         });
 
         handler.onCommand(new PlayerCommandPreprocessEvent(player, "/spawn"));
