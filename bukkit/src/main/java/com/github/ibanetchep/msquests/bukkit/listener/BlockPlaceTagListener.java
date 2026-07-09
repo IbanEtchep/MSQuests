@@ -3,16 +3,20 @@ package com.github.ibanetchep.msquests.bukkit.listener;
 import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class BlockPlaceTagListener implements Listener {
@@ -35,6 +39,22 @@ public class BlockPlaceTagListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         unmarkPlaced(event.getBlock());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        transferMarksOnPiston(event.getBlocks(), event.getDirection());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        transferMarksOnPiston(event.getBlocks(), event.getDirection().getOppositeFace());
+    }
+
+    private void transferMarksOnPiston(List<Block> blocks, BlockFace direction) {
+        List<Block> playerPlaced = blocks.stream().filter(this::isPlaced).toList();
+        playerPlaced.forEach(this::unmarkPlaced);
+        playerPlaced.forEach(b -> markPlaced(b.getRelative(direction)));
     }
 
     public boolean isPlaced(Block block) {
