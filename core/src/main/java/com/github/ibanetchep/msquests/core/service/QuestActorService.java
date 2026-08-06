@@ -5,6 +5,7 @@ import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestActorDTO;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.repository.ActorRepository;
 
 import java.util.List;
@@ -54,7 +55,7 @@ public class QuestActorService {
             questActorRegistry.registerActor(actor);
 
             return questService.loadQuests(actor).thenRun(() -> {
-                playerProfileRegistry.linkActorToProfiles(actor);
+                playerProfileRegistry.syncActorMembership(actor);
                 questLifecycleService.expireQuests(actor);
                 platform.runSync(() -> questLifecycleService.fireActorLoadActions(actor));
             });
@@ -64,8 +65,28 @@ public class QuestActorService {
         });
     }
 
+    /**
+     * Unloads an actor and detaches it from every profile still holding it, so an actor that
+     * disappears while its members are online (a disbanded guild) stops exposing its quests.
+     */
     public void unloadActor(UUID id) {
+        QuestActor actor = questActorRegistry.getActors().get(id);
+
+        if (actor != null) {
+            for (PlayerProfile profile : List.copyOf(actor.getProfiles())) {
+                profile.removeActor(actor);
+            }
+        }
+
         questActorRegistry.unregisterActor(id);
+    }
+
+    /**
+     * Re-evaluates which loaded profiles belong to the actor. Call after any membership change
+     * on a shared actor — nothing else recomputes the link once the actor is loaded.
+     */
+    public void refreshActorMembership(QuestActor actor) {
+        playerProfileRegistry.syncActorMembership(actor);
     }
 
     public CompletableFuture<Void> reloadActors() {
