@@ -6,6 +6,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -13,7 +14,7 @@ public class PlayerProfile {
 
     private final UUID id;
     private final String name;
-    private final Map<UUID, QuestActor> actors = new HashMap<>();
+    private final Map<UUID, QuestActor> actors = new ConcurrentHashMap<>();
     private @Nullable UUID trackedQuestId;
 
     public PlayerProfile(UUID id, String name) {
