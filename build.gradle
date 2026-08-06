@@ -29,6 +29,17 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    // Published so integration plugins (e.g. MSGuildQuests) can compile against MSQuests:
+    //   ./gradlew publishToMavenLocal
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
 
     def targetJavaVersion = 21
     java {

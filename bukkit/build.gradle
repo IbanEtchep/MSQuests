@@ -67,6 +67,10 @@ shadowJar {
     relocate 'com.tcoded.folialib', 'com.github.ibanetchep.msquests.libs.folialib'
 }
 
+// The shaded jar shares its coordinates with the plain jar; publish only the latter, which is
+// what integration plugins compile against.
+components.java.withVariantsFromConfiguration(configurations.shadowRuntimeElements) { skip() }
+
 
 tasks.register('copyPlugin', Copy) {
     from shadowJar.archiveFile
