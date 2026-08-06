@@ -39,4 +39,8 @@ public class TravelObjectiveConfig extends QuestObjectiveConfig {
                 Map.of("distance", distance)
         );
     }
+    @Override
+    public int getTarget() {
+        return distance;
+    }
 }

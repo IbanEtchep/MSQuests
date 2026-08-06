@@ -28,7 +28,7 @@ public class CommandAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         String command = PlaceholderEngine.getInstance().apply(commandTemplate, quest);
 
         try {
@@ -39,7 +39,7 @@ public class CommandAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestActor actor) {
+    protected void perform(QuestActor actor) {
         String command = PlaceholderEngine.getInstance().apply(commandTemplate, actor);
 
         try {

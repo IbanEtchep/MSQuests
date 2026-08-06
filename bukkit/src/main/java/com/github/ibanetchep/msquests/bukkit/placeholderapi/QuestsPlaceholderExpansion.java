@@ -153,7 +153,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
                 case "quest_name" -> getQuestName(current);
                 case "quest_description" -> current.getQuestConfig().getDescription() != null
                         ? current.getQuestConfig().getDescription() : "";
-                case "quest_progress" -> formatPercent(averageObjectiveRatio(current));
+                case "quest_progress" -> formatPercent(current.getProgressRatio());
                 case "quest_objective" -> getFirstActiveObjectivePlaceholder(current);
                 case "quest_objective_progress" -> {
                     QuestObjective objective = getFirstActiveObjective(current);
@@ -179,13 +179,6 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
         int cycle = Math.max(1, placeholdersConfig.cycleDurationSeconds());
         long tick = (System.currentTimeMillis() / 1000L) / cycle;
         return (int) Math.floorMod(tick, (long) size);
-    }
-
-    private double averageObjectiveRatio(Quest quest) {
-        return quest.getObjectives().stream()
-                .mapToDouble(QuestObjective::getProgressRatio)
-                .average()
-                .orElse(0.0);
     }
 
     private String formatPercent(double ratio) {

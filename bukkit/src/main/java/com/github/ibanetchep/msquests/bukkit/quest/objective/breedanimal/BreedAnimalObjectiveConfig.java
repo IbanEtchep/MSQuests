@@ -57,4 +57,8 @@ public class BreedAnimalObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

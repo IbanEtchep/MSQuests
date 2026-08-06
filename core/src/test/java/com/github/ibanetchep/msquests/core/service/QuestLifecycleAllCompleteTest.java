@@ -42,8 +42,16 @@ class QuestLifecycleAllCompleteTest {
     // Minimal concrete QuestObjectiveConfig for tests (core-only, no Bukkit)
     // -------------------------------------------------------------------------
     static class TestObjectiveConfig extends QuestObjectiveConfig {
-        TestObjectiveConfig(String key) {
+        private final int target;
+
+        TestObjectiveConfig(String key, int target) {
             super(new QuestObjectiveConfigDTO(key, "test", Map.of()));
+            this.target = target;
+        }
+
+        @Override
+        public int getTarget() {
+            return target;
         }
 
         @Override
@@ -62,7 +70,7 @@ class QuestLifecycleAllCompleteTest {
     // -------------------------------------------------------------------------
     static class TestObjective extends AbstractQuestObjective<TestObjectiveConfig> {
         TestObjective(QuestStage stage, String key, int progress, int target, QuestObjectiveStatus status) {
-            super(stage, new TestObjectiveConfig(key), progress, target, status);
+            super(stage, new TestObjectiveConfig(key, target), progress, status);
         }
     }
 

@@ -14,3 +14,6 @@ dependencies:
     zMenu:
       load: BEFORE
       required: false
+    Artisan:
+      load: BEFORE
+      required: false

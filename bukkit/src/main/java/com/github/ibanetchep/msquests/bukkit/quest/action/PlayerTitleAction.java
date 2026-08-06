@@ -43,7 +43,7 @@ public class PlayerTitleAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         Component titleComponent = resolveTitle().applyPlaceholderResolver(quest).toComponent();
         Component subtitleComponent = resolveSubtitle().applyPlaceholderResolver(quest).toComponent();
 
@@ -55,7 +55,7 @@ public class PlayerTitleAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestActor actor) {
+    protected void perform(QuestActor actor) {
         Component titleComponent = resolveTitle().toComponent();
         Component subtitleComponent = resolveSubtitle().toComponent();
         getOnlinePlayers(actor).forEach(player ->

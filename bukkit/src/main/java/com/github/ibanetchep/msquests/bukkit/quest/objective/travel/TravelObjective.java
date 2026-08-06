@@ -7,6 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 public class TravelObjective extends AbstractQuestObjective<TravelObjectiveConfig> {
 
     public TravelObjective(QuestStage questStage, TravelObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, objectiveConfig.getDistance(), status);
+        super(questStage, objectiveConfig, progress, status);
     }
 }

@@ -38,7 +38,11 @@ public class QuestAdminCommand {
         plugin.getQuestConfigService()
                 .loadQuestGroups()
                 .thenCompose(v -> plugin.getQuestActorService().reloadActors())
-                .thenRun(() -> sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_RELOAD).toComponent()))
+                .thenRun(() -> {
+                    // Tell Artisan menus their rows are stale (no-op without Artisan).
+                    plugin.getArtisanIntegration().signalDataReload();
+                    sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_RELOAD).toComponent());
+                })
                 .exceptionally(e -> {
                     sender.sendMessage("<red>Failed to reload quests. Check console for details.</red>");
                     plugin.getLogger().log(Level.SEVERE, "Failed during quest reload", e);

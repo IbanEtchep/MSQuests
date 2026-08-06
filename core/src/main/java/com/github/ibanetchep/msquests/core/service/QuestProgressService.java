@@ -4,13 +4,16 @@ import com.github.ibanetchep.msquests.core.event.CoreQuestObjectiveProgressEvent
 import com.github.ibanetchep.msquests.core.event.CoreQuestObjectiveProgressedEvent;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
+import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,16 +22,25 @@ public class QuestProgressService {
     private final QuestLifecycleService questLifecycleService;
     private final QuestService questService;
     private final EventDispatcher dispatcher;
-    private final Map<QuestObjective, PendingObjectiveProgress> pendingProgress = new ConcurrentHashMap<>();
+    private final QuestRegistry questRegistry;
+
+    /**
+     * Batched progress, keyed by identity of the objective rather than by instance:
+     * a reconnect rebuilds the whole Quest graph, and a batch pinned to the previous
+     * instance would be written to an object no longer reachable from the registry.
+     */
+    private final Map<ObjectiveKey, PendingObjectiveProgress> pendingProgress = new ConcurrentHashMap<>();
 
     public QuestProgressService(
             QuestLifecycleService questLifecycleService,
             QuestService questService,
-            EventDispatcher dispatcher
+            EventDispatcher dispatcher,
+            QuestRegistry questRegistry
     ) {
         this.questLifecycleService = questLifecycleService;
         this.questService = questService;
         this.dispatcher = dispatcher;
+        this.questRegistry = questRegistry;
     }
 
     public void progressObjective(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
@@ -38,10 +50,12 @@ public class QuestProgressService {
         dispatcher.dispatch(progressEvent);
         if (progressEvent.isCancelled()) return;
 
-        var pendingObjectiveProgress = pendingProgress.compute(objective, (obj, existing) ->
+        ObjectiveKey key = ObjectiveKey.of(objective);
+
+        var pendingObjectiveProgress = pendingProgress.compute(key, (k, existing) ->
                 existing == null
-                        ? new PendingObjectiveProgress(objective, progress, profile)
-                        : new PendingObjectiveProgress(objective, existing.progress() + progress, profile)
+                        ? new PendingObjectiveProgress(k, progress, profile)
+                        : new PendingObjectiveProgress(k, existing.progress() + progress, profile)
         );
 
         if(objective.getProgress() + pendingObjectiveProgress.progress >= objective.getTarget()) {
@@ -50,12 +64,17 @@ public class QuestProgressService {
     }
 
     private CompletableFuture<Quest> flushProgress(PendingObjectiveProgress pendingObjectiveProgress) {
-        QuestObjective objective = pendingObjectiveProgress.objective();
-        int progress = pendingObjectiveProgress.progress();
-        PlayerProfile profile = pendingObjectiveProgress.profile();
+        ObjectiveKey key = pendingObjectiveProgress.key();
+        pendingProgress.remove(key);
 
-        objective.incrementProgress(progress);
-        pendingProgress.remove(objective);
+        QuestObjective objective = resolve(key);
+        if (objective == null || objective.isCompleted()) {
+            // Quest deleted, rotated away or already finished elsewhere: nothing to write.
+            return CompletableFuture.completedFuture(null);
+        }
+
+        PlayerProfile profile = pendingObjectiveProgress.profile();
+        objective.incrementProgress(pendingObjectiveProgress.progress());
 
         var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
         dispatcher.dispatch(progressedEvent);
@@ -80,6 +99,26 @@ public class QuestProgressService {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
+    /**
+     * Re-reads the objective from the registry so the batch is applied to whatever
+     * instance is live now, and returns null once the quest is gone.
+     */
+    private @Nullable QuestObjective resolve(ObjectiveKey key) {
+        Quest quest = questRegistry.getQuest(key.questId());
+        if (quest == null) {
+            return null;
+        }
+
+        for (QuestStage stage : quest.getStages().values()) {
+            QuestObjective objective = stage.getObjectives().get(key.objectiveKey());
+            if (objective != null) {
+                return objective;
+            }
+        }
+
+        return null;
+    }
+
     private Map<String, String> buildContext(QuestObjective objective) {
         Map<String, String> context = new HashMap<>();
         Quest quest = objective.getQuest();
@@ -88,8 +127,15 @@ public class QuestProgressService {
         return context;
     }
 
+    /** Mirrors the composite primary key objectives are persisted under. */
+    private record ObjectiveKey(UUID questId, String objectiveKey) {
+        static ObjectiveKey of(QuestObjective objective) {
+            return new ObjectiveKey(objective.getQuest().getId(), objective.getObjectiveConfig().getKey());
+        }
+    }
+
     private record PendingObjectiveProgress(
-            QuestObjective objective,
+            ObjectiveKey key,
             int progress,
             @Nullable PlayerProfile profile
     ) {}

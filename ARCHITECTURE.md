@@ -102,6 +102,74 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `text/` | `PlaceholderEngine`, `MessageBuilder` |
 | `placeholderapi/` | `QuestsPlaceholderExpansion` |
 | `zmenu/` | Integration zMenu (pagination de groupes de quetes) |
+| `artisan/` | Integration Artisan (data sources + commandes de menu) |
+
+---
+
+## Integration Artisan
+
+Optionnelle (softdepend). Quand le plugin Artisan est present, `ArtisanIntegration`
+enregistre `MsQuestsArtisanModule` via le `ServicesManager`, ce qui expose les quetes
+aux menus de l'editeur web Artisan. Sans Artisan, rien ne change.
+
+| Data source | Stability | Contenu |
+|---|---|---|
+| `msquests:groups` | STATIC (`key`) | Groupes de quetes + compteurs de l'acteur, `quests[]` imbriquees |
+| `msquests:quests` | STATIC (`id` = `group:key`) | Catalogue complet : config + `rewards[]` + `stages[] > objectives[]`, avec la progression de l'acteur superposee |
+| `msquests:active` | DYNAMIC | Instances en cours de l'acteur, objectif par objectif |
+
+Trois parametres, communs aux trois sources :
+
+- `player` — cibler un autre joueur que celui qui ouvre le menu (par nom, doit etre en ligne)
+- `actor` — quel acteur lire : `player` (defaut), `global`, ou tout autre type enregistre
+- `group` — restreindre a un groupe (`msquests:quests`, `msquests:active`)
+
+`ActorResolver` (dans `core/registry/`) resout (joueur, type d'acteur) via
+`QuestActor#isMember`, jamais par identite : un futur acteur guilde fonctionne sans
+toucher a l'integration. Il vit dans `core` parce qu'il ne doit rien a Artisan —
+commandes, placeholders et menus posent la meme question.
+
+De meme, `ActorQuestGroup#getCurrentAttempt(questKey)` repond a « la tentative courante
+de l'acteur sur cette quete » (instance active, sinon la plus recente non-expiree de la
+periode). C'est la question que toutes les surfaces d'affichage posent ; elle est
+resolue une fois, dans le domaine.
+
+**Catalogue = config + progression superposee.** `msquests:quests` est keyee sur les
+**configs**, pas sur les instances : toutes les quetes d'un groupe apparaissent, demarrees
+ou non, et l'etat du joueur est pose par-dessus. Une quete jamais commencee expose donc
+quand meme ses stages, ses objectifs (avec leur cible) et ses recompenses, a progression
+zero. C'est ce qui permet un menu « rankup » qui montre l'arbre complet et l'avancement.
+
+Cela suppose que la cible d'un objectif soit lisible sans instance : `QuestObjectiveConfig`
+declare `getTarget()`, et `AbstractQuestObjective` la lit de la, au lieu de la recevoir en
+argument de constructeur. Catalogue et instance live ne peuvent donc pas diverger.
+
+Deux commandes appelables depuis un bouton de menu : `msquests:track <id>` (toggle) et
+`msquests:rotate <id>`, ou `<id>` est soit l'UUID d'une instance, soit un `group:key`.
+
+**Brut plutot que pre-formate.** La mise en forme appartient au menu. Les lignes
+portent des nombres (`objective_progress` / `objective_target`), des listes
+(`rewards[]`) et des instants absolus en epoch millis (`period_end`,
+`expires_at`) — jamais de chaine deja composee. Cote Artisan, le Template
+recompose ce qu'il veut :
+
+```
+{objective_progress}/{objective_target}
+{rewards.pluck("name").join("
+")}
+{period_end.until()}
+```
+
+`rewards_lore`, `countdown`, `period_end` formate et `expires_in` ont ete retires
+le 2026-08-05 : ils n'existaient que parce que le runtime Artisan ne savait pas
+joindre une liste ni formater une duree (ADR `expression-parity`).
+
+**Contrainte** : les fetchers tournent sur le main thread au rendu du menu. Ils lisent
+uniquement les registres memoire — jamais de repository, jamais d'I/O. Un acteur non
+charge (joueur hors ligne) donne des valeurs neutres, pas une attente.
+
+Build : `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan, jamais shade).
+Le produire avec `cd <Artisan>/plugin && ./gradlew publishToMavenLocal`.
 
 ---
 

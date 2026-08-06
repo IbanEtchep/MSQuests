@@ -17,6 +17,10 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly('me.clip:placeholderapi:2.11.6')
     compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
+    // Artisan integration — provided at runtime by the Artisan plugin, never shaded.
+    // Build the artifact locally with: cd <Artisan>/plugin && ./gradlew publishToMavenLocal
+    compileOnly("net.artisanmc:artisan-core-api:1.0.0-SNAPSHOT")
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     implementation("com.tcoded:FoliaLib:0.5.1")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.16")
     implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.16")
@@ -44,6 +48,8 @@ dependencies {
     testImplementation("com.h2database:h2:2.3.232")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("net.artisanmc:artisan-core-api:1.0.0-SNAPSHOT")
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
 }
 
 processResources {

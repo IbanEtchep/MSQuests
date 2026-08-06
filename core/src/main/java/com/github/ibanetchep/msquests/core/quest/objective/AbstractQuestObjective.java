@@ -12,16 +12,21 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
 
     protected C objectiveConfig;
     protected final AtomicInteger progress;
-    protected int target;
+    protected final int target;
     protected QuestStage questStage;
     protected boolean completed = false;
     protected boolean failed = false;
 
-    public AbstractQuestObjective(QuestStage questStage, C objectiveConfig, int progress, int target, QuestObjectiveStatus status) {
+    /**
+     * The target comes from {@link QuestObjectiveConfig#getTarget()} rather than from a
+     * constructor argument: it is configuration, so an instance and a catalog view of the
+     * same objective cannot drift apart.
+     */
+    public AbstractQuestObjective(QuestStage questStage, C objectiveConfig, int progress, QuestObjectiveStatus status) {
         this.questStage = questStage;
         this.objectiveConfig = objectiveConfig;
         this.progress = new AtomicInteger(progress);
-        this.target = target;
+        this.target = objectiveConfig.getTarget();
         this.completed = (status == QuestObjectiveStatus.COMPLETED);
         this.failed = (status == QuestObjectiveStatus.FAILED);
     }
@@ -83,8 +88,18 @@ public abstract class AbstractQuestObjective<C extends QuestObjectiveConfig> imp
         return getProgress() >= target;
     }
 
+    /**
+     * Share of the target reached, normalised to 0..1.
+     *
+     * <p>Clamped because consumers feed it straight to {@code BossBar#progress}, which
+     * rejects anything outside the range: a target lowered in the config after progress
+     * was persisted, or a targetless objective, must not blow up the display.
+     */
     public double getProgressRatio() {
-        return (double) getProgress() / target;
+        if (target <= 0) {
+            return 1.0;
+        }
+        return Math.clamp((double) getProgress() / target, 0.0, 1.0);
     }
 
     @Override

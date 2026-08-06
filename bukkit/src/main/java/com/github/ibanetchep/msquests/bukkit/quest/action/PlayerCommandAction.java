@@ -27,7 +27,7 @@ public class PlayerCommandAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         String command = PlaceholderEngine.getInstance().apply(commandTemplate, quest);
 
         getOnlinePlayers(quest).forEach(player -> {

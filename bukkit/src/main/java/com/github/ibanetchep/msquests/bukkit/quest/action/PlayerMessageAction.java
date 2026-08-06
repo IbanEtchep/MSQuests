@@ -44,7 +44,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         MessageBuilder messageBuilder = MessageBuilder.raw(resolveMessage())
                 .applyPlaceholderResolver(quest);
 
@@ -65,7 +65,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestActor actor) {
+    protected void perform(QuestActor actor) {
         getOnlinePlayers(actor).forEach(player ->
                 player.sendMessage(MessageBuilder.raw(resolveMessage())
                         .placeholder("player", player.getName())
@@ -74,7 +74,7 @@ public class PlayerMessageAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestObjective objective) {
+    protected void perform(QuestObjective objective) {
         Quest quest = objective.getQuest();
 
         getOnlinePlayers(quest).forEach(player -> {

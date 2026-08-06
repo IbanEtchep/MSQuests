@@ -73,4 +73,8 @@ public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
                 "amount", String.valueOf(amount)
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

@@ -7,6 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 public class CraftItemObjective extends AbstractQuestObjective<CraftItemObjectiveConfig> {
 
     public CraftItemObjective(QuestStage questStage, CraftItemObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, objectiveConfig.getAmount(), status);
+        super(questStage, objectiveConfig, progress, status);
     }
 }

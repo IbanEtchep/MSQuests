@@ -47,4 +47,9 @@ public class ExecuteCommandObjectiveConfig extends QuestObjectiveConfig {
                 "command", command
         );
     }
+    /** Running the command once completes it. */
+    @Override
+    public int getTarget() {
+        return 1;
+    }
 }

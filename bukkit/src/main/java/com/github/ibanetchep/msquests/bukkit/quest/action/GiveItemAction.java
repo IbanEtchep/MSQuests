@@ -31,7 +31,7 @@ public class GiveItemAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         getOnlinePlayers(quest).forEach(player -> {
             Map<Integer, ItemStack> notFittedItems = player.getInventory().addItem(new ItemStack(item, amount));
             if(!notFittedItems.isEmpty()) {
