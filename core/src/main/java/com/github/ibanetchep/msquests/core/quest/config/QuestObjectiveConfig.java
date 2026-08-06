@@ -32,6 +32,20 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
     /** Convert this params back to a DTO */
     public abstract QuestObjectiveConfigDTO toDTO();
 
+    /**
+     * How much progress completes this objective.
+     *
+     * <p>Declared here rather than left to each concrete config because the target belongs
+     * to the configuration, not to a running instance: describing an objective a player has
+     * not started yet requires reading it without an instance.
+     * {@link com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective}
+     * reads it from here, so a catalog view and a live instance can never disagree.
+     *
+     * <p>Objectives that are simply done-or-not (a command run, a placeholder matched)
+     * return 1.
+     */
+    public abstract int getTarget();
+
     public String getKey() {
         return key;
     }

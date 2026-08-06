@@ -12,6 +12,7 @@ import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
+import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
 import com.github.ibanetchep.msquests.bukkit.zmenu.ZMenuIntegration;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.condition.PlaceholderCondition;
@@ -97,6 +98,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
@@ -132,6 +134,8 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
     private DbAccess dbAccess;
     private FoliaLib foliaLib;
 
+    private ArtisanIntegration artisanIntegration;
+
 
     @Override
     public void onEnable() {
@@ -153,7 +157,9 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         registerActorTypes();
 
         loadConfig();
-        loadDatabase();
+        if (!loadDatabase()) {
+            return;
+        }
         loadTranslator();
 
         questFactory = new QuestFactory(questObjectiveFactory);
@@ -177,7 +183,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository, this);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService, questLifecycleService, this);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
-        questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher);
+        questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher, questRegistry);
         trackingBossBarService = new TrackingBossBarService(globalConfig.trackingBossBar(), playerProfileRegistry);
 
         registerListeners();
@@ -228,7 +234,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         translator.load();
     }
 
-    private void loadDatabase() {
+    /**
+     * @return false when the pool could not be opened, in which case the plugin is being
+     * disabled and {@code onEnable} must stop: {@code disablePlugin} returns to its caller,
+     * so carrying on would wire every service against a null {@code dbAccess}.
+     */
+    private boolean loadDatabase() {
         var databaseConfig = globalConfig.databaseConfig();
 
         var dbCredentials = new DbCredentials(
@@ -245,9 +256,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
         try {
             dbAccess.initPool(dbCredentials);
+            return true;
         } catch (Exception e) {
-            getLogger().severe("Failed to connect to database, disabling plugin.");
+            getLogger().log(Level.SEVERE, "Failed to connect to database, disabling plugin.", e);
+            dbAccess = null;
             Bukkit.getPluginManager().disablePlugin(this);
+            return false;
         }
     }
 
@@ -324,6 +338,13 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();
         }
+        artisanIntegration = new ArtisanIntegration(this);
+        artisanIntegration.register();
+    }
+
+    /** Never null once {@link #registerExpansions()} ran; a no-op when Artisan is absent. */
+    public ArtisanIntegration getArtisanIntegration() {
+        return artisanIntegration;
     }
 
     public QuestConfigRegistry getQuestConfigRegistry() {

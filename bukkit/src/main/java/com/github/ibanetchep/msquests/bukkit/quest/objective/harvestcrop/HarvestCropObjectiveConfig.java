@@ -60,4 +60,8 @@ public class HarvestCropObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

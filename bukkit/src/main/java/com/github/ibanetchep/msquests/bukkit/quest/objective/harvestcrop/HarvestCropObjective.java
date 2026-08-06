@@ -7,6 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 public class HarvestCropObjective extends AbstractQuestObjective<HarvestCropObjectiveConfig> {
 
     public HarvestCropObjective(QuestStage questStage, HarvestCropObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, objectiveConfig.getAmount(), status);
+        super(questStage, objectiveConfig, progress, status);
     }
 }

@@ -35,7 +35,7 @@ public class PlayerActionBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         getOnlinePlayers(quest).forEach(player -> {
             if (quest.getActor().isMember(player.getUniqueId())) {
                 player.sendActionBar(
@@ -49,7 +49,7 @@ public class PlayerActionBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestActor actor) {
+    protected void perform(QuestActor actor) {
         getOnlinePlayers(actor).forEach(player ->
                 player.sendActionBar(resolveMessage().placeholder("player", player.getName()).toComponent())
         );

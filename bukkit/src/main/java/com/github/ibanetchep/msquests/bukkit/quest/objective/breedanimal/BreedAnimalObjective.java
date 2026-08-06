@@ -7,6 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 public class BreedAnimalObjective extends AbstractQuestObjective<BreedAnimalObjectiveConfig> {
 
     public BreedAnimalObjective(QuestStage questStage, BreedAnimalObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, objectiveConfig.getAmount(), status);
+        super(questStage, objectiveConfig, progress, status);
     }
 }

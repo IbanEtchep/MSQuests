@@ -191,6 +191,15 @@ public class QuestGroupConfig implements PlaceholderProvider {
         return distributionConfig;
     }
 
+    /**
+     * The group's distribution strategy, {@link QuestDistributionStrategy#NONE} when it
+     * declares none — a total answer, so a caller that needs only the strategy (and not the
+     * amount or the triggers) does not re-handle the null itself.
+     */
+    public QuestDistributionStrategy getDistributionStrategy() {
+        return distributionConfig != null ? distributionConfig.getStrategy() : QuestDistributionStrategy.NONE;
+    }
+
     public boolean hasDistribution() {
         return distributionConfig != null;
     }

@@ -59,4 +59,8 @@ public class FishingObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

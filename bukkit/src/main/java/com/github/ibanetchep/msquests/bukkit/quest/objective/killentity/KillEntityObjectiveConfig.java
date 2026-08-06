@@ -58,4 +58,8 @@ public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
     public EntityType getEntityType() {
         return entityType;
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

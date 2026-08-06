@@ -79,14 +79,35 @@ public class ActorQuestGroup {
     public boolean hasStartedInCurrentPeriod(String questKey) {
         List<Quest> list = questsByKey.get(questKey);
         if (list == null || list.isEmpty()) return false;
+        return list.stream().anyMatch(this::isLiveAttempt);
+    }
+
+    /**
+     * The actor's attempt at this quest right now: the running instance, or failing that the
+     * most recent one created in the current period. Null when the quest has never been
+     * started, or when the only instances are EXPIRED — an expired attempt is over, and the
+     * quest becomes offerable again.
+     *
+     * <p>Every display surface asks this question (quest menus, placeholders, the Artisan
+     * catalog rows). It is answered once, here, so they cannot drift apart.
+     */
+    public @Nullable Quest getCurrentAttempt(String questKey) {
+        Quest active = getActiveQuestByKey(questKey);
+        if (active != null) return active;
+        return getAllQuestsForKey(questKey).stream()
+                .filter(this::isLiveAttempt)
+                .reduce((first, second) -> second)
+                .orElse(null);
+    }
+
+    /** Not expired, and created inside the group's current period. */
+    private boolean isLiveAttempt(Quest quest) {
+        if (quest.getStatus() == QuestStatus.EXPIRED) return false;
         Instant periodStart = groupConfig.getPeriodStart();
         Instant periodEnd = groupConfig.getPeriodEnd();
-        return list.stream().anyMatch(q -> {
-            if (q.getStatus() == QuestStatus.EXPIRED) return false;
-            Instant createdAt = q.getCreatedAt().toInstant();
-            return (periodStart == null || !createdAt.isBefore(periodStart))
-                    && (periodEnd == null || createdAt.isBefore(periodEnd));
-        });
+        Instant createdAt = quest.getCreatedAt().toInstant();
+        return (periodStart == null || !createdAt.isBefore(periodStart))
+                && (periodEnd == null || createdAt.isBefore(periodEnd));
     }
 
     public boolean hasActive(String questKey) {

@@ -68,7 +68,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(Quest quest) {
+    protected void perform(Quest quest) {
         double progress = quest.getProgressRatio();
 
         Component text = MessageBuilder.raw(resolveMessage())
@@ -79,7 +79,7 @@ public class PlayerBossBarAction extends BukkitQuestAction {
     }
 
     @Override
-    public void execute(QuestObjective objective) {
+    protected void perform(QuestObjective objective) {
         double progress = objective.getProgressRatio();
 
         Component text = MessageBuilder.raw(resolveMessage())

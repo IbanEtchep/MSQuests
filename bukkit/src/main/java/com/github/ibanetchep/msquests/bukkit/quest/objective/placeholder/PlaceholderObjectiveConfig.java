@@ -100,4 +100,9 @@ public class PlaceholderObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    /** Matching the placeholder once completes it. */
+    @Override
+    public int getTarget() {
+        return 1;
+    }
 }

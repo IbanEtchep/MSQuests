@@ -174,11 +174,12 @@ public class Quest implements PlaceholderProvider {
         return getCurrentStage() == null && getStatus() == QuestStatus.IN_PROGRESS;
     }
 
+    /** Mean stage completion, 0..1 — the same scale as {@link QuestStage#getProgressRatio()}. */
     public double getProgressRatio() {
         return stages.values().stream()
                 .mapToDouble(QuestStage::getProgressRatio)
                 .average()
-                .orElse(0.0) / 100.0;
+                .orElse(0.0);
     }
 
     public List<QuestObjective> getObjectives() {

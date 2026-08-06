@@ -57,4 +57,8 @@ public class CraftItemObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

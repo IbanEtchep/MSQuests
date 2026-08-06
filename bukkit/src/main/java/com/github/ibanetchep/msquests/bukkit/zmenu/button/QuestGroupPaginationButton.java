@@ -88,8 +88,11 @@ public class QuestGroupPaginationButton extends PaginateButton {
         completedSlots.clear();
         this.paginate(quests, inventoryEngine, (slot, questConfig) -> {
             String questKey = questConfig.getKey();
-            boolean isActive = actorGroup != null && actorGroup.hasActive(questKey);
-            boolean isCompleted = actorGroup != null && !isActive && actorGroup.hasStartedInCurrentPeriod(questKey);
+            Quest attempt = actorGroup != null ? actorGroup.getCurrentAttempt(questKey) : null;
+            boolean isActive = attempt != null && attempt.isActive();
+            // "Finished this period": completed, but also failed — either way the player is
+            // done with it, so the slot stays locked and shows the completed material.
+            boolean isCompleted = attempt != null && !isActive;
 
             Placeholders placeholders = new Placeholders();
             placeholders.register("quest_name", questConfig.getName());
@@ -134,20 +137,24 @@ public class QuestGroupPaginationButton extends PaginateButton {
         super.onClick(player, event, inventoryEngine, slot, placeholders);
     }
 
+    /**
+     * The attempt's own status. A failed quest used to read as "completed", because
+     * {@code hasStartedInCurrentPeriod} accepts every status but EXPIRED.
+     */
     private String getQuestStatus(ActorQuestGroup actorGroup, QuestConfig questConfig) {
-        if (actorGroup == null) return BukkitTranslator.raw(TranslationKey.ZMENU_QUEST_STATUS_AVAILABLE);
-        String key = questConfig.getKey();
-        if (actorGroup.hasActive(key)) return BukkitTranslator.raw(QuestStatus.IN_PROGRESS);
-        if (actorGroup.hasStartedInCurrentPeriod(key)) return BukkitTranslator.raw(QuestStatus.COMPLETED);
-        return BukkitTranslator.raw(TranslationKey.ZMENU_QUEST_STATUS_AVAILABLE);
+        Quest attempt = currentAttempt(actorGroup, questConfig);
+        return attempt != null
+                ? BukkitTranslator.raw(attempt.getStatus())
+                : BukkitTranslator.raw(TranslationKey.ZMENU_QUEST_STATUS_AVAILABLE);
     }
 
     private String getQuestStatusKey(ActorQuestGroup actorGroup, QuestConfig questConfig) {
-        if (actorGroup == null) return "AVAILABLE";
-        String key = questConfig.getKey();
-        if (actorGroup.hasActive(key)) return QuestStatus.IN_PROGRESS.name();
-        if (actorGroup.hasStartedInCurrentPeriod(key)) return QuestStatus.COMPLETED.name();
-        return "AVAILABLE";
+        Quest attempt = currentAttempt(actorGroup, questConfig);
+        return attempt != null ? attempt.getStatus().name() : "AVAILABLE";
+    }
+
+    private @Nullable Quest currentAttempt(ActorQuestGroup actorGroup, QuestConfig questConfig) {
+        return actorGroup != null ? actorGroup.getCurrentAttempt(questConfig.getKey()) : null;
     }
 
     private void addRewardsPlaceholder(Placeholders placeholders, QuestConfig questConfig) {
@@ -171,29 +178,29 @@ public class QuestGroupPaginationButton extends PaginateButton {
     }
 
     private void addProgressPlaceholders(Placeholders placeholders, ActorQuestGroup actorGroup, String questKey) {
-        if (actorGroup == null) {
+        Quest attempt = actorGroup != null ? actorGroup.getCurrentAttempt(questKey) : null;
+        if (attempt == null) {
             placeholders.register("quest_objective_progress", "-");
             return;
         }
 
-        Quest activeQuest = actorGroup.getActiveQuestByKey(questKey);
-        if (activeQuest != null) {
-            QuestObjective currentObjective = activeQuest.getStagesList().stream()
-                    .flatMap(s -> s.getObjectives().values().stream())
-                    .filter(o -> !o.isCompleted())
-                    .findFirst()
-                    .orElse(null);
+        QuestObjective currentObjective = attempt.isActive()
+                ? attempt.getStagesList().stream()
+                        .flatMap(s -> s.getObjectives().values().stream())
+                        .filter(o -> !o.isCompleted())
+                        .findFirst()
+                        .orElse(null)
+                : null;
 
-            if (currentObjective != null) {
-                placeholders.register("quest_objective_progress",
-                        currentObjective.getProgress() + "/" + currentObjective.getTarget());
-            } else {
-                placeholders.register("quest_objective_progress", BukkitTranslator.raw(TranslationKey.ZMENU_QUEST_PROGRESS_COMPLETED));
-            }
-        } else if (actorGroup.hasStartedInCurrentPeriod(questKey)) {
-            placeholders.register("quest_objective_progress", "Complétée !");
+        if (currentObjective != null) {
+            placeholders.register("quest_objective_progress",
+                    currentObjective.getProgress() + "/" + currentObjective.getTarget());
+        } else if (attempt.isActive()) {
+            placeholders.register("quest_objective_progress",
+                    BukkitTranslator.raw(TranslationKey.ZMENU_QUEST_PROGRESS_COMPLETED));
         } else {
-            placeholders.register("quest_objective_progress", "-");
+            // Was a hardcoded French "Complétée !" — and wrong for a failed attempt.
+            placeholders.register("quest_objective_progress", BukkitTranslator.raw(attempt.getStatus()));
         }
     }
 }

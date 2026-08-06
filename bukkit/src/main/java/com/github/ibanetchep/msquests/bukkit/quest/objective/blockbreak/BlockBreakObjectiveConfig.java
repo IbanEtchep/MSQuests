@@ -59,4 +59,8 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
                 )
         );
     }
+    @Override
+    public int getTarget() {
+        return amount;
+    }
 }

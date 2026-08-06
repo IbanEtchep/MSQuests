@@ -7,6 +7,6 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 public class FishingObjective extends AbstractQuestObjective<FishingObjectiveConfig> {
 
     public FishingObjective(QuestStage questStage, FishingObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
-        super(questStage, objectiveConfig, progress, objectiveConfig.getAmount(), status);
+        super(questStage, objectiveConfig, progress, status);
     }
 }
