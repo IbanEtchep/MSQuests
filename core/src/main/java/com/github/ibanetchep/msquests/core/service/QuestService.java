@@ -16,7 +16,9 @@ import com.github.ibanetchep.msquests.core.repository.RotationRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +31,14 @@ public class QuestService {
     private final QuestFactory questFactory;
     private final QuestRegistry questRegistry;
     private final QuestMapper questMapper;
+
+    /**
+     * Config keys already reported as missing. A quest dropped from the YAML is orphaned for
+     * every actor that ever had it, so without this the same fact is logged once per player,
+     * on every load. Rows are deliberately kept — pruning them would turn any config loading
+     * glitch into permanent data loss.
+     */
+    private final Set<String> reportedMissingConfigs = ConcurrentHashMap.newKeySet();
 
     public QuestService(
             Logger logger,
@@ -55,14 +65,17 @@ public class QuestService {
                         QuestGroupConfig questGroupConfig = questConfigRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
 
                         if (questGroupConfig == null) {
-                            logger.warning("Could not find group " + questDTO.groupKey() + " for quest " + questDTO.questKey());
+                            warnMissingConfigOnce("group:" + questDTO.groupKey(),
+                                    "Quest group '" + questDTO.groupKey() + "' is no longer defined in the configs"
+                                            + " (first seen on quest '" + questDTO.questKey() + "').");
                             continue;
                         }
 
                         QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(questDTO.questKey());
                         if (questConfig == null) {
-                            logger.warning("Could not find params for quest " + questDTO.questKey()
-                                    + " in group " + questDTO.groupKey());
+                            warnMissingConfigOnce("quest:" + questDTO.groupKey() + "/" + questDTO.questKey(),
+                                    "Quest '" + questDTO.questKey() + "' is no longer defined in group '"
+                                            + questDTO.groupKey() + "'.");
                             continue;
                         }
 
@@ -82,6 +95,22 @@ public class QuestService {
                 });
     }
 
+
+    /**
+     * Logs a missing config once per key. The saved rows are left untouched: they are ignored
+     * while the config is missing, and pick up again if it comes back.
+     */
+    private void warnMissingConfigOnce(String key, String message) {
+        if (reportedMissingConfigs.add(key)) {
+            logger.warning(message + " Its saved data is kept but ignored;"
+                    + " further occurrences are not logged until the configs are reloaded.");
+        }
+    }
+
+    /** Lets the next load report missing configs again, after the YAML files were re-read. */
+    public void clearMissingConfigReports() {
+        reportedMissingConfigs.clear();
+    }
 
     public CompletableFuture<Void> saveQuest(Quest quest) {
         return questRepository.save(questMapper.toDTO(quest)).exceptionally(e -> {

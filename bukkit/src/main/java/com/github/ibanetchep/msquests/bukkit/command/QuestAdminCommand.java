@@ -35,6 +35,8 @@ public class QuestAdminCommand {
         plugin.loadConfig();
         plugin.getTranslator().load();
 
+        plugin.getQuestService().clearMissingConfigReports();
+
         plugin.getQuestConfigService()
                 .loadQuestGroups()
                 .thenCompose(v -> plugin.getQuestActorService().reloadActors())
