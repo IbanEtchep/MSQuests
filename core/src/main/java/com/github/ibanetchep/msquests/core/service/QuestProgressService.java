@@ -67,6 +67,19 @@ public class QuestProgressService {
         }
     }
 
+    /**
+     * Progress that must not sit in the batch: what a player hands over (items, money) is
+     * already gone from them, so it is persisted right away, and the next contribution reads
+     * an up-to-date {@code getProgress()} to know what is still missing.
+     */
+    public CompletableFuture<Quest> progressObjectiveNow(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
+        progressObjective(objective, progress, profile);
+        PendingObjectiveProgress pending = pendingProgress.get(ObjectiveKey.of(objective));
+        return pending != null
+                ? flushProgress(pending)
+                : CompletableFuture.completedFuture(objective.getQuest());
+    }
+
     private CompletableFuture<Quest> flushProgress(PendingObjectiveProgress pendingObjectiveProgress) {
         ObjectiveKey key = pendingObjectiveProgress.key();
         pendingProgress.remove(key);

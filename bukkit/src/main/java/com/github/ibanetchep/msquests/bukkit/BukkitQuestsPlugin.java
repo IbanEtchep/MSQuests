@@ -347,6 +347,8 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
     public void loadConfig() {
         GlobalConfigLoaderService globalConfigLoaderService = new GlobalConfigLoaderService(this);
         globalConfig = globalConfigLoaderService.load();
+        DeliverItemObjective.setIncludeShulkerBoxes(globalConfig.deliverFromShulkerBoxes());
+        DeliverItemObjective.setItems(this::getItems);
     }
 
     public void loadTranslator() {

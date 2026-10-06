@@ -86,6 +86,8 @@ public class GlobalConfigLoaderService {
         int cycleDurationSeconds = Math.max(1, config.getInt("placeholders.cycle_duration_seconds", 5));
         PlaceholdersConfig placeholdersConfig = new PlaceholdersConfig(cycleDurationSeconds);
 
-        return new GlobalConfig(language, contentSource, database, trackingBossBarConfig, placeholdersConfig);
+        boolean deliverFromShulkerBoxes = config.getBoolean("deliver_item.include_shulker_boxes", true);
+
+        return new GlobalConfig(language, contentSource, database, trackingBossBarConfig, placeholdersConfig, deliverFromShulkerBoxes);
     }
 }
