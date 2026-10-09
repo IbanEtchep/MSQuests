@@ -1,5 +1,5 @@
 name: ArtisanQuests
-version: '1.0'
+version: '${version}'
 main: com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin
 api-version: '1.21'
 folia-supported: true

@@ -1,0 +1,95 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The Artisan integration compiles against net.artisanmc:artisan-core-api, which is only
+      # published to mavenLocal from the (private) Artisan repository. ARTISAN_REPO_TOKEN is a
+      # fine-grained token with read access to artisanmc/artisan contents.
+      - name: Check Artisan access
+        env:
+          ARTISAN_REPO_TOKEN: ${{ secrets.ARTISAN_REPO_TOKEN }}
+        run: |
+          if [ -z "$ARTISAN_REPO_TOKEN" ]; then
+            echo "::error::Missing secret ARTISAN_REPO_TOKEN (read access to artisanmc/artisan), needed to build artisan-core-api."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+        with:
+          repository: artisanmc/artisan
+          token: ${{ secrets.ARTISAN_REPO_TOKEN }}
+          path: .artisan
+          sparse-checkout: plugin
+
+      - name: Publish artisan-core-api to mavenLocal
+        working-directory: .artisan/plugin
+        run: bash ./gradlew --no-daemon publishCoreApiPublicationToMavenLocal
+
+      # Tags v1.2.3 build version 1.2.3; everything else stays a snapshot.
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=1.0-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Repository tests use Testcontainers (MySQL); the runner provides Docker.
+      - name: Build and test
+        run: bash ./gradlew --no-daemon build -PpluginVersion=${{ steps.version.outputs.value }}
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artisanquests-${{ steps.version.outputs.value }}
+          path: bukkit/build/libs/artisanquests-*.jar
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: artisanquests-*
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artisanquests-*.jar
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
