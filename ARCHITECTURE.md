@@ -492,3 +492,14 @@ Les configs de quetes sont chargees par `QuestConfigYamlRepository` avec Jackson
 14. **Verifier le build complet** : `./gradlew clean build` avant de commit. Le shadow JAR est copie automatiquement dans `docker/plugins/`.
 
 15. **Migrations SQL** : Pour tout changement de schema, creer une nouvelle classe `Migration` avec un numero de version incremente, et l'enregistrer dans `MigrationManager`.
+
+## CI et releases
+
+`.github/workflows/build.yml` compile et teste a chaque push sur `master` et sur chaque PR, et
+publie le JAR en artefact du run. Un tag `vX.Y.Z` cree une release GitHub avec
+`artisanquests-X.Y.Z.jar` (version injectee via `-PpluginVersion`, reprise dans `paper-plugin.yml`).
+Un tag avec un tiret (`v1.2.0-beta.1`) donne une pre-release.
+
+Le build a besoin de `artisan-core-api`, publie seulement en mavenLocal depuis le depot prive
+`artisanmc/artisan` : le workflow le clone avec le secret `ARTISAN_REPO_TOKEN` (token
+fine-grained, lecture du contenu de `artisanmc/artisan`).
