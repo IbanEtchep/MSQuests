@@ -1,6 +1,6 @@
-# Architecture - MSQuests
+# Architecture - ArtisanQuests (ex-MSQuests)
 
-Ce document decrit l'architecture du projet MSQuests, un plugin Minecraft Paper 1.21+ de gestion de quetes.
+Ce document decrit l'architecture du projet ArtisanQuests, anciennement MSQuests, un plugin Minecraft Paper 1.21+ de gestion de quetes.
 
 ---
 
@@ -28,6 +28,26 @@ MSQuests est un systeme de quetes modulaire construit sur une architecture en co
 - `core` n'a aucune dependance vers les autres modules
 
 ---
+
+## Nom du plugin et compatibilite avec MSQuests
+
+Le plugin s'appelle `ArtisanQuests` (`name:` de `paper-plugin.yml`). Le code garde le package
+`com.github.ibanetchep.msquests` et les coordonnees Maven, invisibles pour l'utilisateur.
+
+| Element | Nouveau | Ancien, toujours accepte |
+|---|---|---|
+| Nom du plugin | `ArtisanQuests` | `MSQuests` via `provides:` (les `depend: [MSQuests]` resolvent) |
+| Dossier de donnees | `plugins/ArtisanQuests/` | `plugins/MSQuests/` copie au premier demarrage (`LegacyDataFolderMigration`), l'original est garde pour le rollback |
+| Commande admin | `/artisanquests` | `/msquests` |
+| Placeholders PAPI | `%artisanquests_...%` | `%msquests_...%` (deux expansions enregistrees) |
+| Jar | `artisanquests-<version>.jar` | |
+
+Inchanges volontairement, car persistes ailleurs : permissions `msquests.*` (groupes LuckPerms),
+id du module Artisan et data sources `msquests:*` (menus publies), type de bouton zMenu
+`MSQUESTS_QUEST_GROUP`, tables `msquests_*`.
+
+Les deux jars ne doivent pas coexister dans `plugins/` : `provides: [MSQuests]` entrerait en
+conflit avec l'ancien plugin.
 
 ## Modules
 

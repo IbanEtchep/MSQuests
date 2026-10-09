@@ -1,8 +1,11 @@
-name: MSQuests
+name: ArtisanQuests
 version: '1.0'
 main: com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin
 api-version: '1.21'
 folia-supported: true
+# Former name: plugins that depend on MSQuests keep resolving to this one.
+provides:
+  - MSQuests
 authors:
   - ibanetchep
 
