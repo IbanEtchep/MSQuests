@@ -500,5 +500,5 @@ publie le JAR en artefact du run. Un tag `vX.Y.Z` cree une release GitHub avec
 `artisanquests-X.Y.Z.jar` (version injectee via `-PpluginVersion`, reprise dans `paper-plugin.yml`).
 Un tag avec un tiret (`v1.2.0-beta.1`) donne une pre-release.
 
-`artisan-core-api` vient de `https://repo.artisanmc.net/snapshots` (Reposilite d'Artisan), sans
+`artisan-core-api` 1.6.0 vient de `https://repo.artisanmc.net/releases` (Reposilite d'Artisan), sans
 token.

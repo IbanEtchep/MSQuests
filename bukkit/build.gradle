@@ -9,7 +9,7 @@ repositories {
     }
     maven { url = 'https://repo.groupez.dev/releases' }
     // artisan-core-api: 1.0.0-SNAPSHOT follows Artisan's main branch.
-    maven { url = 'https://repo.artisanmc.net/snapshots' }
+    maven { url = 'https://repo.artisanmc.net/releases' }
 }
 
 dependencies {
@@ -20,9 +20,9 @@ dependencies {
     compileOnly('me.clip:placeholderapi:2.11.6')
     compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
     // Artisan integration — provided at runtime by the Artisan plugin, never shaded.
-    // Served by repo.artisanmc.net; mavenLocal (cd <Artisan>/plugin && ./gradlew publishToMavenLocal)
-    // still wins for unpublished local API changes.
-    compileOnly("net.artisanmc:artisan-core-api:1.0.0-SNAPSHOT")
+    // Released API version (SemVer of the API, `Since` column of Artisan's api-surface.md),
+    // served by repo.artisanmc.net/releases.
+    compileOnly("net.artisanmc:artisan-core-api:1.6.0")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     implementation("com.tcoded:FoliaLib:0.5.1")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.16")
@@ -51,7 +51,7 @@ dependencies {
     testImplementation("com.h2database:h2:2.3.232")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
-    testImplementation("net.artisanmc:artisan-core-api:1.0.0-SNAPSHOT")
+    testImplementation("net.artisanmc:artisan-core-api:1.6.0")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
 }
 
