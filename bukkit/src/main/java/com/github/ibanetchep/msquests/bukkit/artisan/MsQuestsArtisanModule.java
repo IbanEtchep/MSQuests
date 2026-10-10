@@ -169,14 +169,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                 Stability.DYNAMIC,
                 null));
 
-        api.getCommands().register(new CommandDeclaration("msquests:track", (player, args) -> {
-            track(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
-        api.getCommands().register(new CommandDeclaration("msquests:rotate", (player, args) -> {
-            rotate(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
+        api.getCommands().register(new CommandDeclaration("msquests:track", (player, args) -> track(player, argv(args))));
+        api.getCommands().register(new CommandDeclaration("msquests:rotate", (player, args) -> rotate(player, argv(args))));
     }
 
     @Override
