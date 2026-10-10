@@ -14,7 +14,7 @@ import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 @Command("quest")
-@CommandPermission("msquests.player")
+@CommandPermission("artisanquests.player")
 public class QuestCommand {
 
     private final BukkitQuestsPlugin plugin;
@@ -45,7 +45,7 @@ public class QuestCommand {
 
     @Subcommand("rotate")
     @Description("Rotates a quest for a new random one from the same group")
-    @CommandPermission("msquests.rotate")
+    @CommandPermission("artisanquests.rotate")
     public void rotate(Player sender, QuestGroupConfig group, Quest quest) {
         QuestActor actor = plugin.getQuestActorRegistry().getActors().get(sender.getUniqueId());
         if (actor == null) return;
