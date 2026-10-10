@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.migration;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
@@ -32,7 +33,7 @@ public final class LegacyDataFolderMigration {
     /**
      * Copies {@code legacy} into {@code target} when {@code legacy} exists and {@code target} is
      * missing or empty. Never overwrites: a non-empty target means the migration already ran or
-     * the admin set the new folder up by hand.
+     * the admin set the new folder up by hand, and a target that is a file fails the migration.
      */
     public static Outcome migrate(Path legacy, Path target, Logger logger) throws IOException {
         if (!Files.isDirectory(legacy)) {
@@ -40,6 +41,10 @@ public final class LegacyDataFolderMigration {
         }
         if (Files.isDirectory(target) && !isEmpty(target)) {
             return Outcome.ALREADY_MIGRATED;
+        }
+        if (Files.exists(target, LinkOption.NOFOLLOW_LINKS) && !Files.isDirectory(target)) {
+            throw new IOException(target + " exists and is not a folder; move it away so the data of "
+                    + legacy + " can be copied there.");
         }
 
         Path staging = target.resolveSibling(target.getFileName() + ".migrating");
