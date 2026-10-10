@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LegacyDataFolderMigrationTest {
@@ -74,6 +75,17 @@ class LegacyDataFolderMigrationTest {
         assertEquals(LegacyDataFolderMigration.Outcome.ALREADY_MIGRATED,
                 LegacyDataFolderMigration.migrate(legacy, target, LOGGER));
         assertEquals("new", Files.readString(target.resolve("config.yml")));
+    }
+
+    @Test
+    void refusesATargetThatIsAFileAndLeavesItIntact() throws IOException {
+        Path legacy = plugins.resolve("MSQuests");
+        Files.createDirectories(legacy);
+        Files.writeString(legacy.resolve("config.yml"), "old");
+        Path target = Files.writeString(plugins.resolve("ArtisanQuests"), "admin file");
+
+        assertThrows(IOException.class, () -> LegacyDataFolderMigration.migrate(legacy, target, LOGGER));
+        assertEquals("admin file", Files.readString(target));
     }
 
     @Test
