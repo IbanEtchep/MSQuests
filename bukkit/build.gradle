@@ -8,6 +8,8 @@ repositories {
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
     maven { url = 'https://repo.groupez.dev/releases' }
+    // artisan-core-api: 1.0.0-SNAPSHOT follows Artisan's main branch.
+    maven { url = 'https://repo.artisanmc.net/snapshots' }
 }
 
 dependencies {
@@ -18,7 +20,8 @@ dependencies {
     compileOnly('me.clip:placeholderapi:2.11.6')
     compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
     // Artisan integration — provided at runtime by the Artisan plugin, never shaded.
-    // Build the artifact locally with: cd <Artisan>/plugin && ./gradlew publishToMavenLocal
+    // Served by repo.artisanmc.net; mavenLocal (cd <Artisan>/plugin && ./gradlew publishToMavenLocal)
+    // still wins for unpublished local API changes.
     compileOnly("net.artisanmc:artisan-core-api:1.0.0-SNAPSHOT")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     implementation("com.tcoded:FoliaLib:0.5.1")
