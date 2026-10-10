@@ -46,7 +46,7 @@ import java.util.UUID;
  *
  * <p>Per-actor fields degrade to neutral values when no actor is resolved (editor preview,
  * or a group whose actor type the viewer has no actor for). The key-set never varies —
- * that is what lets {@code msquests:groups} and {@code msquests:quests} declare themselves
+ * that is what lets {@code artisanquests:groups} and {@code artisanquests:quests} declare themselves
  * STATIC and be placeable slot by slot in the editor.
  */
 public final class QuestRows {

@@ -24,7 +24,7 @@ This is a Gradle multi-module project targeting Paper 1.21+ (Minecraft plugin):
 
 Root package: `com.github.ibanetchep.msquests`
 
-The plugin is published as **ArtisanQuests** (formerly MSQuests). Only user-facing names changed; legacy names stay accepted (`provides: [MSQuests]`, data folder copied on first start, `/msquests` and `%msquests_...%` aliases). Permissions, Artisan data source ids, zMenu button type and table names keep the `msquests` prefix on purpose. See ARCHITECTURE.md, section "Nom du plugin".
+The plugin is published as **ArtisanQuests** (formerly MSQuests). Only user-facing names changed; legacy names stay accepted (`provides: [MSQuests]`, data folder copied on first start, `/msquests` and `%msquests_...%` aliases). Permissions (`artisanquests.*`, old `msquests.*` nodes declared as parents) and the Artisan module/data sources (`artisanquests:*`, no alias) were renamed too; the zMenu button type and table names keep the `msquests` prefix on purpose. See ARCHITECTURE.md, section "Nom du plugin".
 
 ## Architecture
 

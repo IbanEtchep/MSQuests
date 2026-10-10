@@ -20,7 +20,7 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.util.logging.Level;
 
 @Command({"artisanquests", "msquests"})
-@CommandPermission("msquests.admin")
+@CommandPermission("artisanquests.admin")
 public class QuestAdminCommand {
 
     private final BukkitQuestsPlugin plugin;

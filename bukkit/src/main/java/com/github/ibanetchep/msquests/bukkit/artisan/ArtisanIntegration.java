@@ -50,7 +50,7 @@ public final class ArtisanIntegration {
             MsQuestsArtisanModule created = new MsQuestsArtisanModule(plugin);
             api.getModules().register(created);
             this.module = created;
-            plugin.getLogger().info("Artisan integration registered (msquests:groups, msquests:quests, msquests:active).");
+            plugin.getLogger().info("Artisan integration registered (artisanquests:groups, artisanquests:quests, artisanquests:active).");
         } catch (Throwable e) {
             // NoClassDefFoundError included: a partially installed Artisan must not take MSQuests down.
             plugin.getLogger().log(Level.WARNING, "Failed to register the Artisan integration", e);
