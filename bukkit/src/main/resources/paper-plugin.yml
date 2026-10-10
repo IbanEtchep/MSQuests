@@ -1,8 +1,11 @@
-name: MSQuests
-version: '1.0'
+name: ArtisanQuests
+version: '${version}'
 main: com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin
 api-version: '1.21'
 folia-supported: true
+# Former name: plugins that depend on MSQuests keep resolving to this one.
+provides:
+  - MSQuests
 authors:
   - ibanetchep
 
@@ -17,3 +20,37 @@ dependencies:
     Artisan:
       load: BEFORE
       required: false
+
+permissions:
+  artisanquests.player:
+    description: Use /quest (list, track and start quests).
+    default: op
+  artisanquests.rotate:
+    description: Reroll a quest of a rotatable group.
+    default: op
+  artisanquests.admin:
+    description: Use /artisanquests (admin commands).
+    default: op
+  # Nodes from before the rename: groups that still grant them keep the same rights.
+  msquests.player:
+    description: Former name of artisanquests.player.
+    default: op
+    children:
+      artisanquests.player: true
+  msquests.rotate:
+    description: Former name of artisanquests.rotate.
+    default: op
+    children:
+      artisanquests.rotate: true
+  msquests.admin:
+    description: Former name of artisanquests.admin.
+    default: op
+    children:
+      artisanquests.admin: true
+  msquests.*:
+    description: Former wildcard, grants every artisanquests permission.
+    default: op
+    children:
+      artisanquests.player: true
+      artisanquests.rotate: true
+      artisanquests.admin: true

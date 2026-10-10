@@ -1,6 +1,6 @@
-# Architecture - MSQuests
+# Architecture - ArtisanQuests (ex-MSQuests)
 
-Ce document decrit l'architecture du projet MSQuests, un plugin Minecraft Paper 1.21+ de gestion de quetes.
+Ce document decrit l'architecture du projet ArtisanQuests, anciennement MSQuests, un plugin Minecraft Paper 1.21+ de gestion de quetes.
 
 ---
 
@@ -28,6 +28,27 @@ MSQuests est un systeme de quetes modulaire construit sur une architecture en co
 - `core` n'a aucune dependance vers les autres modules
 
 ---
+
+## Nom du plugin et compatibilite avec MSQuests
+
+Le plugin s'appelle `ArtisanQuests` (`name:` de `paper-plugin.yml`). Le code garde le package
+`com.github.ibanetchep.msquests` et les coordonnees Maven, invisibles pour l'utilisateur.
+
+| Element | Nouveau | Ancien, toujours accepte |
+|---|---|---|
+| Nom du plugin | `ArtisanQuests` | `MSQuests` via `provides:` (les `depend: [MSQuests]` resolvent) |
+| Dossier de donnees | `plugins/ArtisanQuests/` | `plugins/MSQuests/` copie au premier demarrage (`LegacyDataFolderMigration`), l'original est garde pour le rollback |
+| Commande admin | `/artisanquests` | `/msquests` |
+| Placeholders PAPI | `%artisanquests_...%` | `%msquests_...%` (deux expansions enregistrees) |
+| Permissions | `artisanquests.player`, `.rotate`, `.admin` | `msquests.player`, `.rotate`, `.admin`, `msquests.*` : declarees dans `paper-plugin.yml` avec la nouvelle permission en enfant, donc un groupe LuckPerms qui les accorde garde ses droits |
+| Module et data sources Artisan | module `artisanquests`, `artisanquests:groups`, `:quests`, `:active`, commandes `artisanquests:track`, `:rotate` | aucun alias : un menu qui reference `msquests:*` doit etre mis a jour (rechercher-remplacer `msquests:` → `artisanquests:` dans ses fichiers) |
+| Jar | `artisanquests-<version>.jar` | |
+
+Inchanges volontairement : type de bouton zMenu `MSQUESTS_QUEST_GROUP` (menus zMenu existants),
+tables `msquests_*` (un nom de table n'est pas visible).
+
+Les deux jars ne doivent pas coexister dans `plugins/` : `provides: [MSQuests]` entrerait en
+conflit avec l'ancien plugin.
 
 ## Modules
 
@@ -114,15 +135,15 @@ aux menus de l'editeur web Artisan. Sans Artisan, rien ne change.
 
 | Data source | Stability | Contenu |
 |---|---|---|
-| `msquests:groups` | STATIC (`key`) | Groupes de quetes + compteurs de l'acteur, `quests[]` imbriquees |
-| `msquests:quests` | STATIC (`id` = `group:key`) | Catalogue complet : config + `rewards[]` + `stages[] > objectives[]`, avec la progression de l'acteur superposee |
-| `msquests:active` | DYNAMIC | Instances en cours de l'acteur, objectif par objectif |
+| `artisanquests:groups` | STATIC (`key`) | Groupes de quetes + compteurs de l'acteur, `quests[]` imbriquees |
+| `artisanquests:quests` | STATIC (`id` = `group:key`) | Catalogue complet : config + `rewards[]` + `stages[] > objectives[]`, avec la progression de l'acteur superposee |
+| `artisanquests:active` | DYNAMIC | Instances en cours de l'acteur, objectif par objectif |
 
 Trois parametres, communs aux trois sources :
 
 - `player` — cibler un autre joueur que celui qui ouvre le menu (par nom, doit etre en ligne)
 - `actor` — quel acteur lire : `player` (defaut), `global`, ou tout autre type enregistre
-- `group` — restreindre a un groupe (`msquests:quests`, `msquests:active`)
+- `group` — restreindre a un groupe (`artisanquests:quests`, `artisanquests:active`)
 
 `ActorResolver` (dans `core/registry/`) resout (joueur, type d'acteur) via
 `QuestActor#isMember`, jamais par identite : un futur acteur guilde fonctionne sans
@@ -134,7 +155,7 @@ de l'acteur sur cette quete » (instance active, sinon la plus recente non-expir
 periode). C'est la question que toutes les surfaces d'affichage posent ; elle est
 resolue une fois, dans le domaine.
 
-**Catalogue = config + progression superposee.** `msquests:quests` est keyee sur les
+**Catalogue = config + progression superposee.** `artisanquests:quests` est keyee sur les
 **configs**, pas sur les instances : toutes les quetes d'un groupe apparaissent, demarrees
 ou non, et l'etat du joueur est pose par-dessus. Une quete jamais commencee expose donc
 quand meme ses stages, ses objectifs (avec leur cible) et ses recompenses, a progression
@@ -144,8 +165,8 @@ Cela suppose que la cible d'un objectif soit lisible sans instance : `QuestObjec
 declare `getTarget()`, et `AbstractQuestObjective` la lit de la, au lieu de la recevoir en
 argument de constructeur. Catalogue et instance live ne peuvent donc pas diverger.
 
-Deux commandes appelables depuis un bouton de menu : `msquests:track <id>` (toggle) et
-`msquests:rotate <id>`, ou `<id>` est soit l'UUID d'une instance, soit un `group:key`.
+Deux commandes appelables depuis un bouton de menu : `artisanquests:track <id>` (toggle) et
+`artisanquests:rotate <id>`, ou `<id>` est soit l'UUID d'une instance, soit un `group:key`.
 
 **Brut plutot que pre-formate.** La mise en forme appartient au menu. Les lignes
 portent des nombres (`objective_progress` / `objective_target`), des listes
@@ -472,3 +493,13 @@ Les configs de quetes sont chargees par `QuestConfigYamlRepository` avec Jackson
 14. **Verifier le build complet** : `./gradlew clean build` avant de commit. Le shadow JAR est copie automatiquement dans `docker/plugins/`.
 
 15. **Migrations SQL** : Pour tout changement de schema, creer une nouvelle classe `Migration` avec un numero de version incremente, et l'enregistrer dans `MigrationManager`.
+
+## CI et releases
+
+`.github/workflows/build.yml` compile et teste a chaque push sur `master` et sur chaque PR, et
+publie le JAR en artefact du run. Un tag `vX.Y.Z` cree une release GitHub avec
+`artisanquests-X.Y.Z.jar` (version injectee via `-PpluginVersion`, reprise dans `paper-plugin.yml`).
+Un tag avec un tiret (`v1.2.0-beta.1`) donne une pre-release.
+
+`artisan-core-api` 1.6.0 vient de `https://repo.artisanmc.net/releases` (Reposilite d'Artisan), sans
+token.

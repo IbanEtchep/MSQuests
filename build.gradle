@@ -5,7 +5,8 @@ plugins {
 
 allprojects {
     group = 'com.github.ibanetchep.msquests'
-    version = '1.0-SNAPSHOT'
+    // CI passes -PpluginVersion=<tag without v> for releases.
+    version = findProperty('pluginVersion') ?: '1.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
