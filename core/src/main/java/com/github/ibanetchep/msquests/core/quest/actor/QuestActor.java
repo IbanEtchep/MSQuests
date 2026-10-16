@@ -7,6 +7,8 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,9 +16,19 @@ public abstract class QuestActor implements PlaceholderProvider {
 
     protected UUID id;
     protected String name;
-    protected final Map<String, ActorQuestGroup> groups = new ConcurrentHashMap<>();
-    protected final Map<UUID, Quest> quests = new ConcurrentHashMap<>();
+    /*
+     * Both maps are swapped as a whole by replaceLoadedQuests, so a reload never exposes an
+     * empty or half-filled actor, and never stacks the reloaded quests on top of the old ones.
+     */
+    protected volatile Map<String, ActorQuestGroup> groups = new ConcurrentHashMap<>();
+    protected volatile Map<UUID, Quest> quests = new ConcurrentHashMap<>();
     protected final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
+    /*
+     * Quests removed in memory (rotation, abandon) with the time of removal. A reload whose read
+     * started before the database delete landed still returns them; this keeps them out.
+     */
+    private final Map<UUID, Instant> removedQuests = new ConcurrentHashMap<>();
+    private static final Duration REMOVED_QUEST_MEMORY = Duration.ofMinutes(10);
 
     public QuestActor(UUID id, String name) {
         this.id = id;
@@ -42,12 +54,65 @@ public abstract class QuestActor implements PlaceholderProvider {
         return Collections.unmodifiableMap(quests);
     }
 
-    public void addQuest(Quest quest) {
+    public synchronized void addQuest(Quest quest) {
         quests.put(quest.getId(), quest);
         quest.setActor(this);
 
         QuestGroupConfig groupConfig = quest.getQuestGroup();
         groups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig)).addQuest(quest);
+    }
+
+    /**
+     * Replaces every loaded quest with the ones just read from storage, in one step.
+     *
+     * <p>Quests started after {@code loadStartedAt} are kept even if the read missed them: their
+     * insert may not have reached the database yet when the read ran. Quests removed from this
+     * actor are dropped even if the read still returned them: their delete may not have landed.
+     *
+     * @param rotationsByGroup rotations already used this period, per group
+     * @return the quests the actor held before, for callers that must drop them elsewhere
+     */
+    public synchronized Collection<Quest> replaceLoadedQuests(
+            Collection<Quest> loaded,
+            Map<QuestGroupConfig, Integer> rotationsByGroup,
+            Instant loadStartedAt
+    ) {
+        Map<UUID, Quest> previous = quests;
+        Map<UUID, Quest> nextQuests = new ConcurrentHashMap<>();
+        Map<String, ActorQuestGroup> nextGroups = new ConcurrentHashMap<>();
+
+        Instant forgetBefore = Instant.now().minus(REMOVED_QUEST_MEMORY);
+        removedQuests.values().removeIf(removedAt -> removedAt.isBefore(forgetBefore));
+
+        List<Quest> toAdd = new ArrayList<>();
+        for (Quest quest : loaded) {
+            if (!removedQuests.containsKey(quest.getId())) {
+                toAdd.add(quest);
+            }
+        }
+        for (Quest quest : previous.values()) {
+            boolean missedByRead = loaded.stream().noneMatch(q -> q.getId().equals(quest.getId()))
+                    && quest.getCreatedAt() != null
+                    && !quest.getCreatedAt().toInstant().isBefore(loadStartedAt);
+            if (missedByRead) {
+                toAdd.add(quest);
+            }
+        }
+
+        for (Quest quest : toAdd) {
+            quest.setActor(this);
+            nextQuests.put(quest.getId(), quest);
+            QuestGroupConfig groupConfig = quest.getQuestGroup();
+            nextGroups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig)).addQuest(quest);
+        }
+
+        rotationsByGroup.forEach((groupConfig, count) -> nextGroups
+                .computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig))
+                .setRotations(count));
+
+        quests = nextQuests;
+        groups = nextGroups;
+        return previous.values();
     }
 
     public @Nullable ActorQuestGroup getActorQuestGroup(QuestGroupConfig groupConfig) {
@@ -58,8 +123,9 @@ public abstract class QuestActor implements PlaceholderProvider {
         return groups.computeIfAbsent(groupConfig.getKey(), k -> new ActorQuestGroup(this, groupConfig));
     }
 
-    public void removeQuest(Quest quest) {
+    public synchronized void removeQuest(Quest quest) {
         quests.remove(quest.getId());
+        removedQuests.put(quest.getId(), Instant.now());
     }
 
     @SuppressWarnings("unchecked")
