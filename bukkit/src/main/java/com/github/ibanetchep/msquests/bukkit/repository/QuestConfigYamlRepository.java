@@ -5,13 +5,16 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
+import com.github.ibanetchep.msquests.core.repository.QuestConfigLoad;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,28 +43,42 @@ public class QuestConfigYamlRepository implements QuestConfigRepository {
     }
 
     @Override
-    public CompletableFuture<Map<String, QuestGroupConfigDTO>> getAllGroups() {
+    public CompletableFuture<QuestConfigLoad> loadAllGroups() {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, QuestGroupConfigDTO> questGroups = new HashMap<>();
+            List<String> failures = new ArrayList<>();
 
             try (Stream<Path> paths = Files.walk(rootFolder)) {
                 paths
                         .filter(Files::isRegularFile)
                         .filter(this::isValidQuestFile)
+                        .sorted()
                         .forEach(path -> {
                             try {
                                 QuestGroupConfigDTO group = loadGroup(path);
-                                questGroups.put(group.key(), group);
+                                QuestGroupConfigDTO previous = questGroups.putIfAbsent(group.key(), group);
+                                if (previous != null) {
+                                    failures.add(path + ": group key '" + group.key() + "' is already defined by another file");
+                                }
                             } catch (Exception e) {
                                 logger.log(Level.WARNING, "Failed to load quest group " + path, e);
+                                failures.add(path + ": " + rootMessage(e));
                             }
                         });
             } catch (IOException e) {
                 throw new RuntimeException("Failed to read quest config files", e);
             }
 
-            return questGroups;
+            return new QuestConfigLoad(questGroups, failures);
         });
+    }
+
+    private static String rootMessage(Throwable e) {
+        Throwable root = e;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root.getMessage() != null ? root.getMessage() : root.getClass().getSimpleName();
     }
 
     public QuestGroupConfigDTO loadGroup(Path path) throws IOException {

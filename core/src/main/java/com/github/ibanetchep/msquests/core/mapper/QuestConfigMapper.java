@@ -62,7 +62,8 @@ public class QuestConfigMapper {
     }
 
     public QuestConfig toEntity(QuestConfigDTO dto) {
-        QuestConfig questConfig = new QuestConfig(dto.key(), dto.name(), dto.description(), dto.duration());
+        QuestConfig questConfig = new QuestConfig(dto.key(), dto.name(), dto.description(),
+                dto.duration() != null ? dto.duration() : 0L); // absent: no limit, instead of an unboxing NPE
         questConfig.setTier(dto.tier());
 
         if (dto.rewards() != null) {
