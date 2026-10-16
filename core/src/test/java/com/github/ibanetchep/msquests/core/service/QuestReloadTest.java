@@ -129,6 +129,33 @@ class QuestReloadTest {
         assertTrue(actor.getQuests().containsKey(storedQuestId));
     }
 
+    /** A quest rotated away while the read was running must not come back from the stale read. */
+    @Test
+    void aQuestRemovedDuringTheReadStaysRemoved() {
+        questService.loadQuests(actor).join();
+        Quest rotated = actor.getQuests().get(storedQuestId);
+        actor.removeQuest(rotated);
+
+        questService.loadQuests(actor).join();
+
+        assertFalse(actor.getQuests().containsKey(storedQuestId));
+        ActorQuestGroup group = actor.getActorQuestGroup(configRegistry.getQuestGroupConfigs().get("daily"));
+        assertEquals(0, group.getInProgressCount());
+    }
+
+    /** A failed rotation count must not reset the actor's rotations to zero. */
+    @Test
+    void aFailedRotationCountKeepsTheCurrentCount() {
+        questService.loadQuests(actor).join();
+        when(rotationRepository.countInPeriod(any(), eq("daily"), any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(new IllegalStateException("database down")));
+
+        questService.loadQuests(actor).join();
+
+        ActorQuestGroup group = actor.getActorQuestGroup(configRegistry.getQuestGroupConfigs().get("daily"));
+        assertEquals(2, group.getRotationsInPeriod());
+    }
+
     @Test
     void aRefusedReloadKeepsThePreviousGroups() {
         QuestGroupConfig before = configRegistry.getQuestGroupConfigs().get("daily");
