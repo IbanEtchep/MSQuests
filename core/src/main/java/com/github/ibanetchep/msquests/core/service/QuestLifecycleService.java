@@ -126,8 +126,14 @@ public class QuestLifecycleService {
         });
     }
 
+    /**
+     * Force-completes a quest, rewards included. A no-op once the quest is no longer in progress:
+     * two requests queued for the same quest (a double click, a chain calling it twice) would
+     * otherwise both pass and pay the rewards twice.
+     */
     public void completeQuest(Quest quest) {
         executor.execute(quest.getId(), updatedQuest -> {
+            if (!updatedQuest.isActive()) return;
             finalizeQuestCompletion(updatedQuest);
             persistenceService.saveQuest(updatedQuest).join();
         });
