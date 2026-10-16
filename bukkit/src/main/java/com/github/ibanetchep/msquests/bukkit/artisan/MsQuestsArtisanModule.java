@@ -16,28 +16,40 @@ import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import com.github.ibanetchep.msquests.core.registry.ActorResolver;
 import net.artisanmc.modules.api.ArtisanAPI;
 import net.artisanmc.modules.api.ArtisanModule;
-import net.artisanmc.modules.api.CommandDeclaration;
-import net.artisanmc.modules.api.DataReloadEvent;
-import net.artisanmc.modules.api.DataSourceDeclaration;
-import net.artisanmc.modules.api.DataSourceField;
-import net.artisanmc.modules.api.FieldKind;
-import net.artisanmc.modules.api.PlayerRequiredException;
-import net.artisanmc.modules.api.Stability;
+import net.artisanmc.modules.api.action.ActionDeclaration;
+import net.artisanmc.modules.api.command.CommandDeclaration;
+import net.artisanmc.modules.api.datasource.DataReloadEvent;
+import net.artisanmc.modules.api.datasource.DataSourceDeclaration;
+import net.artisanmc.modules.api.datasource.DataSourceField;
+import net.artisanmc.modules.api.datasource.FieldKind;
+import net.artisanmc.modules.api.datasource.PlayerRequiredException;
+import net.artisanmc.modules.api.datasource.Stability;
+import net.artisanmc.modules.api.document.DocumentKindDeclaration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 /**
- * Exposes MSQuests to Artisan menus: three data sources and the two commands their
- * buttons need. Read-only on the config side — quest authoring stays in {@code quests/*.yml}
- * for now (Artisan config screens are the next step).
+ * MSQuests inside Artisan:
+ * <ul>
+ *   <li>its own project, {@code plugins/MSQuests/editor/} ({@link EditorProject}), listed under the
+ *       module in the editor;</li>
+ *   <li>the {@code quest_group} Document kind ({@code quest_groups/}, {@code quest_group/v1}): one
+ *       Document per group, read by a later version. The quests still load from
+ *       {@code quests/*.yml};</li>
+ *   <li>the {@code quests:*} actions ({@link QuestActions});</li>
+ *   <li>three data sources and the two commands menu buttons used before the actions existed.</li>
+ * </ul>
  *
  * <p>Every fetcher serves from the in-memory registries only: they run on the main thread
  * at menu render time, so no repository call is allowed here.
@@ -57,6 +69,9 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     static final String GROUPS = "msquests:groups";
     static final String QUESTS = "msquests:quests";
     static final String ACTIVE = "msquests:active";
+
+    static final String GROUP_DIR = "quest_groups";
+    static final String GROUP_SCHEMA = "quest_group/v1";
 
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
@@ -81,6 +96,16 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     public void onEnable(ArtisanAPI api) {
         this.api = api;
 
+        // Declared before the project root: the reload the root triggers already reads quest_groups/.
+        api.getDocumentKinds().register(new DocumentKindDeclaration(
+                QuestActions.GROUP_KIND, GROUP_DIR, List.of(GROUP_SCHEMA), null));
+        registerProject(api);
+
+        QuestActions actions = new QuestActions(plugin);
+        for (ActionDeclaration declaration : actions.declarations()) {
+            api.getActionRegistry().register(declaration);
+        }
+
         // STATIC: the key-set is the loaded configuration, enumerable without a player,
         // so a menu can place "the daily group" on a specific slot. Only the per-actor
         // field values vary at render time.
@@ -101,7 +126,6 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("completed_count", FieldKind.INTEGER, null),
                         new DataSourceField("can_rotate", FieldKind.BOOLEAN, null),
                         new DataSourceField("quests", FieldKind.LIST, "Nested msquests:quests rows")),
-                null,
                 Stability.STATIC,
                 "key"));
 
@@ -137,7 +161,6 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("stages", FieldKind.LIST,
                                 "Configured tree: key, name, flow, index, completed, active, "
                                         + "progress_ratio, objectives[] — player progress laid over it")),
-                null,
                 Stability.STATIC,
                 "id"));
 
@@ -165,18 +188,29 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("objectives", FieldKind.LIST, "Flattened across stages"),
                         new DataSourceField("stages", FieldKind.LIST, "Same tree as msquests:quests"),
                         new DataSourceField("expires_at", FieldKind.INTEGER, "Epoch millis, or 0")),
-                null,
                 Stability.DYNAMIC,
                 null));
 
-        api.getCommands().register(new CommandDeclaration("msquests:track", (player, args) -> {
-            track(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
-        api.getCommands().register(new CommandDeclaration("msquests:rotate", (player, args) -> {
-            rotate(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
+        api.getCommands().register(new CommandDeclaration("msquests:track",
+                (player, args) -> track(player, argv(args))));
+        api.getCommands().register(new CommandDeclaration("msquests:rotate",
+                (player, args) -> rotate(player, argv(args))));
+    }
+
+    /**
+     * Registers {@code plugins/MSQuests/editor/} as the module's project, writing its manifest on
+     * first boot. A failed write leaves the project unregistered: the quests do not depend on it.
+     */
+    private void registerProject(ArtisanAPI api) {
+        File dir = EditorProject.directory(plugin.getDataFolder());
+        try {
+            EditorProject.writeIfAbsent(dir, plugin.getGlobalConfig().language());
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Could not create the editor project in " + dir, e);
+            return;
+        }
+        // Artisan reloads its projects on the next tick, after this onEnable returns.
+        api.getProjectRoots().register(EditorProject.PROJECT_ID, dir, getId());
     }
 
     @Override
@@ -185,7 +219,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     }
 
     /**
-     * No-op: this fires when Artisan reloads its own bundle, which owns no MSQuests state.
+     * No-op: this fires when Artisan reloads its projects (a publish, {@code /artisan reload}).
+     * The quests still load from {@code quests/*.yml}, so nothing here holds quest state yet.
      * Quest configs reload through {@code /quest admin reload}, which calls
      * {@link #signalDataReload()} instead.
      */
