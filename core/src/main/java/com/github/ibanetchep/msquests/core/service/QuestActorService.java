@@ -44,7 +44,11 @@ public class QuestActorService {
 
 
     public CompletableFuture<Void> loadActor(QuestActor actor) {
-        questActorRegistry.unregisterActor(actor.getId());
+        // Reloading an actor that is already registered keeps it reachable the whole time; only
+        // a different instance under the same id (a fresh load) replaces the registered one.
+        if (questActorRegistry.getActors().get(actor.getId()) != actor) {
+            questActorRegistry.unregisterActor(actor.getId());
+        }
 
         return actorRepository.get(actor.getId()).thenCompose(actorDTO -> {
             if (actorDTO == null) {
