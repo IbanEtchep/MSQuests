@@ -16,4 +16,4 @@ dependencies:
       required: false
     Artisan:
       load: BEFORE
-      required: false
+      required: true
