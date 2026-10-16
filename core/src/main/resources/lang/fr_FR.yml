@@ -1,0 +1,160 @@
+# MSQuests - messages en français (format MiniMessage).
+# Les %placeholders% sont remplacés avant l’interprétation MiniMessage.
+file_version: 1
+
+quest_admin:
+  # /msquests reload (aucun placeholder)
+  reload: '<green>Configuration, langues et quêtes de MSQuests rechargées.</green>'
+  quest:
+    # Pas encore utilisées par le code (aucun placeholder garanti)
+    started: '<green>Quête démarrée.</green>'
+    could_not_start: '<red>Impossible de démarrer la quête.</red>'
+    rotated: '<green>Quête remplacée.</green>'
+    # Placeholders de quête : %quest_name%, %quest_key%, %quest_id%, %actor_name%, %quest_actor_type%...
+    force_completed: '<green>Quête <white>%quest_name%</white> <gray>(%quest_key%)</gray> complétée de force pour <white>%actor_name%</white>.</green>'
+  list:
+    # %page%, %last_page%
+    page_out_of_bounds: '<red>La page <white>%page%</white> n’existe pas. Dernière page : <white>%last_page%</white>.</red>'
+    # %quests%, %group_key%, %group_name%, %group_description%, %page%, %next_page%,
+    # %previous_page%, %last_page%, %actor_type%, %actor%
+    body: |-
+      <gold><bold>%group_name%</bold></gold> <gray>(%group_key%) - %actor%</gray>
+      <gray>Page %page%/%last_page%</gray>%quests%
+      <click:run_command:'/msquests actor %actor_type% %actor% list %group_key% %previous_page%'><hover:show_text:'Page précédente'><yellow>« Précédente</yellow></hover></click> <gray>|</gray> <click:run_command:'/msquests actor %actor_type% %actor% list %group_key% %next_page%'><hover:show_text:'Page suivante'><yellow>Suivante »</yellow></hover></click>
+    # Placeholders de quête + %objectives%
+    quest_template: '<newline>%quest_status_prefix%%quest_name%%quest_status_suffix% <dark_gray>%quest_key% · %quest_status% · étape %quest_stage_index%/%quest_stage_count%</dark_gray>%objectives%'
+    # Placeholders d’objectif
+    objective_template: '<newline>  %objective_status_prefix%%objective_name%%objective_status_suffix% <gray>%objective_progress%/%objective_target% (%objective_progress_percent% %)</gray>'
+  group:
+    # Placeholders de groupe + %actor_name%, %actor_id%, %amount%
+    distributed_quests: '<green><white>%amount%</white> quête(s) du groupe <white>%group_name%</white> démarrée(s) pour <white>%actor_name%</white>.</green>'
+
+quest:
+  command:
+    # Placeholders de quête
+    tracked: '<green>Tu suis désormais la quête <white>%quest_name%</white>.</green>'
+    untracked: '<yellow>Tu ne suis plus aucune quête.</yellow>'
+    # Pas encore utilisée par le code (aucun placeholder garanti)
+    rotated: '<green>Ta quête a été remplacée par une nouvelle.</green>'
+  status:
+    in_progress: 'En cours'
+    completed: 'Terminée'
+    expired: 'Expirée'
+    failed: 'Échouée'
+  status_prefix:
+    in_progress: '<yellow>⌛ '
+    completed: '<green>✔ '
+    expired: '<gray>⌚ '
+    failed: '<red>✘ '
+  status_suffix:
+    in_progress: '</yellow>'
+    completed: '</green>'
+    expired: '</gray>'
+    failed: '</red>'
+  start:
+    result:
+      success: '<green>Quête démarrée.</green>'
+      invalid_actor_type: '<red>Cette quête ne peut pas être lancée pour ce type d’acteur.</red>'
+      group_not_found: '<red>Ce groupe de quêtes n’existe pas.</red>'
+      group_inactive: '<red>Ce groupe de quêtes n’est pas actif pour le moment.</red>'
+      already_active: '<red>Cette quête est déjà en cours.</red>'
+      already_completed: '<red>Cette quête a déjà été terminée.</red>'
+      max_active_reached: '<red>Nombre maximum de quêtes actives atteint.</red>'
+      period_limit_reached: '<red>Limite de quêtes atteinte pour cette période.</red>'
+      conditions_not_met: '<red>Les conditions pour lancer cette quête ne sont pas remplies.</red>'
+      cancelled_by_event: '<red>Le lancement de cette quête a été annulé.</red>'
+  rotate:
+    result:
+      success: '<green>Quête remplacée par une nouvelle.</green>'
+      not_rotatable: '<red>Cette quête ne peut pas être remplacée.</red>'
+      max_rotations_reached: '<red>Tu ne peux plus remplacer de quêtes.</red>'
+      quest_not_active: '<red>Seule une quête en cours peut être remplacée.</red>'
+      no_alternative_available: '<red>Aucune autre quête n’est disponible pour remplacer celle-ci.</red>'
+      group_not_found: '<red>Ce groupe de quêtes n’existe pas.</red>'
+
+objective:
+  status:
+    pending: 'En attente'
+    in_progress: 'En cours'
+    completed: 'Terminé'
+    failed: 'Échoué'
+  status_prefix:
+    pending: '<gray>○ '
+    in_progress: '<yellow>◐ '
+    completed: '<green>✔ '
+    failed: '<red>✘ '
+  status_suffix:
+    pending: '</gray>'
+    in_progress: '</yellow>'
+    completed: '</green>'
+    failed: '</red>'
+  progress:
+    # Placeholders d’objectif
+    default: '%objective_progress%/%objective_target%'
+  # Noms d’objectifs - placeholders fournis par la config de chaque objectif
+  block_break: 'Miner %amount% × %material%'
+  breed_animal: 'Faire se reproduire %amount% × %entity_type%'
+  craft_item: 'Fabriquer %amount% × %material%'
+  harvest_crop: 'Récolter %amount% × %crop%'
+  deliver_item: 'Livrer %amount% × %material%'
+  kill_entity: 'Tuer %amount% × %entity_type%'
+  execute_command: 'Exécuter la commande %command%'
+  fishing: 'Pêcher %amount% × %fish_type%'
+  placeholder: 'Atteindre %value%'
+  travel: 'Parcourir %distance% blocs'
+
+zmenu:
+  quest:
+    status:
+      available: 'Disponible'
+    progress:
+      completed: 'Objectifs terminés !'
+
+placeholder:
+  # Placeholders de quête
+  quest: '%quest_status_prefix%%quest_name%%quest_status_suffix%'
+  # %stage_name%, %stage_key%
+  stage: '%stage_name%'
+  # Placeholders d’objectif
+  objective: '%objective_status_prefix%%objective_name%%objective_status_suffix% <gray>%objective_progress%/%objective_target%</gray>'
+
+# Clés référencées par les hooks actor_type de config.yml.
+# Actions au niveau quête : placeholders de quête (+ %player% pour message / action_bar).
+player_quest:
+  started:
+    message:
+      # + %objectives% (construit à partir du modèle d’objectif)
+      body: '<gold>✦</gold> <white>Nouvelle quête : <gold>%quest_name%</gold></white><newline><gray>%quest_description%</gray>%objectives%'
+      # Placeholders d’objectif
+      objective: '<newline> <gray>-</gray> %objective_name%'
+    title:
+      title: '<gold>Nouvelle quête</gold>'
+      subtitle: '<white>%quest_name%</white>'
+    action_bar: '<gold>Quête démarrée : <white>%quest_name%</white></gold>'
+  progress:
+    # Exécutée avec l’objectif mais résolue sur la quête : placeholders de quête uniquement
+    action_bar: '<yellow>%quest_name%</yellow> <gray>- étape %quest_stage_index%/%quest_stage_count%</gray>'
+  complete:
+    message:
+      body: '<green>✔</green> <white>Quête terminée : <green>%quest_name%</green></white>'
+    title:
+      title: '<green>Quête terminée !</green>'
+      subtitle: '<white>%quest_name%</white>'
+
+global_quest:
+  started:
+    message:
+      body: '<aqua>✦</aqua> <white>Nouvelle quête du serveur : <aqua>%quest_name%</aqua></white><newline><gray>%quest_description%</gray>%objectives%'
+      objective: '<newline> <gray>-</gray> %objective_name%'
+    title:
+      title: '<aqua>Nouvelle quête du serveur</aqua>'
+      subtitle: '<white>%quest_name%</white>'
+    action_bar: '<aqua>Quête du serveur démarrée : <white>%quest_name%</white></aqua>'
+  progress:
+    action_bar: '<aqua>%quest_name%</aqua> <gray>- étape %quest_stage_index%/%quest_stage_count%</gray>'
+  complete:
+    message:
+      body: '<green>✔</green> <white>Quête du serveur terminée : <green>%quest_name%</green></white>'
+    title:
+      title: '<green>Quête du serveur terminée !</green>'
+      subtitle: '<white>%quest_name%</white>'
