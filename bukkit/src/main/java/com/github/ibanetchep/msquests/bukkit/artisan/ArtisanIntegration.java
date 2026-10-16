@@ -2,62 +2,71 @@ package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import net.artisanmc.modules.api.ArtisanAPI;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.logging.Level;
 
 /**
- * Optional Artisan integration: registers {@link MsQuestsArtisanModule} when the Artisan
- * plugin is installed, does nothing otherwise. Artisan is a soft dependency — MSQuests
- * runs unchanged without it.
- *
- * <p>Everything here is guarded so that a missing or incompatible Artisan never prevents
- * MSQuests from enabling: the integration is a bonus surface, not a requirement.
+ * Artisan integration. Artisan is a required dependency ({@code paper-plugin.yml}): the plugin
+ * resolves its API first thing in {@code onEnable} and refuses to start without a compatible one,
+ * then registers {@link MsQuestsArtisanModule} once its services are wired.
  */
 public final class ArtisanIntegration {
 
-    /** Core version introducing {@code DataSourceDeclaration.stability} / {@code keyField}. */
-    private static final String EXPECTED_CORE_VERSION = "1.4.0";
+    /**
+     * Lowest Artisan API this plugin compiles against: {@code DocumentKindRegistry} (2.1.0) and
+     * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).
+     */
+    public static final String MIN_API_VERSION = "2.1.0";
 
     private final BukkitQuestsPlugin plugin;
+    private final ArtisanAPI api;
     private @Nullable MsQuestsArtisanModule module;
 
-    public ArtisanIntegration(BukkitQuestsPlugin plugin) {
+    private ArtisanIntegration(BukkitQuestsPlugin plugin, ArtisanAPI api) {
         this.plugin = plugin;
+        this.api = api;
     }
 
-    public void register() {
-        if (plugin.getServer().getPluginManager().getPlugin("Artisan") == null) {
-            return;
-        }
+    /**
+     * The integration bound to the running Artisan, or null after logging why MSQuests cannot
+     * start: Artisan missing, its API not registered, or older than {@link #MIN_API_VERSION}.
+     */
+    public static @Nullable ArtisanIntegration resolve(BukkitQuestsPlugin plugin) {
         try {
-            RegisteredServiceProvider<ArtisanAPI> registration =
-                    plugin.getServer().getServicesManager().getRegistration(ArtisanAPI.class);
-            if (registration == null) {
-                plugin.getLogger().warning("Artisan is installed but its API is not available yet — integration skipped.");
-                return;
+            ArtisanAPI api = plugin.getServer().getServicesManager().load(ArtisanAPI.class);
+            if (api == null) {
+                plugin.getLogger().severe("Artisan is required but its API is not available. "
+                        + "Install Artisan (API " + MIN_API_VERSION + "+) next to MSQuests.");
+                return null;
             }
-            ArtisanAPI api = registration.getProvider();
-            if (!api.isCompatibleWith(EXPECTED_CORE_VERSION)) {
-                // Informational only: `coreVersion` is Artisan's plugin.yml version, which
-                // does not track the API surface (it still reads 1.0.0 while the API is at
-                // 1.6). Gating on it would disable the integration on up-to-date servers.
-                // A genuinely too-old API fails at the catch below instead, loudly.
-                plugin.getLogger().info("Artisan reports core version " + api.getCoreVersion()
-                        + " (expected " + EXPECTED_CORE_VERSION + "+) — registering anyway.");
+            if (!api.isCompatibleWith(MIN_API_VERSION)) {
+                plugin.getLogger().severe("Artisan API " + api.getApiVersion() + " is too old: MSQuests needs "
+                        + MIN_API_VERSION + "+ (same major). Update Artisan.");
+                return null;
             }
-            MsQuestsArtisanModule created = new MsQuestsArtisanModule(plugin);
-            api.getModules().register(created);
-            this.module = created;
-            plugin.getLogger().info("Artisan integration registered (msquests:groups, msquests:quests, msquests:active).");
-        } catch (Throwable e) {
-            // NoClassDefFoundError included: a partially installed Artisan must not take MSQuests down.
-            plugin.getLogger().log(Level.WARNING, "Failed to register the Artisan integration", e);
+            return new ArtisanIntegration(plugin, api);
+        } catch (LinkageError e) {
+            // An Artisan 1.x jar: the 2.x packages this plugin links against do not exist there.
+            plugin.getLogger().log(Level.SEVERE, "Installed Artisan is incompatible: MSQuests needs API "
+                    + MIN_API_VERSION + "+.", e);
+            return null;
         }
     }
 
-    /** No-op when Artisan is absent. */
+    /** Registers the module: data sources, commands, actions, the quest_group kind and the editor project. */
+    public void register() {
+        MsQuestsArtisanModule created = new MsQuestsArtisanModule(plugin);
+        api.getModules().register(created);
+        this.module = created;
+        plugin.getLogger().info("Artisan module registered (API " + api.getApiVersion() + ").");
+    }
+
+    public ArtisanAPI getApi() {
+        return api;
+    }
+
+    /** Tells Artisan menus to re-fetch the quest data sources. */
     public void signalDataReload() {
         if (module != null) {
             module.signalDataReload();
