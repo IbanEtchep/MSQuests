@@ -160,6 +160,10 @@ public class ActorQuestGroup {
         rotationsInPeriod.incrementAndGet();
     }
 
+    public void setRotations(int rotations) {
+        rotationsInPeriod.set(rotations);
+    }
+
     public void resetRotations() {
         rotationsInPeriod.set(0);
     }
