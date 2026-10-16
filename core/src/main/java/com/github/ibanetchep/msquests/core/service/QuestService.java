@@ -75,22 +75,11 @@ public class QuestService {
                     List<Quest> loaded = new ArrayList<>();
 
                     for (QuestDTO questDTO : questEntryDtos.values()) {
-                        QuestGroupConfig questGroupConfig = questConfigRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
-
-                        if (questGroupConfig == null) {
-                            warnMissingConfigOnce("group:" + questDTO.groupKey(),
-                                    "Quest group '" + questDTO.groupKey() + "' is no longer defined in the configs"
-                                            + " (first seen on quest '" + questDTO.questKey() + "').");
-                            continue;
-                        }
-
-                        QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(questDTO.questKey());
+                        QuestConfig questConfig = resolveConfig(questDTO);
                         if (questConfig == null) {
-                            warnMissingConfigOnce("quest:" + questDTO.groupKey() + "/" + questDTO.questKey(),
-                                    "Quest '" + questDTO.questKey() + "' is no longer defined in group '"
-                                            + questDTO.groupKey() + "'.");
                             continue;
                         }
+                        QuestGroupConfig questGroupConfig = questConfig.getGroupConfig();
 
                         if (!isInCurrentPeriod(questGroupConfig, questDTO)) {
                             continue;
@@ -119,6 +108,39 @@ public class QuestService {
                 });
     }
 
+
+    /**
+     * The config a stored quest belongs to, or null (logged once) when it is no longer loaded.
+     * A row of {@code artisan_quests_quest} names its quest by uid, so the quest and its group
+     * may have been renamed since; a row of {@code msquests_quest} names it by keys.
+     */
+    private QuestConfig resolveConfig(QuestDTO questDTO) {
+        if (questDTO.questUid() != null) {
+            QuestConfig questConfig = questConfigRegistry.getQuestByUid(questDTO.questUid());
+            if (questConfig == null) {
+                warnMissingConfigOnce("uid:" + questDTO.questUid(),
+                        "Quest uid '" + questDTO.questUid() + "' (last saved as '" + questDTO.groupKey() + "/"
+                                + questDTO.questKey() + "') is no longer defined in any quest group.");
+            }
+            return questConfig;
+        }
+
+        QuestGroupConfig questGroupConfig = questConfigRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
+        if (questGroupConfig == null) {
+            warnMissingConfigOnce("group:" + questDTO.groupKey(),
+                    "Quest group '" + questDTO.groupKey() + "' is no longer defined in the configs"
+                            + " (first seen on quest '" + questDTO.questKey() + "').");
+            return null;
+        }
+
+        QuestConfig questConfig = questGroupConfig.getQuestConfigs().get(questDTO.questKey());
+        if (questConfig == null) {
+            warnMissingConfigOnce("quest:" + questDTO.groupKey() + "/" + questDTO.questKey(),
+                    "Quest '" + questDTO.questKey() + "' is no longer defined in group '"
+                            + questDTO.groupKey() + "'.");
+        }
+        return questConfig;
+    }
 
     /**
      * Logs a missing config once per key. The saved rows are left untouched: they are ignored
@@ -155,7 +177,7 @@ public class QuestService {
             Instant periodStart = groupConfig.getPeriodStart();
             Instant periodEnd = groupConfig.getPeriodEnd();
 
-            CompletableFuture<Void> future = rotationRepository.countInPeriod(actor.getId(), groupConfig.getKey(), periodStart, periodEnd)
+            CompletableFuture<Void> future = rotationRepository.countInPeriod(actor.getId(), groupConfig.getStorageId(), periodStart, periodEnd)
                     .thenAccept(count -> counts.put(groupConfig, count))
                     .exceptionally(e -> {
                         // Keep the count already in memory: falling back to 0 would hand out

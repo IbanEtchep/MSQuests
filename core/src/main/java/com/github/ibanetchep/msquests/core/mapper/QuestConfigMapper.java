@@ -57,7 +57,8 @@ public class QuestConfigMapper {
                 entity.getTier(),
                 rewards,
                 stageDtos,
-                null
+                null,
+                entity.getUid()
         );
     }
 
@@ -65,6 +66,7 @@ public class QuestConfigMapper {
         QuestConfig questConfig = new QuestConfig(dto.key(), dto.name(), dto.description(),
                 dto.duration() != null ? dto.duration() : 0L); // absent: no limit, instead of an unboxing NPE
         questConfig.setTier(dto.tier());
+        questConfig.setUid(dto.uid());
 
         if (dto.rewards() != null) {
             for (QuestActionDTO rewardDto : dto.rewards()) {

@@ -6,12 +6,15 @@ import com.github.ibanetchep.msquests.core.quest.condition.Condition;
 import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 
 public class QuestConfig implements PlaceholderProvider {
 
     private String key;
+    private @Nullable String uid;
     private String name;
     private String description;
     private final Map<String, QuestStageConfig> stages;
@@ -36,6 +39,18 @@ public class QuestConfig implements PlaceholderProvider {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    /**
+     * Immutable id of a quest read from a {@code quest_group} Document, null for a quest read
+     * from {@code quests/*.yml}. The database stores it instead of the editable key.
+     */
+    public @Nullable String getUid() {
+        return uid;
+    }
+
+    public void setUid(@Nullable String uid) {
+        this.uid = uid;
     }
 
     public String getName() {

@@ -45,8 +45,8 @@ import java.util.logging.Level;
  *   <li>its own project, {@code plugins/MSQuests/editor/} ({@link EditorProject}), listed under the
  *       module in the editor;</li>
  *   <li>the {@code quest_group} Document kind ({@code quest_groups/}, {@code quest_group/v1}): one
- *       Document per group, read by a later version. The quests still load from
- *       {@code quests/*.yml};</li>
+ *       Document per group, which the quests load from with {@code content_source: artisan}
+ *       ({@code /msquests migrate} converts {@code quests/*.yml} into them);</li>
  *   <li>the {@code quests:*} actions ({@link QuestActions});</li>
  *   <li>three data sources and the two commands menu buttons used before the actions existed.</li>
  * </ul>
@@ -219,13 +219,14 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     }
 
     /**
-     * No-op: this fires when Artisan reloads its projects (a publish, {@code /artisan reload}).
-     * The quests still load from {@code quests/*.yml}, so nothing here holds quest state yet.
-     * Quest configs reload through {@code /quest admin reload}, which calls
-     * {@link #signalDataReload()} instead.
+     * Fires when Artisan reloads its projects (a publish, {@code /artisan reload}). With
+     * {@code content_source: artisan} the quests are read from this module's
+     * {@code quest_group} Documents, and reload when those changed; otherwise nothing to do.
      */
     @Override
-    public void onReload() {}
+    public void onReload() {
+        plugin.onArtisanProjectsReloaded();
+    }
 
     /** Tells Artisan menus to re-fetch — call after a quest config reload. */
     public void signalDataReload() {

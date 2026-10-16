@@ -226,7 +226,7 @@ public class QuestLifecycleService {
             QuestStartResult startResult = startQuest(actor, candidate, QuestDistributionStrategy.RANDOM, null);
             if (startResult.isSuccess()) {
                 actorGroup.incrementRotations();
-                rotationRepository.save(actor.getId(), groupConfig.getKey()).exceptionally(e -> {
+                rotationRepository.save(actor.getId(), groupConfig.getStorageId()).exceptionally(e -> {
                     logger.log(Level.WARNING, "Failed to save rotation count", e);
                     return null;
                 });
