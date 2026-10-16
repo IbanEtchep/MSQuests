@@ -71,14 +71,17 @@ public final class QuestGroupDocumentRepository implements QuestConfigRepository
                 continue;
             }
 
-            String clash = claim(uidOwners, group.uid(), key);
+            // claimed aside, so a rejected Document reserves none of its uids
+            Map<String, String> claimed = new HashMap<>();
+            String clash = claim(uidOwners, claimed, group.uid(), key);
             for (QuestConfigDTO quest : group.quests()) {
-                if (clash == null) clash = claim(uidOwners, quest.uid(), key + "/" + quest.key());
+                if (clash == null) clash = claim(uidOwners, claimed, quest.uid(), key + "/" + quest.key());
             }
             if (clash != null) {
                 failures.add(DIR + "/" + name + ": " + clash);
                 continue;
             }
+            uidOwners.putAll(claimed);
             groups.put(key, group);
         }
         return new QuestConfigLoad(groups, failures);
@@ -127,8 +130,10 @@ public final class QuestGroupDocumentRepository implements QuestConfigRepository
         return lang != null && !lang.toString().isBlank() ? lang.toString() : "en";
     }
 
-    private static @Nullable String claim(Map<String, String> owners, String uid, String owner) {
-        String previous = owners.putIfAbsent(uid, owner);
+    private static @Nullable String claim(Map<String, String> owners, Map<String, String> claimed,
+                                          String uid, String owner) {
+        String previous = owners.get(uid);
+        if (previous == null) previous = claimed.putIfAbsent(uid, owner);
         return previous != null ? "uid " + uid + " of " + owner + " is already used by " + previous : null;
     }
 }

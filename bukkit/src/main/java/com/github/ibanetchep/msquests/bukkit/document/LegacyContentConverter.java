@@ -76,10 +76,16 @@ public final class LegacyContentConverter {
 
         Map<String, MigrationMap.Group> groups = new TreeMap<>(previous.groups());
         List<GroupPlan> plans = new ArrayList<>();
+        Map<String, Path> documentsByUid = documentsByUid(questGroupsDir);
 
         for (QuestGroupConfigDTO group : new TreeMap<>(legacy).values()) {
             report.section("Group " + group.key());
+            MigrationMap.Group previousEntry = previous.group(group.key());
             Path target = questGroupsDir.resolve(group.key() + ".yaml");
+            if (!Files.exists(target) && previousEntry != null && documentsByUid.containsKey(previousEntry.uid())) {
+                target = documentsByUid.get(previousEntry.uid()); // renamed in the editor since the last run
+                report.line("Already converted, found under its new name " + target.getFileName() + ".");
+            }
             Existing existing = readExisting(target, group.key(), report);
 
             Uids uids = new Uids(group.key(), previous.group(group.key()), existing);
@@ -98,7 +104,6 @@ public final class LegacyContentConverter {
                 actions += quest.rewards() != null ? quest.rewards().size() : 0;
             }
 
-            MigrationMap.Group previousEntry = previous.group(group.key());
             if (existing != null && previousEntry != null) {
                 groups.put(group.key(), previousEntry); // the copy already relies on it
             } else if (existing != null && existing.groupUid() == null) {
@@ -187,6 +192,25 @@ public final class LegacyContentConverter {
         } finally {
             Files.deleteIfExists(tmp);
         }
+    }
+
+    /** Root uid of each Document already in the folder, to find one renamed since the last run. */
+    private static Map<String, Path> documentsByUid(Path questGroupsDir) {
+        Map<String, Path> byUid = new HashMap<>();
+        if (!Files.isDirectory(questGroupsDir)) return byUid;
+        try (java.util.stream.Stream<Path> list = Files.list(questGroupsDir)) {
+            for (Path file : list.filter(f -> f.getFileName().toString().endsWith(".yaml")).sorted().toList()) {
+                try {
+                    Object uid = DocumentYaml.parse(Files.readString(file, StandardCharsets.UTF_8)).get("uid");
+                    if (uid != null) byUid.putIfAbsent(uid.toString(), file);
+                } catch (IOException | RuntimeException ignored) {
+                    // unreadable: the repository reports it at load
+                }
+            }
+        } catch (IOException ignored) {
+            // no index: renamed Documents are not found, the per-key check still holds
+        }
+        return byUid;
     }
 
     // --------------------------------------------------------------- uids
