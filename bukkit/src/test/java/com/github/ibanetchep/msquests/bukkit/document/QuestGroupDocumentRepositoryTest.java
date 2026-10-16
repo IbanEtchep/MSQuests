@@ -84,6 +84,26 @@ class QuestGroupDocumentRepositoryTest {
     }
 
     @Test
+    void aRejectedDocumentReservesNoneOfItsUids() throws Exception {
+        String clashingQuest = """
+                  - key: other
+                    uid: Q1
+                    stages:
+                      - key: s1
+                        objectives:
+                          - { key: dirt, type: block_break, material: DIRT, amount: 1 }
+                """;
+        Files.writeString(project.resolve("quest_groups/a.yaml"), group("G1", "Q1", ""));
+        Files.writeString(project.resolve("quest_groups/b.yaml"), group("G2", "QB", clashingQuest));
+        Files.writeString(project.resolve("quest_groups/c.yaml"), group("G2", "QB", ""));
+
+        QuestConfigLoad load = load();
+
+        assertEquals(java.util.Set.of("a", "c"), load.groups().keySet(), load.failures().toString());
+        assertEquals(1, load.failures().size());
+    }
+
+    @Test
     void reportsThePathOfAFaultyValue() throws Exception {
         Files.writeString(project.resolve("quest_groups/a.yaml"), group("G1", "Q1", "")
                 .replace("duration: 1h30m", "duration: soon"));

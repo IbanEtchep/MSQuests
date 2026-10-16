@@ -101,6 +101,23 @@ class LegacyContentConverterTest {
     }
 
     @Test
+    void rerunFindsADocumentRenamedInTheEditor() throws Exception {
+        Path groupsDir = project.resolve("quest_groups");
+        var first = converter().plan(legacy.groups(), legacy.failures(), groupsDir, MigrationMap.empty());
+        converter().apply(first, groupsDir, dir.resolve("tmp"));
+        Files.move(groupsDir.resolve("daily.yaml"), groupsDir.resolve("quotidiennes.yaml"));
+
+        var second = converter().plan(legacy.groups(), legacy.failures(), groupsDir, first.map());
+        converter().apply(second, groupsDir, dir.resolve("tmp"));
+
+        assertEquals(0, second.toWrite());
+        assertEquals(first.map(), second.map());
+        assertFalse(Files.exists(groupsDir.resolve("daily.yaml")));
+        QuestConfigLoad load = new QuestGroupDocumentRepository(project).loadNow();
+        assertFalse(load.hasFailures(), load.failures().toString());
+    }
+
+    @Test
     void sharedObjectiveKeyIsRenamedAndReported() throws Exception {
         Path quests = dir.resolve("dup");
         Files.createDirectories(quests);
