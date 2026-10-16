@@ -1,5 +1,6 @@
 package com.github.ibanetchep.msquests.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -13,8 +14,16 @@ public record QuestConfigDTO(
         String tier,
         List<QuestActionDTO> rewards,
         List<QuestStageConfigDTO> stages,
-        @Nullable List<ConditionConfigDTO> conditions
+        @Nullable List<ConditionConfigDTO> conditions,
+        // quest_group Documents only, see QuestGroupConfigDTO#uid.
+        @JsonIgnore String uid
 ) {
+    public QuestConfigDTO(String key, String name, String description, Long duration, String tier,
+                          List<QuestActionDTO> rewards, List<QuestStageConfigDTO> stages,
+                          @Nullable List<ConditionConfigDTO> conditions) {
+        this(key, name, description, duration, tier, rewards, stages, conditions, null);
+    }
+
     /**
      * Compact constructor avec validation
      */

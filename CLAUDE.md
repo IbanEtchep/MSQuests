@@ -69,6 +69,7 @@ Two actor types: `QuestPlayerActor` (per-player) and `QuestGlobalActor` (server-
 
 - `core/src/main/resources/config.yml` — database settings, language, actor type action hooks
 - Quest YAML configs live in `bukkit/src/main/resources/quests/` and are loaded via `QuestConfigYamlRepository`
+- With `content_source: artisan`, quests load from the `quest_group` Documents of `editor/quest_groups/` (`QuestGroupDocumentRepository`) and progress from the `artisan_quests_*` tables, keyed by immutable uids; `/msquests migrate` converts (see `ARCHITECTURE.md`, *Source du contenu*)
 - Language files: `core/src/main/resources/lang/`
 
 ## Testing

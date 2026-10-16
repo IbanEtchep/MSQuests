@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,8 +22,21 @@ public record QuestGroupConfigDTO(
         Map<String, Integer> tierDistribution,
         Boolean rotatable,
         Integer maxRotationsPerPeriod,
-        DistributionConfigDTO distribution
+        DistributionConfigDTO distribution,
+        // Only quest_group Documents carry these (null otherwise); quests/*.yml never does, so a
+        // legacy file cannot smuggle in an id the database would then key rows by.
+        @JsonIgnore String uid,
+        @JsonIgnore String resetTimezone
 ) {
+    public QuestGroupConfigDTO(String key, String name, String description, List<QuestConfigDTO> quests,
+                               Integer maxActive, Integer maxPerPeriod, String resetCron, Instant startAt,
+                               Instant endAt, String actorType, QuestGroupConfigActionsDTO actions,
+                               Map<String, QuestTierConfigDTO> tiers, Map<String, Integer> tierDistribution,
+                               Boolean rotatable, Integer maxRotationsPerPeriod, DistributionConfigDTO distribution) {
+        this(key, name, description, quests, maxActive, maxPerPeriod, resetCron, startAt, endAt, actorType,
+                actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution, null, null);
+    }
+
     public QuestGroupConfigDTO {
         if (key == null || key.isBlank()) {
             throw new IllegalArgumentException("Group key cannot be null or empty");

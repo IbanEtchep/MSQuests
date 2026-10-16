@@ -9,6 +9,7 @@ import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class QuestGroupConfig implements PlaceholderProvider {
 
     private final String key;
+    private final @Nullable String uid;
     private final String name;
     private final String description;
     private final String actorType;
@@ -30,6 +32,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
     private final @Nullable Instant endAt;
 
     private final @Nullable String resetCron;
+    private final @Nullable ZoneId resetZone;
     private final @Nullable Integer maxPerPeriod;
     private final int maxActive;
 
@@ -51,11 +54,13 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     private QuestGroupConfig(Builder builder) {
         this.key = builder.key;
+        this.uid = builder.uid;
         this.name = builder.name;
         this.description = builder.description;
         this.startAt = builder.startAt;
         this.endAt = builder.endAt;
         this.resetCron = builder.resetCron;
+        this.resetZone = builder.resetZone;
         this.maxPerPeriod = builder.maxPerPeriod;
         this.maxActive = builder.maxActive;
         this.actorType = builder.actorType;
@@ -77,6 +82,20 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     public String getKey() {
         return key;
+    }
+
+    /**
+     * Immutable id of a group read from a {@code quest_group} Document, null for a group read
+     * from {@code quests/*.yml}. The key is the Document's name and may be renamed; the uid is
+     * what the database stores.
+     */
+    public @Nullable String getUid() {
+        return uid;
+    }
+
+    /** What rows referencing this group store: its uid when it has one, else its key. */
+    public String getStorageId() {
+        return uid != null ? uid : key;
     }
 
     public String getName() {
@@ -125,6 +144,11 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     public @Nullable String getResetCron() {
         return resetCron;
+    }
+
+    /** Zone the reset cron is read in; the server's zone when the group names none. */
+    public ZoneId getResetZone() {
+        return resetZone != null ? resetZone : ZoneId.systemDefault();
     }
 
     public @Nullable Integer getMaxPerPeriod() {
@@ -213,7 +237,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
             return null;
         }
 
-        return CronUtils.getNextExecution(resetCron, Instant.now());
+        return CronUtils.getNextExecution(resetCron, Instant.now(), getResetZone());
     }
 
     public @Nullable Instant getPreviousReset() {
@@ -221,7 +245,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
             return  null;
         }
 
-        return CronUtils.getPreviousExecution(resetCron, Instant.now());
+        return CronUtils.getPreviousExecution(resetCron, Instant.now(), getResetZone());
     }
 
     public @Nullable Instant getPeriodEnd() {
@@ -255,6 +279,8 @@ public class QuestGroupConfig implements PlaceholderProvider {
         private final String description;
         private final String actorType;
 
+        private @Nullable String uid;
+        private @Nullable ZoneId resetZone;
         private @Nullable Instant startAt;
         private @Nullable Instant endAt;
         private @Nullable String resetCron;
@@ -289,6 +315,16 @@ public class QuestGroupConfig implements PlaceholderProvider {
             this.questDistributionActions = new ArrayList<>();
             this.actorLoadActions = new ArrayList<>();
             this.allPeriodQuestsCompleteActions = new ArrayList<>();
+        }
+
+        public Builder uid(@Nullable String uid) {
+            this.uid = uid;
+            return this;
+        }
+
+        public Builder resetZone(@Nullable ZoneId resetZone) {
+            this.resetZone = resetZone;
+            return this;
         }
 
         public Builder startAt(Instant startAt) {
