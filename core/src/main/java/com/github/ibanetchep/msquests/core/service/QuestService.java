@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
+import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
@@ -157,7 +158,12 @@ public class QuestService {
             CompletableFuture<Void> future = rotationRepository.countInPeriod(actor.getId(), groupConfig.getKey(), periodStart, periodEnd)
                     .thenAccept(count -> counts.put(groupConfig, count))
                     .exceptionally(e -> {
-                        logger.log(Level.WARNING, "Failed to load rotation count for group " + groupConfig.getKey(), e);
+                        // Keep the count already in memory: falling back to 0 would hand out
+                        // rotations the actor has already used this period.
+                        logger.log(Level.WARNING, "Failed to load rotation count for group " + groupConfig.getKey()
+                                + ", keeping the current count", e);
+                        ActorQuestGroup current = actor.getActorQuestGroup(groupConfig);
+                        counts.put(groupConfig, current != null ? current.getRotationsInPeriod() : 0);
                         return null;
                     });
 
