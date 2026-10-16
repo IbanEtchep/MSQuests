@@ -139,6 +139,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     @Override
     public void onEnable() {
+        artisanIntegration = ArtisanIntegration.resolve(this);
+        if (artisanIntegration == null) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         foliaLib = new FoliaLib(this);
         eventDispatcher = new BukkitEventDispatcher(this);
 
@@ -338,11 +344,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();
         }
-        artisanIntegration = new ArtisanIntegration(this);
         artisanIntegration.register();
     }
 
-    /** Never null once {@link #registerExpansions()} ran; a no-op when Artisan is absent. */
+    /** Never null once the plugin is enabled: Artisan is a required dependency. */
     public ArtisanIntegration getArtisanIntegration() {
         return artisanIntegration;
     }

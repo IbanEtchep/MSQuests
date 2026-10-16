@@ -102,15 +102,46 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `text/` | `PlaceholderEngine`, `MessageBuilder` |
 | `placeholderapi/` | `QuestsPlaceholderExpansion` |
 | `zmenu/` | Integration zMenu (pagination de groupes de quetes) |
-| `artisan/` | Integration Artisan (data sources + commandes de menu) |
+| `artisan/` | Integration Artisan (projet `editor/`, kind `quest_group`, actions `quests:*`, data sources, commandes de menu) |
 
 ---
 
 ## Integration Artisan
 
-Optionnelle (softdepend). Quand le plugin Artisan est present, `ArtisanIntegration`
-enregistre `MsQuestsArtisanModule` via le `ServicesManager`, ce qui expose les quetes
-aux menus de l'editeur web Artisan. Sans Artisan, rien ne change.
+**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.1.0+). Au tout
+debut de `onEnable`, `ArtisanIntegration.resolve` charge `ArtisanAPI` depuis le
+`ServicesManager` ; absente ou trop ancienne, le plugin se desactive avec un message
+SEVERE, avant d'ouvrir la base. Une fois les services cables, `MsQuestsArtisanModule`
+est enregistre et declare :
+
+- **son projet** `plugins/MSQuests/editor/` (`EditorProject`, id `quests`), enregistre comme
+  racine de projet du module : l'editeur le liste sous le module. Au premier demarrage on
+  n'y ecrit que `manifest.yaml` (langue par defaut = partie langue du reglage `language`)
+  et `quest_groups/` ; un dossier non vide n'est jamais touche ;
+- **le kind de Document `quest_group`** (dossier `quest_groups/`, schema `quest_group/v1`) :
+  un Document par groupe, nomme d'apres la cle du groupe. **Les quetes se chargent toujours
+  depuis `quests/*.yml`** : le lecteur de ces Documents et le convertisseur arrivent au lot
+  L2 (`design-artisan-quests.md`) ;
+- **les actions `quests:*`** (`QuestActions`), utilisables dans toute chaine Artisan :
+
+| Action | Arguments | Effet |
+|---|---|---|
+| `quests:start` | `group`, `quest` | Demarre la quete pour l'acteur du joueur, avec les regles du groupe (limites, conditions) |
+| `quests:track` | `group`, `quest` | Suit / ne suit plus l'instance active (comme `msquests:track`) |
+| `quests:rotate` | `group`, `quest` | Echange l'instance active contre une autre du groupe |
+| `quests:complete` | `group`, `quest` | Termine l'instance active, recompenses comprises |
+| `quests:distribute` | `group` (primaire), `amount?` | Distribue `amount` quetes, sinon applique la distribution du groupe |
+
+`group` est un `document_ref` vers `quest_group` : l'editeur propose un selecteur, trace
+l'arete et suit un renommage. Sa valeur est la cle du groupe (une reference qualifiee
+`projet:daily` est reduite a `daily`), donc elle vaut aussi pour un groupe encore lu depuis
+`quests/*.yml`, mais le selecteur reste vide tant qu'aucun Document `quest_group` n'existe.
+`quest` est la cle de la quete dans le groupe. Les deux passent par `ActionRuntime.text`,
+donc `{key}` d'une ligne iteree est interpole. L'acteur vise est celui du type d'acteur
+du groupe auquel le joueur appartient ; une donnee inconnue logge un warning et la chaine
+continue.
+
+Les data sources et commandes ci-dessous restent (alias `msquests:*`, C7) :
 
 | Data source | Stability | Contenu |
 |---|---|---|
@@ -168,8 +199,10 @@ joindre une liste ni formater une duree (ADR `expression-parity`).
 uniquement les registres memoire — jamais de repository, jamais d'I/O. Un acteur non
 charge (joueur hors ligne) donne des valeurs neutres, pas une attente.
 
-Build : `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan, jamais shade).
-Le produire avec `cd <Artisan>/plugin && ./gradlew publishToMavenLocal`.
+Build : `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan, jamais shade),
+version `artisanApiVersion` de `gradle.properties`. Tant que 2.1.0 n'est pas publiee sur
+repo.artisanmc.net, la produire depuis la branche `v2` d'Artisan :
+`cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.1.0`.
 
 ---
 
