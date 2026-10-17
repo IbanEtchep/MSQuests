@@ -61,6 +61,7 @@ class LegacyActionsTest {
                   command: "eco give %actor_name% 5000"
             quests:
               - key: mine_stone_64
+                description: "Mine 64 blocs de pierre"
                 rewards:
                   - type: "command"
                     name: "<white>+150 XP"
@@ -144,13 +145,14 @@ class LegacyActionsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void rewardsBecomeAChainAndTheirNamesTheDisplay() {
+    void rewardsBecomeAChainAndTheirNamesEndTheDescription() {
         Map<String, Object> quest = (Map<String, Object>) ((List<?>) group.get("quests")).get(0);
         assertEquals(List.of(
                 Map.of("run_command", args("command", "levels addxp {actor_name} 150", "as", "console")),
                 Map.of("run_command", args("command", "eco give {actor_name} 500", "as", "console"))
         ), quest.get("rewards"));
-        assertEquals(List.of("<white>+150 XP", "<white>+500$"), quest.get("reward_display"));
+        assertEquals("Mine 64 blocs de pierre\n<white>+150 XP\n<white>+500$", quest.get("description"));
+        assertFalse(quest.containsKey("reward_display"));
     }
 
     @Test

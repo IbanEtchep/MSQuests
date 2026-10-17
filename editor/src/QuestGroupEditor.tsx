@@ -5,6 +5,7 @@ import {
   ItemInput,
   type ItemComparisonWire,
   MaterialInput,
+  MiniMessageInput,
   type TextWrite,
   injectModuleStyles,
   newTextKey,
@@ -27,6 +28,7 @@ import {
   type Stage,
   type Text,
   HOOKS,
+  asMap,
   freeKey,
   joinChain,
   legacyLabel,
@@ -149,11 +151,7 @@ function TextField({
   const write = (v: string) => ctx.edit(() => {}, [{ key: node.key, lang: ctx.lang, value: v }]);
   return (
     <Field label={`${label} · ${ctx.lang}`}>
-      {multiline ? (
-        <textarea className="textarea" value={value} onChange={(e) => write(e.target.value)} />
-      ) : (
-        <input className="input" value={value} onChange={(e) => write(e.target.value)} />
-      )}
+      <MiniMessageInput value={value} onChange={write} multiline={multiline} aria-label={label} />
     </Field>
   );
 }
@@ -685,7 +683,7 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
   const keyTaken = group.quests.some((q, i) => i !== index && q.key === quest.key);
   const durationBad =
     quest.duration !== "" && !DURATION.test(quest.duration.replace(/\s/g, "").toLowerCase());
-  const kept = Object.keys(quest.rest).filter((k) => k !== "rewards");
+  const kept = Object.keys(quest.rest).filter((k) => k !== "on");
 
   return (
     <>
@@ -805,8 +803,14 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
         <span className="aq-hint">{t("rewardsHint")}</span>
         <ChainField
           ctx={ctx}
-          value={quest.rest.rewards}
-          onChange={(next) => editQuest((q) => setOrDelete(q.rest, "rewards", next))}
+          value={asMap(quest.rest.on).complete}
+          onChange={(next) =>
+            editQuest((q) => {
+              const on = { ...asMap(q.rest.on) };
+              setOrDelete(on, "complete", next);
+              setOrDelete(q.rest, "on", Object.keys(on).length > 0 ? on : undefined);
+            })
+          }
         />
         {kept.length > 0 && (
           <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
@@ -846,15 +850,16 @@ function StageCard({
     <li className="aq-stage">
       <div className="aq-stage-head">
         <span className="aq-stage-n">{si + 1}</span>
-        <input
-          className="input aq-stage-title"
-          value={title}
-          placeholder={t("stageTitle")}
-          aria-label={t("stage", { n: si + 1 })}
-          onChange={(e) =>
-            ctx.edit(() => {}, [{ key: stage.title.key, lang: ctx.lang, value: e.target.value }])
-          }
-        />
+        <div className="aq-stage-title">
+          <MiniMessageInput
+            value={title}
+            placeholder={t("stageTitle")}
+            aria-label={t("stage", { n: si + 1 })}
+            onChange={(value) =>
+              ctx.edit(() => {}, [{ key: stage.title.key, lang: ctx.lang, value }])
+            }
+          />
+        </div>
         <Reorder
           t={t}
           index={si}

@@ -77,7 +77,7 @@ const daily = {
           objectives: [{ key: "stone", type: "block_break", material: "STONE", amount: 64 }],
         },
       ],
-      rewards: [{ type: "command", command: "levels addxp {player} 150", name: "+150 XP" }],
+      on: { complete: [{ type: "command", command: "levels addxp {player} 150" }] },
       requirements: [{ type: "permission", permission: "quests.vip" }],
     },
   ],
@@ -203,6 +203,20 @@ describe("keys and ids", () => {
     expect(slugKey("!!")).toBe("quest");
     expect(typedKey("Mine ")).toBe("mine_");
     expect(freeKey("quest", ["quest", "quest_2"])).toBe("quest_3");
+  });
+});
+
+describe("quest actions at completion", () => {
+  it("reads the former `rewards` as on.complete and drops reward_display", () => {
+    const steps = [{ run_command: { command: "levels addxp {actor_name} 150" } }];
+    const { out } = roundTrip({
+      ...daily,
+      quests: [{ ...daily.quests[0], on: undefined, rewards: steps, reward_display: ["+150 XP"] }],
+    });
+    const quest = (out.quests as Record<string, unknown>[])[0]!;
+    expect(quest.on).toEqual({ complete: steps });
+    expect(quest).not.toHaveProperty("rewards");
+    expect(quest).not.toHaveProperty("reward_display");
   });
 });
 

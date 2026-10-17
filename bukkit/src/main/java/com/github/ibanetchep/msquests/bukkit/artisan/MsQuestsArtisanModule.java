@@ -81,7 +81,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
     /** Built by {@code editor/} ({@code npm run build}); the SDK version its build prints. */
     static final String EDITOR_BUNDLE = "artisan-editor/ui.js";
-    static final String EDITOR_SDK = "1.3.0";
+    static final String EDITOR_SDK = "1.4.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
@@ -170,7 +170,6 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("objective_progress", FieldKind.INTEGER, "Raw — the menu formats it"),
                         new DataSourceField("objective_target", FieldKind.INTEGER, null),
                         new DataSourceField("progress_ratio", FieldKind.NUMBER, "0..1"),
-                        new DataSourceField("rewards", FieldKind.LIST, "name: one line per reward (reward_display)"),
                         new DataSourceField("stages", FieldKind.LIST,
                                 "Configured tree: key, name, flow, index, completed, active, "
                                         + "progress_ratio, objectives[] — player progress laid over it")),

@@ -42,7 +42,6 @@ public class QuestConfigMapper {
                 entity.getDuration(),
                 entity.getTier(),
                 entity.getRewards().steps(),
-                entity.getRewardDisplay(),
                 stageDtos,
                 entity.getRequirements().isEmpty() ? null : entity.getRequirements().conditions(),
                 entity.getUid()
@@ -56,9 +55,6 @@ public class QuestConfigMapper {
         questConfig.setUid(dto.uid());
 
         questConfig.setRewards(ActionChain.of(dto.rewards()));
-        if (dto.rewardDisplay() != null) {
-            questConfig.setRewardDisplay(dto.rewardDisplay());
-        }
         questConfig.setRequirements(Conditions.of(dto.requirements()));
 
         for (QuestStageConfigDTO stageDto : dto.stages()) {
