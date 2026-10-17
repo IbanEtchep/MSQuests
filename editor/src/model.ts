@@ -106,6 +106,22 @@ export function freeKey(base: string, taken: Iterable<string>): string {
   for (let n = 2; ; n++) if (!used.has(`${base}_${n}`)) return `${base}_${n}`;
 }
 
+/**
+ * The key of a new objective: its type and a random suffix (`block_break_k3f9`), not in
+ * `taken`. Never a key freed by a removed objective: its progress rows stay in the database,
+ * and a new objective under the same key would take them over.
+ */
+export function newObjectiveKey(type: string, taken: Iterable<string>): string {
+  const used = new Set(taken);
+  const bytes = new Uint8Array(4);
+  for (;;) {
+    crypto.getRandomValues(bytes);
+    const suffix = Array.from(bytes, (b) => CROCKFORD[b % 32]!.toLowerCase()).join("");
+    const key = `${slugKey(type)}_${suffix}`;
+    if (!used.has(key)) return key;
+  }
+}
+
 /** A key as it is typed: lowercase, anything outside `[a-z0-9_]` becomes `_`. */
 export function typedKey(input: string): string {
   return input.toLowerCase().replace(/[^a-z0-9_]/g, "_");
