@@ -7,7 +7,9 @@ import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainContext;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.config.group.DistributionConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigger;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
@@ -26,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -45,6 +46,7 @@ public class QuestLifecycleService {
     private final QuestDistributionService distributionManager;
     private final RotationRepository rotationRepository;
     private final MSQuestsPlatform platform;
+    private final ChainRunner chains;
 
     public QuestLifecycleService(
             EventDispatcher dispatcher,
@@ -55,7 +57,8 @@ public class QuestLifecycleService {
             AtomicQuestExecutor executor,
             QuestDistributionService distributionManager,
             RotationRepository rotationRepository,
-            MSQuestsPlatform platform
+            MSQuestsPlatform platform,
+            ChainRunner chains
     ) {
         this.dispatcher = dispatcher;
         this.persistenceService = persistenceService;
@@ -66,6 +69,7 @@ public class QuestLifecycleService {
         this.distributionManager = distributionManager;
         this.rotationRepository = rotationRepository;
         this.platform = platform;
+        this.chains = chains;
     }
 
     /**
@@ -93,7 +97,7 @@ public class QuestLifecycleService {
         CoreQuestStartedEvent startedEvent = new CoreQuestStartedEvent(quest);
         dispatcher.dispatch(startedEvent);
 
-        quest.getQuestGroup().getQuestStartActions().forEach(a -> a.execute(quest));
+        chains.run(quest.getQuestGroup().getQuestStartActions(), ChainContext.of(quest));
 
         questRegistry.add(quest);
         persistenceService.saveQuest(quest);
@@ -109,14 +113,7 @@ public class QuestLifecycleService {
             var objectiveCompletedEvent = new CoreQuestObjectiveCompletedEvent(objective, profile);
             dispatcher.dispatch(objectiveCompletedEvent);
 
-            QuestGroupConfig groupConfig = quest.getQuestGroup();
-            Map<String, String> context = Map.of(
-                    "quest_name", quest.getQuestConfig().getName(),
-                    "quest_key", quest.getQuestConfig().getKey()
-            );
-            groupConfig.getObjectiveCompleteActions().stream()
-                    .filter(a -> profile == null || a.testConditions(profile, context))
-                    .forEach(a -> a.execute(objective));
+            chains.run(quest.getQuestGroup().getObjectiveCompleteActions(), ChainContext.of(objective));
 
             if (quest.shouldComplete()) {
                 finalizeQuestCompletion(quest);
@@ -139,6 +136,19 @@ public class QuestLifecycleService {
         });
     }
 
+    /**
+     * Abandons a quest: it ends {@link QuestStatus#FAILED}, frees its active slot and stays
+     * counted in its period, so abandoning cannot be used to draw quests again. A no-op once the
+     * quest is no longer in progress, like {@link #completeQuest}.
+     */
+    public void abandonQuest(Quest quest) {
+        executor.execute(quest.getId(), updatedQuest -> {
+            if (!updatedQuest.isActive()) return;
+            updatedQuest.setStatus(QuestStatus.FAILED);
+            persistenceService.saveQuest(updatedQuest).join();
+        });
+    }
+
     private void finalizeQuestCompletion(Quest quest) {
         var questCompleteEvent = new CoreQuestCompletedEvent(quest);
         dispatcher.dispatch(questCompleteEvent);
@@ -151,10 +161,8 @@ public class QuestLifecycleService {
         }
 
         platform.runSync(() -> {
-            for (QuestAction reward : quest.getQuestConfig().getRewards()) {
-                reward.execute(quest);
-            }
-            groupConfig.getQuestCompleteActions().forEach(a -> a.execute(quest));
+            chains.run(quest.getQuestConfig().getRewards(), ChainContext.of(quest));
+            chains.run(groupConfig.getQuestCompleteActions(), ChainContext.of(quest));
             checkAllPeriodQuestsComplete(quest.getActor(), groupConfig);
         });
     }
@@ -257,7 +265,7 @@ public class QuestLifecycleService {
             if (!groupConfig.getActorType().equalsIgnoreCase(actor.getActorType())) continue;
             if (!groupConfig.isActive()) continue;
 
-            groupConfig.getActorLoadActions().forEach(action -> action.execute(actor, groupConfig));
+            chains.run(groupConfig.getActorLoadActions(), ChainContext.of(actor, groupConfig));
 
             if (groupConfig.hasDistributionTrigger(DistributionTrigger.ACTOR_LOAD)) {
                 triggerDistribution(actor, groupConfig);
@@ -302,7 +310,7 @@ public class QuestLifecycleService {
     }
 
     private void checkAllPeriodQuestsComplete(QuestActor actor, QuestGroupConfig groupConfig) {
-        List<QuestAction> actions = groupConfig.getAllPeriodQuestsCompleteActions();
+        ActionChain actions = groupConfig.getAllPeriodQuestsCompleteActions();
         if (actions.isEmpty()) {
             return;
         }
@@ -317,7 +325,7 @@ public class QuestLifecycleService {
                 && actorGroup.getCompletedCount() > 0;
 
         if (allCompleted) {
-            actions.forEach(a -> a.execute(actor, groupConfig));
+            chains.run(actions, ChainContext.of(actor, groupConfig));
         }
     }
 
@@ -333,7 +341,7 @@ public class QuestLifecycleService {
 
         int distributed = distributeQuests(actor, groupConfig, dc.getStrategy(), dc.getAmount());
         if (distributed > 0) {
-            groupConfig.getQuestDistributionActions().forEach(a -> a.execute(actor, groupConfig));
+            chains.run(groupConfig.getQuestDistributionActions(), ChainContext.of(actor, groupConfig));
         }
     }
 }

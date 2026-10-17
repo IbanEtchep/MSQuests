@@ -2,13 +2,24 @@
 
 ## Overview
 
-MSQuests provides PlaceholderAPI integration to display quest information in various places like scoreboards, chat messages, holograms, and more.
+MSQuests provides placeholders to display quest information in menus, scoreboards, chat messages, holograms, and more.
 
-All placeholders use the identifier `msquests` and follow the format: `%msquests_<placeholder>%`
+They are registered in Artisan's placeholder registry under the namespace `quests`: `%quests_<placeholder>%`.
+Artisan menus and conditions read them directly, and Artisan forwards them to PlaceholderAPI when it is installed.
+The old `%msquests_<placeholder>%` identifier is kept as a PlaceholderAPI alias for one version; the examples below
+use it, `%quests_…%` returns the same values.
+
+Besides the tracked-quest keys below, per-quest keys read the player's current attempt for the actor of the group's
+actor type (handy in Artisan conditions, e.g. `placeholder_equals: { placeholder: "%quests_completed_daily:mine_stone%", value: "true" }`):
+
+| Placeholder | Value |
+|---|---|
+| `%quests_status_<group>:<quest>%` | `NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `EXPIRED` or `FAILED` |
+| `%quests_completed_<group>:<quest>%` | `true` when the current attempt is completed, else `false` |
 
 ## Prerequisites
 
-- **PlaceholderAPI** must be installed on your server
+- **PlaceholderAPI** is only needed for the `%msquests_…%` alias and for plugins outside Artisan
 - Player must have an active **tracked quest** for most placeholders to work
 
 ---

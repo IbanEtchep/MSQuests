@@ -1,8 +1,6 @@
 package com.github.ibanetchep.msquests.bukkit.document;
 
-import com.github.ibanetchep.msquests.core.dto.ConditionConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.DistributionConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigActionsDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
@@ -30,9 +28,11 @@ import java.util.Set;
  * shared. The group key is the Document's id (its file name); the {@code uid}s are what the
  * database stores.
  *
- * <p>Actions ({@code on.*}, {@code rewards}) and conditions ({@code requirements}, objective
- * {@code conditions}) are still in the MSQuests format ({@code type: command}, …): they become
- * Artisan chains in a later lot, which will read both forms (a MSQuests step has a {@code type}).
+ * <p>Actions ({@code on.*}, {@code rewards}) are Artisan chains and conditions ({@code requirements},
+ * objective {@code conditions}) Artisan conditions, in the keyed wire; Artisan checks their
+ * vocabulary when it runs them. A step or condition still in the MSQuests format
+ * ({@code type: command}, written by the first migration) is converted as it is read
+ * ({@link LegacyActions}).
  *
  * <p>Anything malformed is refused with the path of the faulty value; nothing is guessed.
  */
@@ -108,13 +108,13 @@ public final class QuestGroupDocumentReader {
             }
         }
         QuestGroupConfigActionsDTO actions = new QuestGroupConfigActionsDTO(
-                actions(on.get("quest_start"), "on.quest_start"),
-                actions(on.get("quest_complete"), "on.quest_complete"),
-                actions(on.get("objective_progress"), "on.objective_progress"),
-                actions(on.get("objective_complete"), "on.objective_complete"),
-                actions(on.get("distribution"), "on.distribution"),
-                actions(on.get("actor_load"), "on.actor_load"),
-                actions(on.get("period_complete"), "on.period_complete"));
+                chain(on.get("quest_start"), "on.quest_start"),
+                chain(on.get("quest_complete"), "on.quest_complete"),
+                chain(on.get("objective_progress"), "on.objective_progress"),
+                chain(on.get("objective_complete"), "on.objective_complete"),
+                chain(on.get("distribution"), "on.distribution"),
+                chain(on.get("actor_load"), "on.actor_load"),
+                chain(on.get("period_complete"), "on.period_complete"));
 
         List<QuestConfigDTO> quests = new ArrayList<>();
         Set<String> questUids = new HashSet<>();
@@ -145,6 +145,7 @@ public final class QuestGroupDocumentReader {
                     bool(rotation.get("enabled"), "rotation.enabled"),
                     integer(rotation.get("max_per_period"), "rotation.max_per_period"),
                     distributionDto,
+                    Ltext.resolve(doc.get("objective_line"), lang, "objective_line"),
                     uid,
                     timezone);
         } catch (IllegalArgumentException e) {
@@ -173,6 +174,10 @@ public final class QuestGroupDocumentReader {
                 Map<String, Object> objective = map(objectiveItems.get(o), objectivePath);
                 String objectiveKey = requiredString(objective, "key", objectivePath);
                 requiredString(objective, "type", objectivePath);
+                if (objective.get("conditions") != null) {
+                    objective = new LinkedHashMap<>(objective);
+                    objective.put("conditions", conditions(objective.get("conditions"), objectivePath + ".conditions"));
+                }
                 // The database keys progress by objective within the quest: two objectives of a
                 // quest sharing a key would share their progress.
                 if (!objectiveKeys.add(objectiveKey)) {
@@ -189,6 +194,18 @@ public final class QuestGroupDocumentReader {
                     objectives));
         }
 
+        List<Object> rewards = chain(quest.get("rewards"), path + ".rewards");
+        List<String> rewardDisplay = new ArrayList<>();
+        List<Object> displayItems = list(quest.get("reward_display"), path + ".reward_display");
+        for (int i = 0; i < displayItems.size(); i++) {
+            String line = Ltext.resolve(displayItems.get(i), lang, path + ".reward_display[" + i + "]");
+            if (line != null) rewardDisplay.add(line);
+        }
+        if (quest.get("reward_display") == null) {
+            // Rewards still in the MSQuests format carry their display name.
+            rewardDisplay.addAll(legacyActions().rewards(list(quest.get("rewards"), path + ".rewards"), path + ".rewards").display());
+        }
+
         try {
             return new QuestConfigDTO(
                     key,
@@ -196,7 +213,8 @@ public final class QuestGroupDocumentReader {
                     Ltext.resolve(quest.get("description"), lang, path + ".description"),
                     QuestDuration.parse(quest.get("duration"), path + ".duration"),
                     string(quest.get("tier"), path + ".tier"),
-                    actions(quest.get("rewards"), path + ".rewards"),
+                    rewards,
+                    rewardDisplay,
                     stages,
                     quest.get("requirements") != null ? conditions(quest.get("requirements"), path + ".requirements") : null,
                     uid);
@@ -213,26 +231,70 @@ public final class QuestGroupDocumentReader {
         }
     }
 
-    private static List<QuestActionDTO> actions(@Nullable Object value, String path) {
-        List<QuestActionDTO> actions = new ArrayList<>();
-        List<Object> items = list(value, path);
+    /**
+     * An action chain: a list of keyed steps ({@code {action: args}}, {@code if}/{@code do}/
+     * {@code else}, or an action name alone). Only the shape is checked here; Artisan checks the
+     * vocabulary when it runs the chain.
+     */
+    private static List<Object> chain(@Nullable Object value, String path) {
+        List<Object> items = value instanceof Map<?, ?> ? List.of(value) : list(value, path);
+        List<Object> steps = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
-            Map<String, Object> action = map(items.get(i), path + "[" + i + "]");
-            requiredString(action, "type", path + "[" + i + "]");
-            actions.add(DocumentYaml.fromTree(action, QuestActionDTO.class));
+            Object step = items.get(i);
+            String stepPath = path + "[" + i + "]";
+            if (LegacyActions.isLegacy(step)) {
+                steps.add(legacy(() -> legacyActions().actions(List.of(step), stepPath).get(0), stepPath));
+                continue;
+            }
+            checkStep(step, stepPath);
+            steps.add(step);
         }
-        return actions;
+        return steps;
     }
 
-    private static List<ConditionConfigDTO> conditions(Object value, String path) {
-        List<ConditionConfigDTO> conditions = new ArrayList<>();
-        List<Object> items = list(value, path);
+    private static void checkStep(@Nullable Object step, String path) {
+        if (step instanceof String name && !name.isBlank()) return;
+        if (step instanceof Map<?, ?> map) {
+            if (map.containsKey("if")) {
+                chain(map.get("do"), path + ".do");
+                if (map.get("else") != null) chain(map.get("else"), path + ".else");
+                return;
+            }
+            if (map.size() == 1) return;
+        }
+        throw new DocumentException(path, "expected an action ({name: arguments}) or an if/do/else, got " + step);
+    }
+
+    /** Artisan conditions, keyed; MSQuests ones are converted. Shape only, like {@link #chain}. */
+    private static List<Object> conditions(Object value, String path) {
+        List<Object> items = value instanceof Map<?, ?> ? List.of(value) : list(value, path);
+        List<Object> conditions = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
-            Map<String, Object> condition = map(items.get(i), path + "[" + i + "]");
-            requiredString(condition, "type", path + "[" + i + "]");
-            conditions.add(DocumentYaml.fromTree(condition, ConditionConfigDTO.class));
+            Object condition = items.get(i);
+            String conditionPath = path + "[" + i + "]";
+            if (LegacyActions.isLegacy(condition)) {
+                conditions.addAll(legacy(() -> legacyActions().conditions(List.of(condition), conditionPath), conditionPath));
+                continue;
+            }
+            if (!(condition instanceof Map<?, ?> map) || map.size() != 1) {
+                throw new DocumentException(conditionPath, "expected a condition ({name: arguments}), got " + condition);
+            }
+            conditions.add(condition);
         }
         return conditions;
+    }
+
+    /** For MSQuests steps a Document may still carry; no lang keys to resolve there, the notes are not kept. */
+    private static LegacyActions legacyActions() {
+        return new LegacyActions(key -> null);
+    }
+
+    private static <T> T legacy(java.util.function.Supplier<T> conversion, String path) {
+        try {
+            return conversion.get();
+        } catch (IllegalArgumentException e) {
+            throw new DocumentException(path, e.getMessage());
+        }
     }
 
     // ------------------------------------------------------------------ values

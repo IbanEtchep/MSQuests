@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.core.service;
 
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
@@ -12,7 +11,8 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective;
@@ -108,6 +108,11 @@ class QuestLifecycleAllCompleteTest {
     private QuestDistributionService distributionService;
     private RotationRepository rotationRepository;
     private MSQuestsPlatform platform;
+    private ChainRunner chains;
+
+    private static ActionChain chain(String message) {
+        return ActionChain.of(List.of(Map.of("send_message", message)));
+    }
 
     @BeforeEach
     void setUp() {
@@ -120,6 +125,7 @@ class QuestLifecycleAllCompleteTest {
         distributionService = mock(QuestDistributionService.class);
         rotationRepository = mock(RotationRepository.class);
         platform = mock(MSQuestsPlatform.class);
+        chains = mock(ChainRunner.class);
         doAnswer(invocation -> {
             Runnable r = invocation.getArgument(0);
             r.run();
@@ -137,14 +143,15 @@ class QuestLifecycleAllCompleteTest {
                 executor,
                 distributionService,
                 rotationRepository,
-                platform
+                platform,
+                chains
         );
     }
 
     // -------------------------------------------------------------------------
     // Helper: create a QuestGroupConfig with the allPeriodQuestsCompleteActions list
     // -------------------------------------------------------------------------
-    private QuestGroupConfig buildGroupConfig(List<QuestAction> allCompleteActions) {
+    private QuestGroupConfig buildGroupConfig(ActionChain allCompleteActions) {
         return new QuestGroupConfig.Builder("group1", "Group 1", "desc", "player")
                 .allPeriodQuestsCompleteActions(allCompleteActions)
                 .build();
@@ -208,8 +215,8 @@ class QuestLifecycleAllCompleteTest {
     // =========================================================================
     @Test
     void allPeriodQuestsCompleteActionFiredWhenLastQuestCompletes() {
-        QuestAction allCompleteAction = mock(QuestAction.class);
-        QuestGroupConfig groupConfig = buildGroupConfig(List.of(allCompleteAction));
+        ActionChain allCompleteAction = chain("all done");
+        QuestGroupConfig groupConfig = buildGroupConfig(allCompleteAction);
 
         TestActor actor = new TestActor();
 
@@ -224,7 +231,8 @@ class QuestLifecycleAllCompleteTest {
 
         lifecycleService.completeObjective(objective2, null).join();
 
-        verify(allCompleteAction, times(1)).execute(actor, groupConfig);
+        verify(chains, times(1)).run(eq(allCompleteAction),
+                argThat(c -> c.actor() == actor && c.group() == groupConfig && c.quest() == null));
     }
 
     // =========================================================================
@@ -232,8 +240,8 @@ class QuestLifecycleAllCompleteTest {
     // =========================================================================
     @Test
     void allPeriodQuestsCompleteActionNotFiredWhenQuestsStillInProgress() {
-        QuestAction allCompleteAction = mock(QuestAction.class);
-        QuestGroupConfig groupConfig = buildGroupConfig(List.of(allCompleteAction));
+        ActionChain allCompleteAction = chain("all done");
+        QuestGroupConfig groupConfig = buildGroupConfig(allCompleteAction);
 
         TestActor actor = new TestActor();
 
@@ -249,7 +257,7 @@ class QuestLifecycleAllCompleteTest {
         lifecycleService.completeObjective(objective2, null).join();
 
         // Quest 1 is still in progress -> allPeriodQuestsCompleteAction must NOT fire
-        verify(allCompleteAction, never()).execute(actor, groupConfig);
+        verify(chains, never()).run(eq(allCompleteAction), any());
     }
 
     // =========================================================================
@@ -257,7 +265,7 @@ class QuestLifecycleAllCompleteTest {
     // =========================================================================
     @Test
     void noErrorWhenNoAllCompleteActionsConfigured() {
-        QuestGroupConfig groupConfig = buildGroupConfig(List.of());
+        QuestGroupConfig groupConfig = buildGroupConfig(ActionChain.EMPTY);
 
         TestActor actor = new TestActor();
 
@@ -274,34 +282,60 @@ class QuestLifecycleAllCompleteTest {
     // =========================================================================
     @Test
     void completeQuestTwicePaysRewardsOnce() {
-        QuestGroupConfig groupConfig = buildGroupConfig(List.of());
+        QuestGroupConfig groupConfig = buildGroupConfig(ActionChain.EMPTY);
         TestActor actor = new TestActor();
         Quest quest = buildQuestWithSingleObjective(actor, groupConfig, "quest1", QuestObjectiveStatus.IN_PROGRESS);
-        QuestAction reward = mock(QuestAction.class);
-        quest.getQuestConfig().addReward(reward);
+        ActionChain reward = chain("reward");
+        quest.getQuestConfig().setRewards(reward);
 
         wireExecutor(quest);
 
         lifecycleService.completeQuest(quest);
         lifecycleService.completeQuest(quest);
 
-        verify(reward, times(1)).execute(quest);
+        verify(chains, times(1)).run(eq(reward), argThat(c -> c.quest() == quest));
         verify(persistenceService, times(1)).saveQuest(quest);
     }
 
     @Test
     void completeQuestIgnoresAQuestNoLongerInProgress() {
-        QuestGroupConfig groupConfig = buildGroupConfig(List.of());
+        QuestGroupConfig groupConfig = buildGroupConfig(ActionChain.EMPTY);
         TestActor actor = new TestActor();
         Quest quest = buildCompletedQuest(actor, groupConfig, "quest1");
-        QuestAction reward = mock(QuestAction.class);
-        quest.getQuestConfig().addReward(reward);
+        ActionChain reward = chain("reward");
+        quest.getQuestConfig().setRewards(reward);
 
         wireExecutor(quest);
 
         lifecycleService.completeQuest(quest);
 
-        verify(reward, never()).execute(any(Quest.class));
+        verify(chains, never()).run(eq(reward), any());
+        verify(persistenceService, never()).saveQuest(any());
+    }
+
+    @Test
+    void abandonFailsAnActiveQuestWithoutRewards() {
+        QuestGroupConfig groupConfig = buildGroupConfig(ActionChain.EMPTY);
+        Quest quest = buildQuestWithSingleObjective(new TestActor(), groupConfig, "quest1", QuestObjectiveStatus.IN_PROGRESS);
+        ActionChain reward = chain("reward");
+        quest.getQuestConfig().setRewards(reward);
+        wireExecutor(quest);
+
+        lifecycleService.abandonQuest(quest);
+
+        org.junit.jupiter.api.Assertions.assertEquals(QuestStatus.FAILED, quest.getStatus());
+        verify(persistenceService).saveQuest(quest);
+        verify(chains, never()).run(eq(reward), any());
+    }
+
+    @Test
+    void abandonIgnoresAFinishedQuest() {
+        Quest quest = buildCompletedQuest(new TestActor(), buildGroupConfig(ActionChain.EMPTY), "quest1");
+        wireExecutor(quest);
+
+        lifecycleService.abandonQuest(quest);
+
+        org.junit.jupiter.api.Assertions.assertEquals(QuestStatus.COMPLETED, quest.getStatus());
         verify(persistenceService, never()).saveQuest(any());
     }
 }
