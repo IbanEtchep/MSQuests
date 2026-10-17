@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -45,9 +46,17 @@ public final class ContentMigration {
     private final ContentSource activeSource;
     private final @Nullable LegacyDataCopier copier;
     private final Logger logger;
+    private final Function<String, String> messageKeys;
 
     public ContentMigration(Path dataFolder, String language, ContentSource activeSource,
                             @Nullable LegacyDataCopier copier, Logger logger) {
+        this(dataFolder, language, activeSource, copier, logger, key -> null);
+    }
+
+    /** @param messageKeys text of a MSQuests lang key, for actions that name one ({@code message_key}) */
+    public ContentMigration(Path dataFolder, String language, ContentSource activeSource,
+                            @Nullable LegacyDataCopier copier, Logger logger, Function<String, String> messageKeys) {
+        this.messageKeys = messageKeys;
         this.dataFolder = dataFolder;
         this.language = language;
         this.activeSource = activeSource;
@@ -65,7 +74,8 @@ public final class ContentMigration {
         Path migrationDir = dataFolder.resolve(DIR);
         Path tmp = migrationDir.resolve("tmp");
 
-        QuestConfigLoad legacy = new QuestConfigYamlRepository(dataFolder.resolve("quests"), logger).loadAllGroups().join();
+        QuestConfigYamlRepository legacyRepository = new QuestConfigYamlRepository(dataFolder.resolve("quests"), logger, messageKeys);
+        QuestConfigLoad legacy = legacyRepository.loadAllGroups().join();
         MigrationMap previous = MigrationMapFile.read(mapFile(dataFolder));
         // The language the project already declares, else the one its manifest will get.
         String lang = Files.exists(project.resolve("manifest.yaml"))
@@ -74,8 +84,8 @@ public final class ContentMigration {
         String timezone = ZoneId.systemDefault().getId();
 
         LegacyContentConverter converter = new LegacyContentConverter(lang, timezone);
-        LegacyContentConverter.Plan plan = converter.plan(legacy.groups(), legacy.failures(), groupsDir,
-                previous != null ? previous : MigrationMap.empty());
+        LegacyContentConverter.Plan plan = converter.plan(legacy.groups(), legacy.failures(),
+                legacyRepository.getConversionNotes(), groupsDir, previous != null ? previous : MigrationMap.empty());
         MigrationReport report = plan.report();
 
         LegacyDataCopier.Result database = database(plan.map(), report);

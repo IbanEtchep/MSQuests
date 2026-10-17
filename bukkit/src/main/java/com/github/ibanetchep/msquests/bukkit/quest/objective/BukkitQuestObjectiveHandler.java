@@ -6,6 +6,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveHandler
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class BukkitQuestObjectiveHandler<T extends QuestObjective> extends QuestObjectiveHandler<T> {
 
@@ -20,7 +21,15 @@ public abstract class BukkitQuestObjectiveHandler<T extends QuestObjective> exte
         if (profile == null) return List.of();
         return getQuestObjectives(profile).stream()
                 .filter(obj -> !obj.isCompleted())
-                .filter(obj -> obj.getObjectiveConfig().getConditions().stream().allMatch(c -> c.test(profile)))
+                .filter(obj -> meetsConditions(obj, profile))
                 .toList();
+    }
+
+    private boolean meetsConditions(T objective, PlayerProfile profile) {
+        if (objective.getObjectiveConfig().getConditions().isEmpty()) return true;
+        Map<String, Object> args = Map.of(
+                "quest", objective.getQuest().getQuestConfig().getKey(),
+                "objective", objective.getObjectiveConfig().getKey());
+        return plugin.getConditionChecker().test(objective.getObjectiveConfig().getConditions(), profile, args);
     }
 }

@@ -10,7 +10,6 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestTierConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
@@ -203,12 +202,9 @@ public final class QuestRows {
 
     private static List<Map<String, Object>> rewardRows(QuestConfig config) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (QuestAction reward : config.getRewards()) {
+        for (String line : config.getRewardDisplay()) {
             Map<String, Object> row = new LinkedHashMap<>();
-            String name = reward.getName();
-            row.put("type", reward.getType());
-            // An unnamed reward shows its type, never a blank line.
-            row.put("name", name != null && !name.isEmpty() ? name : reward.getType());
+            row.put("name", line);
             rows.add(row);
         }
         return rows;

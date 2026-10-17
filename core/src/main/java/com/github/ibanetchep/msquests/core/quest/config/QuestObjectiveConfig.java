@@ -3,9 +3,8 @@ package com.github.ibanetchep.msquests.core.quest.config;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import com.github.ibanetchep.msquests.core.quest.condition.Condition;
+import com.github.ibanetchep.msquests.core.quest.config.condition.Conditions;
 
-import java.util.List;
 
 /**
  * Base class for all quest objective configs.
@@ -14,18 +13,19 @@ public abstract class QuestObjectiveConfig implements Translatable, PlaceholderP
 
     protected final String key;
     protected final String type;
-    private List<Condition> conditions = List.of();
+    private Conditions conditions = Conditions.NONE;
 
     protected QuestObjectiveConfig(QuestObjectiveConfigDTO dto) {
         this.key = dto.key();
         this.type = dto.type();
     }
 
-    public void setConditions(List<Condition> conditions) {
+    public void setConditions(Conditions conditions) {
         this.conditions = conditions;
     }
 
-    public List<Condition> getConditions() {
+    /** Conditions the acting player must meet for an event to count; checked by a {@code ConditionChecker}. */
+    public Conditions getConditions() {
         return conditions;
     }
 

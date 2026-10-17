@@ -1,7 +1,5 @@
 package com.github.ibanetchep.msquests.bukkit.document;
 
-import com.github.ibanetchep.msquests.core.dto.ConditionConfigDTO;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigActionsDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
@@ -79,6 +77,7 @@ public final class QuestGroupDocumentWriter {
             doc.put("tiers", tiers);
         }
 
+        putIfSet(doc, "objective_line", Ltext.of(group.objectiveLine(), lang));
         putIfAny(doc, "on", hooks(group.actions()));
 
         List<Object> quests = new ArrayList<>();
@@ -115,12 +114,8 @@ public final class QuestGroupDocumentWriter {
         if (quest.duration() != null && quest.duration() > 0) {
             out.put("duration", QuestDuration.format(quest.duration()));
         }
-        if (quest.conditions() != null) {
-            List<Object> requirements = new ArrayList<>();
-            for (ConditionConfigDTO condition : quest.conditions()) {
-                requirements.add(DocumentYaml.toTree(condition));
-            }
-            out.put("requirements", requirements);
+        if (quest.requirements() != null && !quest.requirements().isEmpty()) {
+            out.put("requirements", quest.requirements());
         }
 
         List<Object> stageList = new ArrayList<>();
@@ -140,16 +135,18 @@ public final class QuestGroupDocumentWriter {
         }
         out.put("stages", stageList);
 
-        List<QuestActionDTO> rewards = quest.rewards();
-        if (rewards != null && !rewards.isEmpty()) {
-            out.put("rewards", rewards.stream().map(DocumentYaml::toTree).toList());
+        if (quest.rewards() != null && !quest.rewards().isEmpty()) {
+            out.put("rewards", quest.rewards());
+        }
+        if (quest.rewardDisplay() != null && !quest.rewardDisplay().isEmpty()) {
+            out.put("reward_display", quest.rewardDisplay().stream().map(line -> Ltext.of(line, lang)).toList());
         }
         return out;
     }
 
-    private static void putActions(Map<String, Object> on, String hook, @Nullable List<QuestActionDTO> actions) {
-        if (actions != null && !actions.isEmpty()) {
-            on.put(hook, actions.stream().map(DocumentYaml::toTree).toList());
+    private static void putActions(Map<String, Object> on, String hook, @Nullable List<Object> chain) {
+        if (chain != null && !chain.isEmpty()) {
+            on.put(hook, chain);
         }
     }
 

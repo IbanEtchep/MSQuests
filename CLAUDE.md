@@ -36,7 +36,9 @@ The platform abstraction (`MSQuestsPlatform`) decouples core logic from Bukkit. 
 
 **Registries (in-memory store):** `QuestRegistry`, `QuestConfigRegistry`, `QuestActorRegistry`, `PlayerProfileRegistry`, `ActorTypeRegistry`. `QuestRegistry` has dirty tracking to avoid unnecessary DB writes.
 
-**Factories:** `QuestFactory`, `QuestObjectiveFactory`, `QuestActionFactory` — create domain objects from config or DTOs.
+**Factories:** `QuestFactory`, `QuestObjectiveFactory` — create domain objects from config or DTOs.
+
+**Artisan chains:** rewards, group hooks and requirements are Artisan action chains / conditions, carried opaquely by core (`ActionChain`, `Conditions`) and run through the `ChainRunner` / `ConditionChecker` ports (`ArtisanChainRunner`, `ArtisanConditionChecker` in `bukkit/.../artisan/`). Legacy MSQuests actions are converted by `LegacyActions`.
 
 **Services orchestrate everything:**
 - `QuestLifecycleService` — start, complete, expire quests
@@ -60,10 +62,9 @@ Two actor types: `QuestPlayerActor` (per-player) and `QuestGlobalActor` (server-
 3. Register the type in the `ActorTypeRegistry` or the objective factory as appropriate
 4. Add the YAML deserialization mapping in `QuestObjectiveFactory`
 
-### Adding a New Action Type
+### Adding a New Action
 
-1. Create a class in `core/.../quest/action/` (or `bukkit/.../quest/action/`)
-2. Register it in `QuestActionFactory`
+There are no MSQuests action types any more. A generic action belongs in Artisan's core; a quest-specific one is a `quests:*` action declared in `bukkit/.../artisan/QuestActions` (tested in `QuestActionsTest`).
 
 ## Configuration
 
@@ -84,4 +85,4 @@ Two actor types: `QuestPlayerActor` (per-player) and `QuestGlobalActor` (server-
 - **Jackson** — JSON/YAML for DTOs and serialization
 - **JDBI 3** — SQL query mapping
 - **FoliaLib** — Folia-compatible scheduler abstraction (use instead of `Bukkit.getScheduler()`)
-- **PlaceholderAPI** — optional; expansion registered in `QuestsPlaceholderExpansion`
+- **PlaceholderAPI** — optional; placeholders live in Artisan's registry (`quests`, `QuestPlaceholders`), `QuestsPlaceholderExpansion` keeps the `msquests` PAPI alias

@@ -73,16 +73,11 @@ public class QuestConfigYamlRepositoryTest {
         // Quest 1 - Rewards
         assertEquals(2, quest1.rewards().size(), "Quest 1 should have 2 rewards");
 
-        QuestActionDTO reward1_1 = quest1.rewards().get(0);
-        assertEquals("command", reward1_1.type());
-        assertEquals("Command Reward", reward1_1.name());
-        assertEquals("give %actor_name% diamond 1", reward1_1.params().get("command"));
-
-        QuestActionDTO reward1_2 = quest1.rewards().get(1);
-        assertEquals("give_item", reward1_2.type());
-        assertEquals("Item Reward", reward1_2.name());
-        assertEquals("DIAMOND", reward1_2.params().get("material"));
-        assertEquals(10, ((Number) reward1_2.params().get("amount")).intValue());
+        // Read as Artisan chains: the MSQuests actions are converted as the file is read.
+        assertEquals(Map.of("run_command", Map.of("command", "give {actor_name} diamond 1", "as", "console")),
+                quest1.rewards().get(0));
+        assertEquals(Map.of("give_item", Map.of("material", "DIAMOND", "count", 10)), quest1.rewards().get(1));
+        assertEquals(List.of("Command Reward", "Item Reward"), quest1.rewardDisplay());
 
         // Quest 1 - Stages
         List<QuestStageConfigDTO> stages1 = quest1.stages();
@@ -140,16 +135,9 @@ public class QuestConfigYamlRepositoryTest {
         // Quest 2 - Rewards
         assertEquals(2, quest2.rewards().size(), "Quest 2 should have 2 rewards");
 
-        QuestActionDTO reward2_1 = quest2.rewards().get(0);
-        assertEquals("command", reward2_1.type());
-        assertEquals("Command Reward", reward2_1.name());
-        assertEquals("give %actor_name% dirt 5", reward2_1.params().get("command"));
-
-        QuestActionDTO reward2_2 = quest2.rewards().get(1);
-        assertEquals("give_item", reward2_2.type());
-        assertEquals("Item Reward", reward2_2.name());
-        assertEquals("DIRT", reward2_2.params().get("material"));
-        assertEquals(1, ((Number) reward2_2.params().get("amount")).intValue());
+        assertEquals(Map.of("run_command", Map.of("command", "give {actor_name} dirt 5", "as", "console")),
+                quest2.rewards().get(0));
+        assertEquals(Map.of("give_item", Map.of("material", "DIRT", "count", 1)), quest2.rewards().get(1));
 
         // Quest 2 - Stages
         List<QuestStageConfigDTO> stages2 = quest2.stages();
@@ -303,15 +291,7 @@ public class QuestConfigYamlRepositoryTest {
                 List.of(objective)  // ✅ List
         );
 
-        Map<String, Object> rewardConfig = new HashMap<>();
-        rewardConfig.put("command", "give %player% diamond_pickaxe 1");
-
-        QuestActionDTO reward = new QuestActionDTO(
-                "command",
-                "Diamond Pickaxe Reward",
-                rewardConfig,
-                null
-        );
+        Map<String, Object> reward = Map.of("run_command", Map.of("command", "give {player} diamond_pickaxe 1", "as", "console"));
 
         QuestConfigDTO quest = new QuestConfigDTO(
                 "mining_quest",
@@ -320,6 +300,7 @@ public class QuestConfigYamlRepositoryTest {
                 3600L,
                 null,
                 List.of(reward),
+                List.of("Diamond Pickaxe"),
                 List.of(stage),  // ✅ List
                 null
         );
@@ -381,9 +362,9 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals("DIAMOND_ORE", reloadedObjective.params().get("material"));
         assertEquals(64, ((Number) reloadedObjective.params().get("amount")).intValue());
 
-        QuestActionDTO reloadedReward = reloadedQuest.rewards().get(0);
-        assertEquals("command", reloadedReward.type());
-        assertEquals("give %player% diamond_pickaxe 1", reloadedReward.params().get("command"));
+        // A saved chain reads back as it was: keyed steps pass through the conversion.
+        assertEquals(List.of(reward), reloadedQuest.rewards());
+        assertEquals(List.of("Diamond Pickaxe"), reloadedQuest.rewardDisplay());
     }
 
     @Test
@@ -462,10 +443,9 @@ public class QuestConfigYamlRepositoryTest {
         assertNull(objective1.params().get("key"), "Config should NOT contain 'key'");
         assertNull(objective1.params().get("type"), "Config should NOT contain 'type'");
 
-        // Same for rewards
-        QuestActionDTO reward1 = quest1.rewards().get(0);
-        assertNotNull(reward1.params().get("command"), "Config should contain 'command'");
-        assertNull(reward1.params().get("type"), "Config should NOT contain 'type'");
-        assertNull(reward1.params().get("name"), "Config should NOT contain 'name'");
+        // Rewards are keyed steps: the action name is the only key, the display name moved out.
+        @SuppressWarnings("unchecked")
+        Map<String, Object> reward1 = (Map<String, Object>) quest1.rewards().get(0);
+        assertEquals(java.util.Set.of("run_command"), reward1.keySet());
     }
 }

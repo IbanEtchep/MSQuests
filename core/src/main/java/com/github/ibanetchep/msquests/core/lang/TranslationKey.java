@@ -15,6 +15,7 @@ public enum TranslationKey implements Translatable {
     QUEST_ADMIN_DISTRIBUTED_GROUP("quest_admin.group.distributed_quests"),
     QUEST_COMMAND_TRACKED("quest.command.tracked"),
     QUEST_COMMAND_UNTRACKED("quest.command.untracked"),
+    QUEST_COMMAND_ABANDONED("quest.command.abandoned"),
     ZMENU_QUEST_STATUS_AVAILABLE("zmenu.quest.status.available"),
     ZMENU_QUEST_PROGRESS_COMPLETED("zmenu.quest.progress.completed"),
     PLACEHOLDER_QUEST("placeholder.quest"),

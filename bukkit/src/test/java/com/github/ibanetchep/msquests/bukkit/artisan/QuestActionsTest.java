@@ -14,6 +14,19 @@ import net.artisanmc.modules.api.action.ActionDeclaration;
 import net.artisanmc.modules.api.action.ActionRuntime;
 import net.artisanmc.modules.api.model.ModelField;
 import org.bukkit.entity.Player;
+import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
+import com.github.ibanetchep.msquests.bukkit.service.TrackingBossBarService;
+import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
+import com.github.ibanetchep.msquests.core.service.PlayerProfileService;
+import com.tcoded.folialib.impl.PlatformScheduler;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +40,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class QuestActionsTest {
@@ -42,6 +58,11 @@ class QuestActionsTest {
     private Map<String, ActionDeclaration> actions;
     private ActionContext ctx;
     private ActionRuntime runtime;
+    private BukkitQuestsPlugin plugin;
+    private Player player;
+
+    @TempDir
+    Path langFolder;
 
     @BeforeEach
     void setUp() {
@@ -55,7 +76,7 @@ class QuestActionsTest {
         actors.registerActor(actor);
         lifecycle = mock(QuestLifecycleService.class);
 
-        BukkitQuestsPlugin plugin = mock(BukkitQuestsPlugin.class);
+        plugin = mock(BukkitQuestsPlugin.class);
         when(plugin.getQuestConfigRegistry()).thenReturn(configs);
         when(plugin.getQuestActorRegistry()).thenReturn(actors);
         when(plugin.getQuestLifecycleService()).thenReturn(lifecycle);
@@ -65,7 +86,7 @@ class QuestActionsTest {
             actions.put(declaration.getName(), declaration);
         }
 
-        Player player = mock(Player.class);
+        player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(playerId);
         ctx = context(player, Map.of("row_key", "mine_stone"));
         runtime = new ActionRuntime() {
@@ -101,8 +122,9 @@ class QuestActionsTest {
     @Test
     void declaresTheQuestActionsWithAGroupPicker() {
         assertEquals(java.util.Set.of("quests:start", "quests:track", "quests:rotate", "quests:complete",
-                "quests:distribute"), actions.keySet());
+                "quests:distribute", "quests:abandon", "quests:action_bar", "quests:boss_bar"), actions.keySet());
         for (ActionDeclaration declaration : actions.values()) {
+            if (declaration.getName().endsWith("_bar")) continue; // display actions, no group
             ModelField group = declaration.arg("group");
             assertNotNull(group, declaration.getName());
             assertTrue(group.isRequired());
@@ -193,6 +215,87 @@ class QuestActionsTest {
         assertNull(QuestActions.groupKey(""));
         assertNull(QuestActions.groupKey("quests:"));
         assertNull(QuestActions.groupKey(null));
+    }
+
+    // ------------------------------------------------------------ L3 actions
+
+    @Test
+    void abandonFailsTheActiveInstanceAndUntracksIt() {
+        loadTranslator();
+        Quest quest = ArtisanFixtures.instance(actor, mineStone, QuestStatus.IN_PROGRESS, 3);
+        PlayerProfile profile = new PlayerProfile(playerId, "Steve");
+        profile.setTrackedQuestId(quest.getId());
+        PlayerProfileRegistry profiles = mock(PlayerProfileRegistry.class);
+        when(profiles.getPlayerProfile(playerId)).thenReturn(profile);
+        when(plugin.getPlayerProfileRegistry()).thenReturn(profiles);
+        when(plugin.getPlayerProfileService()).thenReturn(mock(PlayerProfileService.class));
+        when(plugin.getTrackingBossBarService()).thenReturn(mock(TrackingBossBarService.class));
+
+        assertSame(ctx, run("quests:abandon", Map.of("group", "daily", "quest", "mine_stone")));
+
+        verify(lifecycle).abandonQuest(quest);
+        assertNull(profile.getTrackedQuestId());
+        verify(player).sendMessage(any(Component.class));
+        assertTrue(warnings.isEmpty(), warnings::toString);
+    }
+
+    @Test
+    void abandonIgnoresAFinishedInstance() {
+        ArtisanFixtures.instance(actor, mineStone, QuestStatus.COMPLETED, 64);
+
+        run("quests:abandon", Map.of("group", "daily", "quest", "mine_stone"));
+
+        verify(lifecycle, never()).abandonQuest(any());
+    }
+
+    @Test
+    void actionBarSendsTheInterpolatedText() {
+        run("quests:action_bar", "<green>{row_key}");
+
+        verify(player).sendActionBar(argThat((Component c) ->
+                "mine_stone".equals(PlainTextComponentSerializer.plainText().serialize(c))));
+    }
+
+    @Test
+    void bossBarShowsTheChainProgress() {
+        PlatformScheduler scheduler = scheduler();
+        ActionContext objectiveHook = ctx.withArgs(Map.of("progress_ratio", 0.25));
+        ActionDeclaration declaration = actions.get("quests:boss_bar");
+
+        declaration.getHandler().execute(objectiveHook,
+                declaration.bind(Map.of("text", "{row_key}", "color", "red")), runtime);
+
+        ArgumentCaptor<BossBar> bar = ArgumentCaptor.forClass(BossBar.class);
+        verify(player).showBossBar(bar.capture());
+        assertEquals(0.25f, bar.getValue().progress(), 1e-6);
+        assertEquals(BossBar.Color.RED, bar.getValue().color());
+        assertEquals(BossBar.Overlay.PROGRESS, bar.getValue().overlay());
+        assertEquals("mine_stone", PlainTextComponentSerializer.plainText().serialize(bar.getValue().name()));
+        verify(scheduler).runLater(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
+    }
+
+    @Test
+    void bossBarWarnsOnAnUnknownColor() {
+        scheduler();
+
+        run("quests:boss_bar", Map.of("text", "x", "color", "teal"));
+
+        assertEquals(1, warnings.size(), warnings::toString);
+        verify(player).showBossBar(argThat((BossBar b) -> b.color() == BossBar.Color.WHITE));
+    }
+
+    private PlatformScheduler scheduler() {
+        PlatformScheduler scheduler = mock(PlatformScheduler.class);
+        when(scheduler.runLater(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mock(com.tcoded.folialib.wrapper.task.WrappedTask.class));
+        when(plugin.getScheduler()).thenReturn(scheduler);
+        return scheduler;
+    }
+
+    private void loadTranslator() {
+        new BukkitTranslator(langFolder.toFile(), "fr_FR",
+                locale -> getClass().getResourceAsStream("/lang/" + locale + ".yml"),
+                java.util.logging.Logger.getAnonymousLogger()).load();
     }
 
     private static ActionContext context(Player player, Map<String, Object> args) {
