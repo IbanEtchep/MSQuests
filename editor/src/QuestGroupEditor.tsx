@@ -27,6 +27,7 @@ import {
   freeKey,
   joinChain,
   legacyLabel,
+  newObjectiveKey,
   newUid,
   slugKey,
   splitChain,
@@ -903,7 +904,7 @@ function StageCard({
         className="aq-add"
         onClick={() => {
           // Objective keys are unique within a quest: the database keys progress by them.
-          const key = freeKey("block_break", allKeys);
+          const key = newObjectiveKey("block_break", allKeys);
           editQuest((q) => {
             q.stages[si]!.objectives.push({
               key,
