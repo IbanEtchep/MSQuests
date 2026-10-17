@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@artisan/editor-sdk": "file:vendor/artisan-editor-sdk-1.0.0.tgz"
+    "@artisan/editor-sdk": "file:vendor/artisan-editor-sdk-1.1.0.tgz"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -3,18 +3,18 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   type QuestGroup,
   freeKey,
-  newCommandReward,
+  joinChain,
+  legacyLabel,
   newUid,
   parseQuestGroup,
   questGroupTextSites,
-  rewardAction,
-  rewardCommand,
   rewardSteps,
   serializeQuestGroup,
   slugKey,
+  splitChain,
   typedKey,
-  withRewardCommand,
 } from "./model";
+import { missingParams, objectiveSubject, objectiveTarget } from "./objectives";
 
 /** The host's text store, reduced to what the codec reads. */
 let n = 0;
@@ -199,22 +199,30 @@ describe("keys and ids", () => {
 });
 
 describe("rewards (Artisan chain steps)", () => {
-  it("adds a console run_command and edits its command", () => {
-    const step = withRewardCommand(newCommandReward(), "give {player} diamond 1");
-    expect(step).toEqual({ run_command: { command: "give {player} diamond 1", as: "console" } });
-    expect(rewardCommand(step)).toBe("give {player} diamond 1");
+  it("hands the keyed steps to the chain editor and keeps legacy ones apart", () => {
+    const legacy = { type: "command", command: "say hi" };
+    const { chain, legacy: kept } = splitChain([{ give_item: "DIAMOND" }, legacy, "close"]);
+    expect(chain).toEqual([{ give_item: "DIAMOND" }, "close"]);
+    expect(kept).toEqual([legacy]);
+    expect(joinChain([{ send_message: "gg" }], kept)).toEqual([{ send_message: "gg" }, legacy]);
+    expect(legacyLabel(legacy)).toBe("command · say hi");
   });
-  it("reads a bare run_command and a legacy command reward", () => {
-    expect(rewardCommand({ run_command: "say hi" })).toBe("say hi");
-    expect(rewardCommand({ type: "command", command: "say hi" })).toBe("say hi");
-    expect(withRewardCommand({ type: "command", command: "a" }, "b")).toEqual({
-      type: "command",
-      command: "b",
-    });
-  });
-  it("keeps any other action as is", () => {
-    expect(rewardCommand({ give_item: { material: "DIAMOND" } })).toBeNull();
-    expect(rewardAction({ give_item: { material: "DIAMOND" } })).toBe("give_item");
+  it("reads one step alone and writes nothing for an empty chain", () => {
+    expect(splitChain({ give_item: "DIAMOND" }).chain).toEqual([{ give_item: "DIAMOND" }]);
+    expect(splitChain(undefined)).toEqual({ chain: [], legacy: [] });
+    expect(joinChain([], [])).toBeUndefined();
     expect(rewardSteps({ give_item: "DIAMOND" })).toEqual([{ give_item: "DIAMOND" }]);
+  });
+});
+
+describe("objectives", () => {
+  it("says what an objective asks and what it lacks", () => {
+    expect(objectiveSubject("deliver_item", { material: "COPPER_BLOCK", amount: 6912 })).toBe(
+      "COPPER_BLOCK",
+    );
+    expect(objectiveTarget({ distance: 500 })).toBe(500);
+    expect(missingParams("harvest_crop", { amount: 1 })).toEqual(["crop"]);
+    expect(missingParams("block_break", { amount: 1 })).toEqual([]);
+    expect(objectiveSubject("custom", { zone: "spawn", amount: 2 })).toBe("spawn");
   });
 });
