@@ -74,6 +74,14 @@ class QuestProgressRatioTest {
         assertEquals(0.0, quest.getProgressRatio());
     }
 
+    @Test
+    void aStageWithoutFlowRunsItsObjectivesInParallel() {
+        Quest quest = quest(new int[][]{{0, 5}, {5, 5}, {1, 5}});
+        quest.getQuestConfig().getStages().values().forEach(stage -> stage.setObjectiveCompletionType(null));
+
+        assertEquals(2, quest.getActiveObjectives().size());
+    }
+
     // ----------------------------------------------------------------- helpers
 
     /** One stage per varargs entry, each entry listing its objectives as {progress, target}. */

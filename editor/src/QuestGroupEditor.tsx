@@ -1,6 +1,8 @@
 import {
+  ActionChainEditor,
   Button,
   type DocumentEditorProps,
+  MaterialInput,
   type TextWrite,
   injectModuleStyles,
   newTextKey,
@@ -21,17 +23,25 @@ import {
   type Raw,
   type Stage,
   type Text,
+  HOOKS,
   freeKey,
-  newCommandReward,
+  joinChain,
+  legacyLabel,
   newUid,
-  rewardAction,
-  rewardCommand,
-  rewardSteps,
   slugKey,
+  splitChain,
   typedKey,
-  withRewardCommand,
 } from "./model";
-import { OBJECTIVE_TYPES, type ParamSpec, defaultParams, objectiveSpec } from "./objectives";
+import {
+  ENTITY_TYPES,
+  OBJECTIVE_TYPES,
+  type ParamSpec,
+  defaultParams,
+  missingParams,
+  objectiveSpec,
+  objectiveSubject,
+  objectiveTarget,
+} from "./objectives";
 import { QUESTS_CSS } from "./styles";
 
 const DURATION = /^(\d+|(\d+[dhms])+)$/;
@@ -51,6 +61,7 @@ const TIMEZONES: string[] = (() => {
 type Edit = (recipe: (draft: QuestGroup) => void, texts?: TextWrite[]) => void;
 
 interface Ctx {
+  projectId: string;
   project: unknown;
   lang: string;
   t: T;
@@ -75,7 +86,7 @@ export function QuestGroupEditor({ projectId, documentId, document }: DocumentEd
     recipe(next);
     updateDocument({ projectId, kind: KIND, id: documentId, doc: next, texts });
   };
-  const ctx: Ctx = { project, lang, t, edit };
+  const ctx: Ctx = { projectId, project, lang, t, edit };
 
   const index = openUid ? group.quests.findIndex((q) => q.uid === openUid) : -1;
   if (index >= 0) {
@@ -237,10 +248,6 @@ function GroupView({
     ? (group.distribution.triggers as string[])
     : [];
   const perTier = (group.distribution.tiers ?? {}) as Record<string, unknown>;
-  const hooks =
-    group.rest.on && typeof group.rest.on === "object"
-      ? Object.keys(group.rest.on as Raw).length
-      : 0;
   const kept = Object.keys(group.rest).filter((k) => k !== "on");
 
   const addQuest = () => {
@@ -526,6 +533,11 @@ function GroupView({
                   {textValue(project, q.title.key, lang) || q.key}
                 </span>
                 <span className="aq-item-sub">
+                  {t("questSummary", {
+                    stages: q.stages.length,
+                    objectives: q.stages.reduce((n, s) => n + s.objectives.length, 0),
+                  })}
+                  {" · "}
                   {q.key}
                   {q.tier ? ` · ${q.tier}` : ""}
                   {q.duration ? ` · ${q.duration}` : ""}
@@ -545,19 +557,108 @@ function GroupView({
             </div>
           ))}
         </div>
-        {hooks > 0 && <span className="aq-hint">{t("hooks", { count: hooks })}</span>}
         {kept.length > 0 && (
           <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
         )}
       </section>
+
+      <HooksSection ctx={ctx} group={group} />
     </>
+  );
+}
+
+// ------------------------------------------------------------------ chains
+
+/**
+ * An action chain of the group (a hook, a quest's rewards) in the editor's chain editor.
+ * Steps still in the MSQuests format stay apart, listed as they are (see `splitChain`).
+ */
+function ChainField({
+  ctx,
+  value,
+  onChange,
+}: { ctx: Ctx; value: unknown; onChange: (next: unknown[] | undefined) => void }) {
+  const { chain, legacy } = splitChain(value);
+  return (
+    <div className="aq-chain">
+      <ActionChainEditor
+        projectId={ctx.projectId}
+        value={chain}
+        onChange={(next) => onChange(joinChain(next, legacy))}
+      />
+      {legacy.length > 0 && (
+        <div className="aq-legacy">
+          <span className="aq-hint">{ctx.t("legacySteps")}</span>
+          {legacy.map((step, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a step has no identity
+            <div key={i} className="aq-legacy-row">
+              <code>{legacyLabel(step)}</code>
+              <IconButton
+                label={ctx.t("remove")}
+                onClick={() => onChange(joinChain(chain, legacy.filter((_, j) => j !== i)))}
+              >
+                ×
+              </IconButton>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function chainLength(value: unknown): number {
+  return Array.isArray(value) ? value.length : value == null ? 0 : 1;
+}
+
+function HooksSection({ ctx, group }: { ctx: Ctx; group: QuestGroup }) {
+  const { t, edit } = ctx;
+  const on = (group.rest.on && typeof group.rest.on === "object" ? group.rest.on : {}) as Raw;
+  return (
+    <section className="aq-section">
+      <span className="aq-h">{t("hooks")}</span>
+      <span className="aq-hint">{t("hooksHint")}</span>
+      {HOOKS.map((hook) => {
+        const count = chainLength(on[hook]);
+        return (
+          <details key={hook} className="aq-fold">
+            <summary>
+              <span>{t(`hook.${hook}`)}</span>
+              {count > 0 && (
+                <span className="aq-badge" title={t("actionCount", { count })}>
+                  {count}
+                </span>
+              )}
+            </summary>
+            <ChainField
+              ctx={ctx}
+              value={on[hook]}
+              onChange={(next) =>
+                edit((g) => {
+                  const map = { ...((g.rest.on ?? {}) as Raw) };
+                  setOrDelete(map, hook, next);
+                  setOrDelete(g.rest, "on", Object.keys(map).length ? map : undefined);
+                })
+              }
+            />
+          </details>
+        );
+      })}
+    </section>
   );
 }
 
 // ------------------------------------------------------------------ quest
 
 function newStage(n: number): Stage {
-  return { key: `stage_${n}`, title: { key: newTextKey() }, flow: "", objectives: [], rest: {} };
+  // `flow` written: a stage without it had no active objective before QuestStage read it as parallel.
+  return {
+    key: `stage_${n}`,
+    title: { key: newTextKey() },
+    flow: "parallel",
+    objectives: [],
+    rest: {},
+  };
 }
 
 function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: number }) {
@@ -568,35 +669,15 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
   const keyTaken = group.quests.some((q, i) => i !== index && q.key === quest.key);
   const durationBad =
     quest.duration !== "" && !DURATION.test(quest.duration.replace(/\s/g, "").toLowerCase());
-  const rewards = rewardSteps(quest.rest.rewards);
+  const kept = Object.keys(quest.rest).filter((k) => k !== "rewards");
 
   return (
     <>
       <section className="aq-section">
+        <span className="aq-h">{t("general")}</span>
         <TextField ctx={ctx} label={t("title")} node={quest.title} />
         <TextField ctx={ctx} label={t("description")} node={quest.description} multiline />
-        <div className="aq-row">
-          <Field
-            label={t("key")}
-            hint={keyTaken && <span className="aq-err">{t("keyTaken")}</span>}
-          >
-            <input
-              className="input"
-              value={quest.key}
-              onChange={(e) =>
-                editQuest((q) => {
-                  q.key = typedKey(e.target.value);
-                })
-              }
-              onBlur={() => {
-                const final = slugKey(quest.key);
-                if (final !== quest.key)
-                  editQuest((q) => {
-                    q.key = final;
-                  });
-              }}
-            />
-          </Field>
+        <div className="aq-row aq-top">
           <Field label={t("tier")}>
             <select
               className="select"
@@ -618,31 +699,61 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
               )}
             </select>
           </Field>
-        </div>
-        <Field
-          label={t("duration")}
-          hint={
-            <span className={durationBad ? "aq-err" : "aq-hint"}>
-              {durationBad ? t("durationInvalid") : t("durationHint")}
-            </span>
-          }
-        >
-          <input
-            className="input"
-            value={quest.duration}
-            placeholder="24h"
-            onChange={(e) =>
-              editQuest((q) => {
-                q.duration = e.target.value.trim();
-              })
+          <Field
+            label={t("duration")}
+            hint={
+              <span className={durationBad ? "aq-err" : "aq-hint"}>
+                {durationBad ? t("durationInvalid") : t("durationHint")}
+              </span>
             }
-          />
-        </Field>
+          >
+            <input
+              className="input"
+              value={quest.duration}
+              placeholder="24h"
+              onChange={(e) =>
+                editQuest((q) => {
+                  q.duration = e.target.value.trim();
+                })
+              }
+            />
+          </Field>
+        </div>
+        <details className="aq-fold" open={keyTaken || undefined}>
+          <summary>{t("more")}</summary>
+          <Field
+            label={t("key")}
+            hint={
+              <span className={keyTaken ? "aq-err" : "aq-hint"}>
+                {keyTaken ? t("keyTaken") : t("questKeyHint")}
+              </span>
+            }
+          >
+            <input
+              className="input aq-mono"
+              value={quest.key}
+              onChange={(e) =>
+                editQuest((q) => {
+                  q.key = typedKey(e.target.value);
+                })
+              }
+              onBlur={() => {
+                const final = slugKey(quest.key);
+                if (final !== quest.key)
+                  editQuest((q) => {
+                    q.key = final;
+                  });
+              }}
+            />
+          </Field>
+        </details>
       </section>
 
       <section className="aq-section">
         <div className="aq-head">
-          <span className="aq-h">{t("stages")}</span>
+          <span className="aq-h">
+            {t("stages")} · {quest.stages.length}
+          </span>
           <Button
             size="sm"
             variant="ghost"
@@ -659,76 +770,30 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
             + {t("addStage")}
           </Button>
         </div>
-        {quest.stages.map((stage, si) => (
-          <StageCard
-            key={`${stage.key}-${si}`}
-            ctx={ctx}
-            quest={quest}
-            stage={stage}
-            si={si}
-            editQuest={editQuest}
-          />
-        ))}
+        <ol className="aq-stages">
+          {quest.stages.map((stage, si) => (
+            <StageCard
+              key={`${stage.key}-${si}`}
+              ctx={ctx}
+              quest={quest}
+              stage={stage}
+              si={si}
+              editQuest={editQuest}
+            />
+          ))}
+        </ol>
       </section>
 
       <section className="aq-section">
-        <div className="aq-head">
-          <span className="aq-h">{t("rewards")}</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() =>
-              editQuest((q) => {
-                q.rest.rewards = [...rewards, newCommandReward()];
-              })
-            }
-          >
-            + {t("addReward")}
-          </Button>
-        </div>
-        {rewards.map((reward, ri) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: an action has no identity; its inputs are controlled
-          <div key={ri} className="aq-row">
-            {rewardCommand(reward) !== null ? (
-              <Field label={t("rewardCommand")}>
-                <input
-                  className="input"
-                  value={rewardCommand(reward) ?? ""}
-                  placeholder="give {player} diamond 1"
-                  onChange={(e) =>
-                    editQuest((q) => {
-                      const steps = rewardSteps(q.rest.rewards);
-                      steps[ri] = withRewardCommand(steps[ri]!, e.target.value);
-                      q.rest.rewards = steps;
-                    })
-                  }
-                />
-              </Field>
-            ) : (
-              <span className="aq-hint">{t("rewardOther", { type: rewardAction(reward) })}</span>
-            )}
-            <IconButton
-              label={t("remove")}
-              onClick={() =>
-                editQuest((q) => {
-                  const next = [...rewards];
-                  next.splice(ri, 1);
-                  setOrDelete(q.rest, "rewards", next.length ? next : undefined);
-                })
-              }
-            >
-              ×
-            </IconButton>
-          </div>
-        ))}
-        {Object.keys(quest.rest).filter((k) => k !== "rewards").length > 0 && (
-          <span className="aq-hint">
-            {t("kept", {
-              fields: Object.keys(quest.rest)
-                .filter((k) => k !== "rewards")
-                .join(", "),
-            })}
-          </span>
+        <span className="aq-h">{t("rewards")}</span>
+        <span className="aq-hint">{t("rewardsHint")}</span>
+        <ChainField
+          ctx={ctx}
+          value={quest.rest.rewards}
+          onChange={(next) => editQuest((q) => setOrDelete(q.rest, "rewards", next))}
+        />
+        {kept.length > 0 && (
+          <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
         )}
       </section>
 
@@ -754,154 +819,253 @@ function StageCard({
   editQuest: (recipe: (q: Quest) => void, texts?: TextWrite[]) => void;
 }) {
   const { t } = ctx;
+  const [openKey, setOpenKey] = useState<string | null>(null);
   const editStage = (recipe: (s: Stage) => void) => editQuest((q) => recipe(q.stages[si]!));
+  const title = textValue(ctx.project, stage.title.key, ctx.lang);
+  // A stage without `flow` reads as parallel (QuestStageConfig).
+  const flow = stage.flow || "parallel";
+  const allKeys = quest.stages.flatMap((s) => s.objectives.map((o) => o.key));
+
   return (
-    <div className="aq-card">
-      <div className="aq-head">
-        <span className="aq-h">{t("stage", { n: si + 1 })}</span>
-        <span>
-          <Reorder
-            t={t}
-            index={si}
-            count={quest.stages.length}
-            onMove={(to) => editQuest((q) => move(q.stages, si, to))}
-            onRemove={() =>
-              editQuest((q) => {
-                q.stages.splice(si, 1);
-              })
-            }
-          />
-        </span>
-      </div>
-      <TextField ctx={ctx} label={t("title")} node={stage.title} />
-      <Field label={t("flow")}>
-        <select
-          className="select"
-          value={stage.flow}
+    <li className="aq-stage">
+      <div className="aq-stage-head">
+        <span className="aq-stage-n">{si + 1}</span>
+        <input
+          className="input aq-stage-title"
+          value={title}
+          placeholder={t("stageTitle")}
+          aria-label={t("stage", { n: si + 1 })}
           onChange={(e) =>
-            editStage((s) => {
-              s.flow = e.target.value as Stage["flow"];
-            })
+            ctx.edit(() => {}, [{ key: stage.title.key, lang: ctx.lang, value: e.target.value }])
           }
-        >
-          <option value="">{t("flow.default")}</option>
-          <option value="parallel">{t("flow.parallel")}</option>
-          <option value="sequential">{t("flow.sequential")}</option>
-        </select>
-      </Field>
-      {stage.objectives.length === 0 && <span className="aq-hint">{t("noObjectives")}</span>}
-      {stage.objectives.map((objective, oi) => (
-        <ObjectiveCard
-          key={`${objective.key}-${oi}`}
+        />
+        <Reorder
           t={t}
-          objective={objective}
-          taken={quest.stages
-            .flatMap((s) => s.objectives)
-            .filter((o) => o !== objective)
-            .map((o) => o.key)}
-          onChange={(recipe) => editStage((s) => recipe(s.objectives[oi]!))}
+          index={si}
+          count={quest.stages.length}
+          onMove={(to) => editQuest((q) => move(q.stages, si, to))}
           onRemove={() =>
-            editStage((s) => {
-              s.objectives.splice(oi, 1);
+            editQuest((q) => {
+              q.stages.splice(si, 1);
             })
           }
         />
-      ))}
+      </div>
+      {stage.objectives.length > 1 && (
+        <div className="aq-seg" role="radiogroup" aria-label={t("flow")}>
+          {(["parallel", "sequential"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="radio"
+              aria-checked={flow === f}
+              className={`chip${flow === f ? " is-active" : ""}`}
+              onClick={() =>
+                editStage((s) => {
+                  s.flow = f;
+                })
+              }
+            >
+              {t(`flow.${f}`)}
+            </button>
+          ))}
+        </div>
+      )}
+      {stage.objectives.length === 0 && <span className="aq-hint">{t("noObjectives")}</span>}
+      <ul className="aq-objectives">
+        {stage.objectives.map((objective, oi) => (
+          <ObjectiveRow
+            key={`${objective.key}-${oi}`}
+            t={t}
+            n={flow === "sequential" ? `${si + 1}.${oi + 1}` : "•"}
+            objective={objective}
+            open={openKey === objective.key}
+            onToggle={() => setOpenKey(openKey === objective.key ? null : objective.key)}
+            keyTaken={allKeys.filter((k) => k === objective.key).length > 1}
+            index={oi}
+            count={stage.objectives.length}
+            onMove={(to) => editStage((s) => move(s.objectives, oi, to))}
+            onChange={(recipe) => editStage((s) => recipe(s.objectives[oi]!))}
+            onRename={(key) => {
+              if (openKey === objective.key) setOpenKey(key);
+            }}
+            onRemove={() =>
+              editStage((s) => {
+                s.objectives.splice(oi, 1);
+              })
+            }
+          />
+        ))}
+      </ul>
       <Button
         size="sm"
         variant="ghost"
-        onClick={() =>
+        className="aq-add"
+        onClick={() => {
+          // Objective keys are unique within a quest: the database keys progress by them.
+          const key = freeKey("block_break", allKeys);
           editQuest((q) => {
-            // Objective keys are unique within a quest: the database keys progress by them.
-            const taken = q.stages.flatMap((s) => s.objectives.map((o) => o.key));
             q.stages[si]!.objectives.push({
-              key: freeKey("objective", taken),
+              key,
               type: "block_break",
               params: defaultParams("block_break"),
             });
-          })
-        }
+          });
+          setOpenKey(key);
+        }}
       >
         + {t("addObjective")}
       </Button>
-    </div>
+    </li>
   );
 }
 
-function ObjectiveCard({
+function typeLabel(t: T, type: string): string {
+  return objectiveSpec(type) ? t(`objective.${type}` as Parameters<T>[0]) : type;
+}
+
+/**
+ * One objective: a line saying what it asks (`⛏ Break blocks · 64 × STONE`), which opens
+ * its form. The key, generated from the type, waits under "More options".
+ */
+function ObjectiveRow({
   t,
+  n,
   objective,
-  taken,
+  open,
+  onToggle,
+  keyTaken,
+  index,
+  count,
+  onMove,
   onChange,
+  onRename,
   onRemove,
 }: {
   t: T;
+  n: string;
   objective: Objective;
-  taken: string[];
+  open: boolean;
+  onToggle: () => void;
+  keyTaken: boolean;
+  index: number;
+  count: number;
+  onMove: (to: number) => void;
   onChange: (recipe: (o: Objective) => void) => void;
+  onRename: (key: string) => void;
   onRemove: () => void;
 }) {
   const spec = objectiveSpec(objective.type);
   const params: ParamSpec[] = spec
     ? spec.params
     : Object.keys(objective.params).map((name) => ({ name, kind: "text" as const }));
-  const keyTaken = taken.includes(objective.key);
+  const target = objectiveTarget(objective.params);
+  const subject = objectiveSubject(objective.type, objective.params);
+  const missing = missingParams(objective.type, objective.params);
+  const problem = keyTaken || missing.length > 0;
+  const field = (p: ParamSpec) => (
+    <ParamField
+      key={p.name}
+      t={t}
+      spec={p}
+      value={objective.params[p.name]}
+      onChange={(v) => onChange((o) => setOrDelete(o.params, p.name, v))}
+    />
+  );
+
   return (
-    <div className="aq-sub">
-      <div className="aq-row">
-        <Field label={t("type")}>
-          <select
-            className="select"
-            value={objective.type}
-            onChange={(e) =>
-              onChange((o) => {
-                o.type = e.target.value;
-                o.params = defaultParams(o.type);
-              })
-            }
-          >
-            {OBJECTIVE_TYPES.map((s) => (
-              <option key={s.type} value={s.type}>
-                {t(`objective.${s.type}` as Parameters<T>[0])}
-              </option>
-            ))}
-            {!spec && <option value={objective.type}>{objective.type}</option>}
-          </select>
-        </Field>
-        <Field label={t("key")} hint={keyTaken && <span className="aq-err">{t("keyTaken")}</span>}>
-          <input
-            className="input"
-            value={objective.key}
-            onChange={(e) =>
-              onChange((o) => {
-                o.key = typedKey(e.target.value);
-              })
-            }
-            onBlur={() => {
-              const final = slugKey(objective.key);
-              if (final !== objective.key)
+    <li className={`aq-obj${open ? " is-open" : ""}${problem ? " has-problem" : ""}`}>
+      <div className="aq-obj-line">
+        <button type="button" className="aq-obj-main" onClick={onToggle} aria-expanded={open}>
+          <span className="aq-obj-n">{n}</span>
+          <span className="aq-obj-icon" aria-hidden>
+            {spec?.icon ?? "?"}
+          </span>
+          <span className="aq-obj-text">
+            {typeLabel(t, objective.type)}
+            {target !== undefined && <strong> · {String(target)}</strong>}
+            {subject ? ` × ${subject}` : target !== undefined ? ` × ${t("any")}` : ""}
+          </span>
+          {problem && (
+            <span
+              className="aq-obj-dot"
+              title={
+                keyTaken
+                  ? t("objectiveKeyTaken")
+                  : t("missing", {
+                      fields: missing.map((m) => t(`param.${m}` as Parameters<T>[0])).join(", "),
+                    })
+              }
+            />
+          )}
+        </button>
+        <Reorder t={t} index={index} count={count} onMove={onMove} onRemove={onRemove} />
+      </div>
+      {open && (
+        <div className="aq-obj-form">
+          <Field label={t("type")}>
+            <select
+              className="select"
+              value={objective.type}
+              onChange={(e) =>
                 onChange((o) => {
-                  o.key = final;
-                });
-            }}
-          />
-        </Field>
-        <IconButton label={t("remove")} onClick={onRemove}>
-          ×
-        </IconButton>
-      </div>
-      <div className="aq-row">
-        {params.map((p) => (
-          <ParamField
-            key={p.name}
-            t={t}
-            spec={p}
-            value={objective.params[p.name]}
-            onChange={(v) => onChange((o) => setOrDelete(o.params, p.name, v))}
-          />
-        ))}
-      </div>
-    </div>
+                  o.type = e.target.value;
+                  o.params = defaultParams(o.type);
+                })
+              }
+            >
+              {OBJECTIVE_TYPES.map((s) => (
+                <option key={s.type} value={s.type}>
+                  {s.icon} {t(`objective.${s.type}` as Parameters<T>[0])}
+                </option>
+              ))}
+              {!spec && <option value={objective.type}>{objective.type}</option>}
+            </select>
+          </Field>
+          <div className="aq-row aq-wrap">{params.filter((p) => !p.advanced).map(field)}</div>
+          {missing.length > 0 && (
+            <span className="aq-warn">
+              {t("missing", {
+                fields: missing.map((m) => t(`param.${m}` as Parameters<T>[0])).join(", "),
+              })}
+            </span>
+          )}
+          <details className="aq-fold" open={keyTaken || undefined}>
+            <summary>{t("more")}</summary>
+            {params.filter((p) => p.advanced).map(field)}
+            <Field
+              label={t("key")}
+              hint={
+                <span className={keyTaken ? "aq-err" : "aq-hint"}>
+                  {keyTaken ? t("objectiveKeyTaken") : t("objectiveKeyHint")}
+                </span>
+              }
+            >
+              <input
+                className="input aq-mono"
+                value={objective.key}
+                onChange={(e) => {
+                  const key = typedKey(e.target.value);
+                  onChange((o) => {
+                    o.key = key;
+                  });
+                  onRename(key);
+                }}
+                onBlur={() => {
+                  const final = slugKey(objective.key);
+                  if (final !== objective.key) {
+                    onChange((o) => {
+                      o.key = final;
+                    });
+                    onRename(final);
+                  }
+                }}
+              />
+            </Field>
+          </details>
+        </div>
+      )}
+    </li>
   );
 }
 
@@ -918,21 +1082,46 @@ function ParamField({
 }) {
   const label = t(`param.${spec.name}` as Parameters<T>[0]);
   const missing = spec.required && (value === undefined || value === "");
-  const hint = missing ? <span className="aq-warn">{t("required")}</span> : undefined;
+  const text = typeof value === "string" || typeof value === "number" ? String(value) : "";
   if (spec.kind === "int") {
     return <NumberField label={label} value={value} onChange={onChange} />;
   }
-  const upper = spec.kind === "material" || spec.kind === "entity";
+  const hint = missing ? (
+    <span className="aq-warn">{t("required")}</span>
+  ) : spec.name === "itemKey" ? (
+    <span className="aq-hint">{t("itemKeyHint")}</span>
+  ) : undefined;
+  if (spec.kind === "material") {
+    return (
+      <Field label={label} hint={hint}>
+        <MaterialInput
+          value={text}
+          placeholder={t("any")}
+          aria-label={label}
+          onChange={(v) => onChange(v.toUpperCase().replace(/\s+/g, "_"))}
+        />
+      </Field>
+    );
+  }
+  const entity = spec.kind === "entity";
   return (
     <Field label={label} hint={hint}>
       <input
-        className="input"
-        value={typeof value === "string" || typeof value === "number" ? String(value) : ""}
-        placeholder={upper ? t("any") : ""}
+        className={`input${entity ? " aq-mono" : ""}`}
+        list={entity ? "aq-entities" : undefined}
+        value={text}
+        placeholder={entity ? t("any") : ""}
         onChange={(e) =>
-          onChange(upper ? e.target.value.toUpperCase().replace(/\s+/g, "_") : e.target.value)
+          onChange(entity ? e.target.value.toUpperCase().replace(/\s+/g, "_") : e.target.value)
         }
       />
+      {entity && (
+        <datalist id="aq-entities">
+          {ENTITY_TYPES.map((e) => (
+            <option key={e} value={e} />
+          ))}
+        </datalist>
+      )}
     </Field>
   );
 }
@@ -940,14 +1129,9 @@ function ParamField({
 function Preview({ ctx, quest }: { ctx: Ctx; quest: Quest }) {
   const { t, project, lang } = ctx;
   const line = (o: Objective) => {
-    const spec = objectiveSpec(o.type);
-    const what = spec?.params
-      .filter((p) => p.kind !== "int" && o.params[p.name] !== undefined && o.params[p.name] !== "")
-      .map((p) => String(o.params[p.name]))
-      .join(" ");
-    const amount = o.params.amount ?? o.params.distance;
-    const label = spec ? t(`objective.${o.type}` as Parameters<T>[0]) : o.type;
-    return `${label}${what ? ` · ${what}` : ""}${amount !== undefined ? ` · 0/${String(amount)}` : ""}`;
+    const what = objectiveSubject(o.type, o.params);
+    const target = objectiveTarget(o.params);
+    return `${typeLabel(t, o.type)}${what ? ` · ${what}` : ""}${target !== undefined ? ` · 0/${String(target)}` : ""}`;
   };
   return (
     <div className="aq-preview">
@@ -957,13 +1141,21 @@ function Preview({ ctx, quest }: { ctx: Ctx; quest: Quest }) {
       {textValue(project, quest.description.key, lang) && (
         <span className="aq-preview-line">{textValue(project, quest.description.key, lang)}</span>
       )}
-      {quest.stages
-        .flatMap((s) => s.objectives)
-        .map((o) => (
-          <span key={o.key} className="aq-preview-line">
-            • {line(o)}
-          </span>
-        ))}
+      {quest.stages.map((s, si) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: stages are listed in order
+        <span key={si} className="aq-preview-stage">
+          {quest.stages.length > 1 && (
+            <span className="aq-preview-line">
+              {textValue(project, s.title.key, lang) || t("stage", { n: si + 1 })}
+            </span>
+          )}
+          {s.objectives.map((o) => (
+            <span key={o.key} className="aq-preview-line">
+              • {line(o)}
+            </span>
+          ))}
+        </span>
+      ))}
     </div>
   );
 }
