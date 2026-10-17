@@ -19,9 +19,9 @@ dependencies {
     compileOnly('me.clip:placeholderapi:2.11.6')
     compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
     // Artisan — a required dependency, provided at runtime by the Artisan plugin, never shaded.
-    // Until 2.3.0 is released on repo.artisanmc.net, publish it from Artisan's v2 branch (or the
-    // branch of artisanmc/artisan#89 until it is merged):
-    //   cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.3.0
+    // Until 2.4.0 is released on repo.artisanmc.net, publish it from Artisan's v2 branch (or the
+    // branch of artisanmc/artisan#93 until it is merged):
+    //   cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.4.0
     compileOnly("net.artisanmc:artisan-core-api:${artisanApiVersion}")
     implementation("com.tcoded:FoliaLib:0.5.1")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.18")

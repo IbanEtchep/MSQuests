@@ -18,6 +18,7 @@ import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanConditionChecker;
 import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
+import net.artisanmc.modules.api.item.ItemStackApi;
 import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
 import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
 import com.github.ibanetchep.msquests.bukkit.document.MigrationMapFile;
@@ -516,6 +517,11 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public ConditionChecker getConditionChecker() {
         return conditionChecker;
+    }
+
+    /** Artisan's item specs: what an objective's {@code item} is built and compared with. */
+    public ItemStackApi getItems() {
+        return artisanIntegration.getApi().getItems();
     }
 
     public QuestPlaceholders getQuestPlaceholders() {

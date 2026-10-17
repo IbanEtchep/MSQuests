@@ -1,39 +1,36 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.fishing;
 
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemTarget;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
-import org.bukkit.Material;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ObjectiveType(ObjectiveTypes.FISHING)
 public class FishingObjectiveConfig extends QuestObjectiveConfig {
 
-    @ConfigField(name = "fish_type")
-    private @Nullable Material fishType;
+    /** {@code item} + {@code match}, or the legacy {@code fish_type}. */
+    @ConfigField(name = "item")
+    private final ItemTarget item;
 
     @ConfigField(name = "amount", required = true)
     private int amount = 1;
 
     public FishingObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);
-        if (dto.params().containsKey("fish_type") && dto.params().get("fish_type") != null) {
-            fishType = Material.valueOf(dto.params().get("fish_type").toString().toUpperCase());
-        }
-
+        item = ItemTarget.read(dto.params(), "fish_type");
         if (dto.params().containsKey("amount")) {
             amount = (int) dto.params().get("amount");
         }
     }
 
-    @Nullable
-    public Material getFishType() {
-        return fishType;
+    public ItemTarget getItem() {
+        return item;
     }
 
     public int getAmount() {
@@ -43,22 +40,19 @@ public class FishingObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "fish_type", fishType != null ? "<lang:" + fishType.translationKey() + ">" : "",
+                "fish_type", item.placeholder(),
                 "amount", String.valueOf(amount)
         );
     }
 
     @Override
     public QuestObjectiveConfigDTO toDTO() {
-        return new QuestObjectiveConfigDTO(
-                getKey(),
-                getType(),
-                Map.of(
-                        "fish_type", fishType != null ? fishType.name() : null,
-                        "amount", amount
-                )
-        );
+        Map<String, Object> params = new LinkedHashMap<>();
+        item.write(params);
+        params.put("amount", amount);
+        return new QuestObjectiveConfigDTO(getKey(), getType(), params);
     }
+
     @Override
     public int getTarget() {
         return amount;

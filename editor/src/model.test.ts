@@ -15,7 +15,14 @@ import {
   splitChain,
   typedKey,
 } from "./model";
-import { missingParams, objectiveSubject, objectiveTarget } from "./objectives";
+import {
+  itemValue,
+  missingParams,
+  objectiveSpec,
+  objectiveSubject,
+  objectiveTarget,
+  writeItemParam,
+} from "./objectives";
 
 /** The host's text store, reduced to what the codec reads. */
 let n = 0;
@@ -231,6 +238,34 @@ describe("objectives", () => {
     expect(missingParams("harvest_crop", { amount: 1 })).toEqual(["crop"]);
     expect(missingParams("block_break", { amount: 1 })).toEqual([]);
     expect(objectiveSubject("custom", { zone: "spawn", amount: 2 })).toBe("spawn");
+  });
+
+  it("reads an objective's item, the legacy bare material included", () => {
+    const spec = objectiveSpec("fishing")!.params[0]!;
+    expect(itemValue({ fish_type: "COD" }, spec)).toEqual({ material: "COD" });
+    expect(itemValue({ item: { material: "item:rod" }, fish_type: "COD" }, spec)).toEqual({
+      material: "item:rod",
+    });
+    expect(itemValue({ amount: 1 }, spec)).toEqual({});
+    expect(
+      objectiveSubject("craft_item", { item: { material: "DIAMOND_SWORD", title: "<red>Excalibur" } }),
+    ).toBe("Excalibur");
+    expect(objectiveSubject("fishing", { item: { material: "nexo:ruby_fish" } })).toBe("nexo:ruby_fish");
+  });
+
+  it("writes an item over the legacy material, and clears it to any item", () => {
+    const spec = objectiveSpec("fishing")!.params[0]!;
+    const params: Record<string, unknown> = { fish_type: "COD", amount: 2 };
+    writeItemParam(params, spec, { material: "COD", enchants: { lure: 3 } }, ["material", "enchants"]);
+    expect(params).toEqual({
+      amount: 2,
+      item: { material: "COD", enchants: { lure: 3 } },
+      match: ["material", "enchants"],
+    });
+    writeItemParam(params, spec, params.item as Record<string, unknown>, undefined);
+    expect(params.match).toBeUndefined();
+    writeItemParam(params, spec, {}, ["material"]);
+    expect(params).toEqual({ amount: 2 });
   });
 });
 

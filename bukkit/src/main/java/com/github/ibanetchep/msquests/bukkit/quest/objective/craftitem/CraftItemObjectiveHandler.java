@@ -4,7 +4,6 @@ import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.BukkitQuestObjectiveHandler;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,12 +34,10 @@ public class CraftItemObjectiveHandler extends BukkitQuestObjectiveHandler<Craft
         if (!(event.getWhoClicked() instanceof Player player)) return;
         ItemStack result = event.getRecipe().getResult();
         PlayerProfile profile = getPlayerProfile(player.getUniqueId());
-        Material craftedMaterial = result.getType();
         int amount = result.getAmount();
 
         for (CraftItemObjective objective : getEligibleObjectives(profile)) {
-            Material material = objective.getObjectiveConfig().getMaterial();
-            if (material == null || material == craftedMaterial) {
+            if (objective.getObjectiveConfig().getItem().test(result, plugin.getItems())) {
                 plugin.getQuestProgressService().progressObjective(objective, amount, profile);
             }
         }
