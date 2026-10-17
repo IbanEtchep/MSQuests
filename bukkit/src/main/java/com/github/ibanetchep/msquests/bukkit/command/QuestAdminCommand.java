@@ -78,7 +78,7 @@ public class QuestAdminCommand {
         DbAccess db = plugin.getDbAccess();
         ContentMigration migration = new ContentMigration(plugin.getDataFolder().toPath(),
                 plugin.getGlobalConfig().language(), plugin.getContentSource(),
-                db != null ? new LegacyDataCopier(db.getJdbi()) : null, plugin.getLogger());
+                db != null ? new LegacyDataCopier(db.getJdbi()) : null, plugin.getLogger(), plugin::langText);
 
         CompletableFuture.supplyAsync(() -> {
             try {

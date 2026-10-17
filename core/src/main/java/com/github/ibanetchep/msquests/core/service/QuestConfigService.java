@@ -3,7 +3,10 @@ package com.github.ibanetchep.msquests.core.service;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.mapper.QuestGroupMapper;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
+import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
+import com.github.ibanetchep.msquests.core.quest.config.condition.Conditions;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.repository.QuestConfigLoad;
@@ -25,6 +28,7 @@ public class QuestConfigService {
     private final QuestConfigRegistry questRegistry;
     private final QuestConfigRepository questConfigRepository;
     private final QuestGroupMapper questGroupMapper;
+    private final ConditionChecker conditionChecker;
 
     public QuestConfigService(
             Logger logger,
@@ -32,6 +36,18 @@ public class QuestConfigService {
             QuestConfigRepository questConfigRepository,
             QuestGroupMapper questGroupMapper
     ) {
+        this(logger, questRegistry, questConfigRepository, questGroupMapper, ConditionChecker.ALWAYS);
+    }
+
+    /** @param conditionChecker checks the loaded requirements and objective conditions, to warn about bad ones */
+    public QuestConfigService(
+            Logger logger,
+            QuestConfigRegistry questRegistry,
+            QuestConfigRepository questConfigRepository,
+            QuestGroupMapper questGroupMapper,
+            ConditionChecker conditionChecker
+    ) {
+        this.conditionChecker = conditionChecker;
         this.logger = logger;
         this.questRegistry = questRegistry;
         this.questConfigRepository = questConfigRepository;
@@ -90,6 +106,7 @@ public class QuestConfigService {
 
     private void publish(List<QuestGroupConfig> groups) {
         groups.forEach(this::warnDuplicateObjectiveKeys);
+        groups.forEach(this::warnInvalidConditions);
         questRegistry.replaceQuestGroupConfigs(groups);
         for (QuestGroupConfig group : groups) {
             logger.info("Loaded group " + group.getKey() + " with " + group.getQuestConfigs().size() + " quests.");
@@ -117,6 +134,29 @@ public class QuestConfigService {
                         + duplicates + " in several stages. Their progress is saved in the same row and will mix up;"
                         + " give every objective of a quest a distinct key.");
             }
+        }
+    }
+
+    /**
+     * A condition the platform would reject always fails (a quest that can never start, an
+     * objective that never counts): warned at load rather than refused, like a duplicate key.
+     */
+    private void warnInvalidConditions(QuestGroupConfig group) {
+        for (QuestConfig quest : group.getQuestConfigs().values()) {
+            String path = group.getKey() + "/" + quest.getKey();
+            warnInvalid(path + " requirements", quest.getRequirements());
+            for (QuestStageConfig stage : quest.getStages().values()) {
+                for (QuestObjectiveConfig objective : stage.getObjectives().values()) {
+                    warnInvalid(path + " objective " + objective.getKey() + " conditions", objective.getConditions());
+                }
+            }
+        }
+    }
+
+    private void warnInvalid(String where, Conditions conditions) {
+        if (conditions.isEmpty()) return;
+        for (String problem : conditionChecker.validate(conditions)) {
+            logger.warning("Quest " + where + ": " + problem + " (this condition never holds).");
         }
     }
 

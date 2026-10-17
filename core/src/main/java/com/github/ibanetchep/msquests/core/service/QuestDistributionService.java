@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.core.service;
 import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
+import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
@@ -13,6 +14,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class QuestDistributionService {
+
+    private final ConditionChecker conditions;
+
+    /** Without condition checks: every quest's requirements are met. */
+    public QuestDistributionService() {
+        this(ConditionChecker.ALWAYS);
+    }
+
+    public QuestDistributionService(ConditionChecker conditions) {
+        this.conditions = conditions;
+    }
 
     /**
      * Check if a specific quest can be started, returning detailed result.
@@ -59,7 +71,8 @@ public class QuestDistributionService {
             }
         }
 
-        if (profile != null && !questConfig.getConditions().stream().allMatch(c -> c.test(profile))) {
+        if (profile != null && !questConfig.getRequirements().isEmpty()
+                && !conditions.test(questConfig.getRequirements(), profile, requirementArgs(questConfig))) {
             return QuestStartResult.CONDITIONS_NOT_MET;
         }
 
@@ -127,5 +140,16 @@ public class QuestDistributionService {
 
     private int getTotalRequested(Map<String, Integer> tierDistribution) {
         return tierDistribution.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    /** What a requirement may read: the quest and its group, there is no instance yet. */
+    private static Map<String, Object> requirementArgs(QuestConfig questConfig) {
+        Map<String, Object> args = new LinkedHashMap<>();
+        args.put("quest", questConfig.getKey());
+        args.put("quest_title", questConfig.getName() != null ? questConfig.getName() : "");
+        if (questConfig.getGroupConfig() != null) {
+            args.put("group", questConfig.getGroupConfig().getKey());
+        }
+        return args;
     }
 }

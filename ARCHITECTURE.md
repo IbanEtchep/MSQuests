@@ -42,11 +42,11 @@ Contient toute la logique metier independante de la plateforme :
 | `quest/actor/` | Entites principales : `Quest`, `QuestStage`, `QuestActor`, `ActorQuestGroup` |
 | `quest/player/` | `PlayerProfile` - profil joueur avec ses acteurs et quetes |
 | `quest/config/` | Configurations : `QuestConfig`, `QuestStageConfig`, `QuestObjectiveConfig`, `QuestGroupConfig`, `QuestTierConfig` |
-| `quest/config/annotation/` | `@ObjectiveType`, `@ActionType`, `@ConfigField`, `@AtLeastOneOfFields` |
+| `quest/config/annotation/` | `@ObjectiveType`, `@ConfigField`, `@AtLeastOneOfFields` |
+| `quest/config/action/` | `ActionChain` (chaine Artisan opaque), port `ChainRunner`, `ChainContext` (bindings) |
+| `quest/config/condition/` | `Conditions` (conditions Artisan opaques), port `ConditionChecker` |
 | `quest/config/group/` | `QuestGroupConfig` avec builder pattern |
 | `quest/objective/` | Interface `QuestObjective`, `AbstractQuestObjective<C>`, enums `QuestObjectiveStatus`, `Flow` |
-| `quest/condition/` | `QuestObjectiveCondition` - conditions sur les objectifs |
-| `quest/action/` | `QuestAction` - actions de recompense |
 | `quest/executor/` | `AtomicQuestExecutor` / `AtomicLocalQuestExecutor` - execution thread-safe par quete |
 | `quest/result/` | `QuestStartResult`, `QuestRotateResult` - enums de resultats |
 | `service/` | Services metier (orchestration) |
@@ -105,9 +105,7 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `listener/` | `ServerLoadListener` (chargement configs), `PlayerJoinListener` (chargement joueur) |
 | `event/` | `BukkitEventDispatcher` + evenements Bukkit miroirs des core events |
 | `quest/objective/` | 10 handlers d'objectifs (un sous-package par type) |
-| `quest/action/` | 7 actions Bukkit (commandes, messages, titres, items, bossbar) |
 | `quest/actor/` | `BukkitQuestPlayerActor`, `BukkitQuestGlobalActor` |
-| `quest/condition/` | `WorldCondition`, `BiomeCondition` |
 | `config/` | `GlobalConfig`, `GlobalConfigLoaderService` |
 | `repository/` | `QuestConfigYamlRepository` (Jackson YAML, `quests/*.yml`) |
 | `document/` | Documents `quest_group` : `QuestGroupDocumentReader`/`Writer`, `QuestGroupDocumentRepository`, `LegacyContentConverter`, `MigrationMapFile` |
@@ -115,15 +113,16 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `service/` | `QuestPlayerService` (chargement joueurs) |
 | `lang/` | `BukkitTranslator` |
 | `text/` | `PlaceholderEngine`, `MessageBuilder` |
-| `placeholderapi/` | `QuestsPlaceholderExpansion` |
+| `placeholder/` | `QuestPlaceholders` (namespace Artisan `quests`) |
+| `placeholderapi/` | `QuestsPlaceholderExpansion` (alias PAPI `msquests`) |
 | `zmenu/` | Integration zMenu (pagination de groupes de quetes) |
-| `artisan/` | Integration Artisan (projet `editor/`, kind `quest_group`, actions `quests:*`, data sources, commandes de menu) |
+| `artisan/` | Integration Artisan (projet `editor/`, kind `quest_group`, actions `quests:*`, `ArtisanChainRunner`, `ArtisanConditionChecker`, data sources, commandes de menu) |
 
 ---
 
 ## Integration Artisan
 
-**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.1.0+). Au tout
+**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.2.0+). Au tout
 debut de `onEnable`, `ArtisanIntegration.resolve` charge `ArtisanAPI` depuis le
 `ServicesManager` ; absente ou trop ancienne, le plugin se desactive avec un message
 SEVERE, avant d'ouvrir la base. Une fois les services cables, `MsQuestsArtisanModule`
@@ -142,11 +141,14 @@ est enregistre et declare :
 
 | Action | Arguments | Effet |
 |---|---|---|
-| `quests:start` | `group`, `quest` | Demarre la quete pour l'acteur du joueur, avec les regles du groupe (limites, conditions) |
+| `quests:start` | `group`, `quest` | Demarre la quete pour l'acteur du joueur, avec les regles du groupe (limites, requirements) |
+| `quests:abandon` | `group`, `quest` | Abandonne l'instance active : elle passe `FAILED` et reste comptee dans la periode ; suivie, elle ne l'est plus |
 | `quests:track` | `group`, `quest` | Suit / ne suit plus l'instance active (comme `msquests:track`) |
 | `quests:rotate` | `group`, `quest` | Echange l'instance active contre une autre du groupe |
 | `quests:complete` | `group`, `quest` | Termine l'instance active, recompenses comprises |
 | `quests:distribute` | `group` (primaire), `amount?` | Distribue `amount` quetes, sinon applique la distribution du groupe |
+| `quests:action_bar` | `text` (primaire, ltext) | Affiche le texte en action bar (le core d'Artisan n'en a pas) |
+| `quests:boss_bar` | `text` (primaire), `color`, `style`, `show_progress`, `duration` | Boss bar par joueur, mise a jour en place, masquee `duration` s apres le dernier appel ; remplie avec `progress_ratio` de la chaine |
 
 `group` est un `document_ref` vers `quest_group` : l'editeur propose un selecteur, trace
 l'arete et suit un renommage. Sa valeur est la cle du groupe (une reference qualifiee
@@ -156,6 +158,44 @@ l'arete et suit un renommage. Sa valeur est la cle du groupe (une reference qual
 donc `{key}` d'une ligne iteree est interpole. L'acteur vise est celui du type d'acteur
 du groupe auquel le joueur appartient ; une donnee inconnue logge un warning et la chaine
 continue.
+
+### Recompenses, crochets et requirements : chaines Artisan
+
+Les `rewards` d'une quete et les 7 crochets du groupe (`actions.quest_start`, `quest_complete`,
+`objective_progress`, `objective_complete`, `quest_distribution`, `actor_load`,
+`all_period_quests_complete`) sont des chaines Artisan (wire structure : `{action: args}`,
+`if/do/else`). Le core les porte en `ActionChain` opaque et les execute via le port
+`ChainRunner` ; `ArtisanChainRunner` les passe a `ModuleActionsApi.run` dans le projet
+`quests`, **une fois par membre en ligne de l'acteur** (un groupe global ou guilde execute
+donc une commande console par membre), apres un saut sur le main thread si besoin.
+
+Bindings (`ChainContext#args`) : `actor`, `actor_name`, `group`, `group_title`, `quest`,
+`quest_title`, `objective`, `objective_title`, `progress`, `amount`, `progress_ratio`,
+`objectives` (chaque objectif rendu avec `objective_line` du groupe, defaut
+`<newline> - {objective_name}`), `tracked` (par joueur), plus tous les anciens placeholders
+MSQuests (`quest_name`, `objective_progress`, `quest_tier_name`...).
+
+`reward_display` (liste d'ltext) remplace les `name` des anciennes actions : c'est ce que
+menus et data sources affichent. Les `requirements` d'une quete et les `conditions` d'un
+objectif sont des conditions Artisan (`Conditions`), testees via `ConditionChecker` /
+`ArtisanConditionChecker` (`ConditionsApi.test`) ; un joueur hors ligne ou un appel hors
+de son thread vaut faux. Elles sont validees (`ConditionsApi.validate`) a chaque
+chargement, les erreurs loggees.
+
+Les actions et conditions maison (`command`, `message`, `title`, `boss_bar`,
+`permission`, `placeholder`...) n'existent plus. `LegacyActions` les convertit a la volee
+(`quests/*.yml` a chaque chargement, migration vers les Documents, etapes legacy restees
+dans un Document) : `command` → `run_command` (console), `message` → `send_message`
+(`objective_template` → `objective_line`), `title` → `show_title`, `give_item` →
+`give_item`, `action_bar`/`boss_bar` → `quests:*`, `%quest_name%` → `{quest_name}`,
+`%msquests_x%` → `%quests_x%`, conditions → `has_permission`, `placeholder_equals`,
+`placeholder_match` ou `expression` (seule a lire les bindings). Ecarts notes au rapport de
+migration : `give_item` ne fait plus tomber au sol ce qui ne tient pas, condition inconnue
+abandonnee.
+
+Placeholders : `QuestPlaceholders` est enregistre dans le `PlaceholderRegistry` d'Artisan
+(namespace `quests`, expose a PAPI) ; `%msquests_*%` reste un alias PAPI (C7). Nouvelles
+cles `status_<group>:<quest>` et `completed_<group>:<quest>`.
 
 Les data sources et commandes ci-dessous restent (alias `msquests:*`, C7) :
 
@@ -216,9 +256,10 @@ uniquement les registres memoire — jamais de repository, jamais d'I/O. Un acte
 charge (joueur hors ligne) donne des valeurs neutres, pas une attente.
 
 Build : `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan, jamais shade),
-version `artisanApiVersion` de `gradle.properties`. Tant que 2.1.0 n'est pas publiee sur
-repo.artisanmc.net, la produire depuis la branche `v2` d'Artisan :
-`cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.1.0`.
+version `artisanApiVersion` de `gradle.properties`. Tant que 2.2.0 (API conditions,
+artisanmc/artisan#88) n'est pas publiee sur repo.artisanmc.net, la produire depuis `v2`
+une fois #88 mergee, ou depuis sa branche :
+`cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.2.0`.
 
 ---
 
@@ -337,8 +378,6 @@ Pattern registre + factory pour le polymorphisme :
 |---------|------------|----------------|----------|
 | `QuestFactory` | - | - | `Quest` depuis config, DTO, ou parametres |
 | `QuestObjectiveFactory` | `@ObjectiveType` | `register(configClass, objectiveClass, handler)` | `QuestObjectiveConfig` et `QuestObjective` depuis DTO |
-| `QuestActionFactory` | `@ActionType` | `register(actionClass, factory)` | `QuestAction` depuis DTO |
-| `QuestObjectiveConditionFactory` | - | `register(type, factory)` | `QuestObjectiveCondition` depuis DTO |
 
 Les factories utilisent la validation JSON Schema (generee depuis `@ConfigField`) pour valider les configurations.
 
@@ -388,8 +427,11 @@ Chaque type d'objectif suit un pattern en 3 classes + registration :
 
 ## Types d'actions
 
-| Type | Effet |
-|------|-------|
+Plus de types d'action propres : recompenses et crochets sont des chaines Artisan (voir
+*Recompenses, crochets et requirements*). Le vocabulaire est celui du core d'Artisan plus
+les actions `quests:*`.
+
+------|-------|
 | `command` | Execute une commande serveur |
 | `player_command` | Execute une commande en tant que joueur |
 | `player_message` | Envoie un message chat |
@@ -505,15 +547,12 @@ Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
 
 6. **Nommage des types** :
    - Objectif : `XxxObjective`, `XxxObjectiveConfig`, `XxxObjectiveHandler`
-   - Action : `XxxAction` avec `@ActionType("xxx")`
-   - Condition : `XxxCondition` avec type string
 
 7. **Annotations obligatoires** :
    - `@ObjectiveType("type_key")` sur les classes `ObjectiveConfig`
-   - `@ActionType("type_key")` sur les classes `Action`
    - `@ConfigField` sur les champs de config pour la generation de schema JSON
 
-8. **Enregistrement dans le plugin** : Tout nouveau type (objectif, action, condition, acteur) doit etre enregistre dans `BukkitQuestsPlugin.onEnable()` via la factory correspondante.
+8. **Enregistrement dans le plugin** : Tout nouveau type (objectif, acteur) doit etre enregistre dans `BukkitQuestsPlugin.onEnable()` via la factory correspondante.
 
 ### Ajout d'un type d'objectif
 
@@ -523,15 +562,12 @@ Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
 4. Ajouter la constante dans `ObjectiveTypes.java`
 5. Enregistrer dans `BukkitQuestsPlugin.registerObjectiveTypes()`
 
-### Ajout d'un type d'action
+### Ajout d'une action
 
-1. Creer `XxxAction.java` extends `BukkitQuestAction` avec `@ActionType("xxx")`
-2. Enregistrer dans `BukkitQuestsPlugin.registerActionTypes()`
-
-### Ajout d'une condition
-
-1. Creer `XxxCondition.java` extends `BukkitObjectiveCondition`
-2. Enregistrer dans `BukkitQuestsPlugin.registerConditionTypes()`
+Une action utilisable dans les chaines des quetes se declare cote Artisan : dans le core
+d'Artisan si elle est generique, sinon comme action `quests:*` dans `QuestActions`
+(`ActionDeclaration` + handler, test dans `QuestActionsTest`). Pas de condition maison :
+les conditions sont celles d'Artisan.
 
 ### Tests
 

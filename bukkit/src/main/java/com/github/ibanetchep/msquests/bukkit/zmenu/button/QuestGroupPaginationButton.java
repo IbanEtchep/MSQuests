@@ -19,7 +19,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 
 public class QuestGroupPaginationButton extends PaginateButton {
 
@@ -158,23 +156,12 @@ public class QuestGroupPaginationButton extends PaginateButton {
     }
 
     private void addRewardsPlaceholder(Placeholders placeholders, QuestConfig questConfig) {
-        List<QuestAction> rewards = questConfig.getRewards();
+        List<String> rewards = questConfig.getRewardDisplay();
         if (rewards.isEmpty()) {
             placeholders.register("quest_rewards", "Aucune");
             return;
         }
-
-        StringJoiner joiner = new StringJoiner("\n");
-        for (QuestAction reward : rewards) {
-            String name = reward.getName();
-
-            if (name != null && !name.isEmpty()) {
-                joiner.add(name);
-            } else {
-                joiner.add(reward.getType());
-            }
-        }
-        placeholders.register("quest_rewards", joiner.toString());
+        placeholders.register("quest_rewards", String.join("\n", rewards));
     }
 
     private void addProgressPlaceholders(Placeholders placeholders, ActorQuestGroup actorGroup, String questKey) {

@@ -4,13 +4,13 @@ import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestTierConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
 import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QuestGroupConfig implements PlaceholderProvider {
+
+    /** {@link #getObjectiveLine()} of a group that sets none: MSQuests' usual list item. */
+    public static final String DEFAULT_OBJECTIVE_LINE = "<newline> - {objective_name}";
 
     private final String key;
     private final @Nullable String uid;
@@ -36,13 +39,15 @@ public class QuestGroupConfig implements PlaceholderProvider {
     private final @Nullable Integer maxPerPeriod;
     private final int maxActive;
 
-    private final List<QuestAction> questStartActions;
-    private final List<QuestAction> questCompleteActions;
-    private final List<QuestAction> objectiveProgressActions;
-    private final List<QuestAction> objectiveCompleteActions;
-    private final List<QuestAction> questDistributionActions;
-    private final List<QuestAction> actorLoadActions;
-    private final List<QuestAction> allPeriodQuestsCompleteActions;
+    private final ActionChain questStartActions;
+    private final ActionChain questCompleteActions;
+    private final ActionChain objectiveProgressActions;
+    private final ActionChain objectiveCompleteActions;
+    private final ActionChain questDistributionActions;
+    private final ActionChain actorLoadActions;
+    private final ActionChain allPeriodQuestsCompleteActions;
+
+    private final String objectiveLine;
 
     private final Map<String, QuestTierConfig> tiers;
     private final @Nullable Map<String, Integer> tierDistribution;
@@ -73,6 +78,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
         this.questDistributionActions = builder.questDistributionActions;
         this.actorLoadActions = builder.actorLoadActions;
         this.allPeriodQuestsCompleteActions = builder.allPeriodQuestsCompleteActions;
+        this.objectiveLine = builder.objectiveLine != null ? builder.objectiveLine : DEFAULT_OBJECTIVE_LINE;
         this.tiers = builder.tiers != null ? builder.tiers : Map.of();
         this.tierDistribution = builder.tierDistribution;
         this.rotatable = builder.rotatable;
@@ -159,32 +165,41 @@ public class QuestGroupConfig implements PlaceholderProvider {
         return maxActive;
     }
 
-    public List<QuestAction> getQuestStartActions() {
-        return Collections.unmodifiableList(questStartActions);
+    public ActionChain getQuestStartActions() {
+        return questStartActions;
     }
 
-    public List<QuestAction> getQuestCompleteActions() {
-        return Collections.unmodifiableList(questCompleteActions);
+    public ActionChain getQuestCompleteActions() {
+        return questCompleteActions;
     }
 
-    public List<QuestAction> getObjectiveProgressActions() {
-        return Collections.unmodifiableList(objectiveProgressActions);
+    public ActionChain getObjectiveProgressActions() {
+        return objectiveProgressActions;
     }
 
-    public List<QuestAction> getObjectiveCompleteActions() {
-        return Collections.unmodifiableList(objectiveCompleteActions);
+    public ActionChain getObjectiveCompleteActions() {
+        return objectiveCompleteActions;
     }
 
-    public List<QuestAction> getQuestDistributionActions() {
-        return Collections.unmodifiableList(questDistributionActions);
+    public ActionChain getQuestDistributionActions() {
+        return questDistributionActions;
     }
 
-    public List<QuestAction> getActorLoadActions() {
-        return Collections.unmodifiableList(actorLoadActions);
+    public ActionChain getActorLoadActions() {
+        return actorLoadActions;
     }
 
-    public List<QuestAction> getAllPeriodQuestsCompleteActions() {
-        return Collections.unmodifiableList(allPeriodQuestsCompleteActions);
+    public ActionChain getAllPeriodQuestsCompleteActions() {
+        return allPeriodQuestsCompleteActions;
+    }
+
+    /**
+     * How the {@code {objectives}} binding of a chain renders one objective: {@code {name}}
+     * placeholders of the objective ({@code {objective_name}}, {@code {objective_progress}}…),
+     * the lines joined as they are.
+     */
+    public String getObjectiveLine() {
+        return objectiveLine;
     }
 
     public Map<String, QuestTierConfig> getTiers() {
@@ -266,11 +281,11 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
-        return Map.of(
-                "group_key", key,
-                "group_name", name,
-                "group_description", description
-        );
+        Map<String, String> placeholders = new LinkedHashMap<>();
+        placeholders.put("group_key", key);
+        placeholders.put("group_name", name != null ? name : "");
+        placeholders.put("group_description", description != null ? description : "");
+        return placeholders;
     }
 
     public static class Builder {
@@ -287,13 +302,14 @@ public class QuestGroupConfig implements PlaceholderProvider {
         private @Nullable Integer maxPerPeriod = 1;
         private int maxActive = 1;
 
-        private List<QuestAction> questStartActions;
-        private List<QuestAction> questCompleteActions;
-        private List<QuestAction> objectiveProgressActions;
-        private List<QuestAction> objectiveCompleteActions;
-        private List<QuestAction> questDistributionActions;
-        private List<QuestAction> actorLoadActions;
-        private List<QuestAction> allPeriodQuestsCompleteActions;
+        private ActionChain questStartActions;
+        private ActionChain questCompleteActions;
+        private ActionChain objectiveProgressActions;
+        private ActionChain objectiveCompleteActions;
+        private ActionChain questDistributionActions;
+        private ActionChain actorLoadActions;
+        private ActionChain allPeriodQuestsCompleteActions;
+        private @Nullable String objectiveLine;
 
         private @Nullable Map<String, QuestTierConfig> tiers;
         private @Nullable Map<String, Integer> tierDistribution;
@@ -308,13 +324,13 @@ public class QuestGroupConfig implements PlaceholderProvider {
             this.name = name;
             this.description = description;
             this.actorType = actorType;
-            this.questStartActions = new ArrayList<>();
-            this.questCompleteActions = new ArrayList<>();
-            this.objectiveProgressActions = new ArrayList<>();
-            this.objectiveCompleteActions = new ArrayList<>();
-            this.questDistributionActions = new ArrayList<>();
-            this.actorLoadActions = new ArrayList<>();
-            this.allPeriodQuestsCompleteActions = new ArrayList<>();
+            this.questStartActions = ActionChain.EMPTY;
+            this.questCompleteActions = ActionChain.EMPTY;
+            this.objectiveProgressActions = ActionChain.EMPTY;
+            this.objectiveCompleteActions = ActionChain.EMPTY;
+            this.questDistributionActions = ActionChain.EMPTY;
+            this.actorLoadActions = ActionChain.EMPTY;
+            this.allPeriodQuestsCompleteActions = ActionChain.EMPTY;
         }
 
         public Builder uid(@Nullable String uid) {
@@ -352,38 +368,43 @@ public class QuestGroupConfig implements PlaceholderProvider {
             return this;
         }
 
-        public  Builder questStartActions(List<QuestAction> questStartActions) {
+        public Builder questStartActions(ActionChain questStartActions) {
             this.questStartActions = questStartActions;
             return this;
         }
 
-        public Builder questCompleteActions(List<QuestAction> questCompleteActions) {
+        public Builder questCompleteActions(ActionChain questCompleteActions) {
             this.questCompleteActions = questCompleteActions;
             return this;
         }
 
-        public Builder objectiveProgressActions(List<QuestAction> objectiveProgressActions) {
+        public Builder objectiveProgressActions(ActionChain objectiveProgressActions) {
             this.objectiveProgressActions = objectiveProgressActions;
             return this;
         }
 
-        public Builder objectiveCompleteActions(List<QuestAction> objectiveCompleteActions) {
+        public Builder objectiveCompleteActions(ActionChain objectiveCompleteActions) {
             this.objectiveCompleteActions = objectiveCompleteActions;
             return this;
         }
 
-        public Builder questDistributionActions(List<QuestAction> questDistributionActions) {
+        public Builder questDistributionActions(ActionChain questDistributionActions) {
             this.questDistributionActions = questDistributionActions;
             return this;
         }
 
-        public Builder actorLoadActions(List<QuestAction> actorLoadActions) {
+        public Builder actorLoadActions(ActionChain actorLoadActions) {
             this.actorLoadActions = actorLoadActions;
             return this;
         }
 
-        public Builder allPeriodQuestsCompleteActions(List<QuestAction> allPeriodQuestsCompleteActions) {
+        public Builder allPeriodQuestsCompleteActions(ActionChain allPeriodQuestsCompleteActions) {
             this.allPeriodQuestsCompleteActions = allPeriodQuestsCompleteActions;
+            return this;
+        }
+
+        public Builder objectiveLine(@Nullable String objectiveLine) {
+            this.objectiveLine = objectiveLine;
             return this;
         }
 

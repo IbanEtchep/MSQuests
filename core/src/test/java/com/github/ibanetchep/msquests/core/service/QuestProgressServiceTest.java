@@ -102,7 +102,8 @@ class QuestProgressServiceTest {
         when(lifecycleService.completeObjective(any(), any())).thenAnswer(
                 invocation -> CompletableFuture.completedFuture(null));
 
-        progressService = new QuestProgressService(lifecycleService, questService, dispatcher, questRegistry);
+        progressService = new QuestProgressService(lifecycleService, questService, dispatcher, questRegistry,
+                com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner.NOOP);
 
         groupConfig = new QuestGroupConfig.Builder("group", "Group", "desc", "player").build();
         questConfig = new QuestConfig("quest", "Quest", "desc", 0);

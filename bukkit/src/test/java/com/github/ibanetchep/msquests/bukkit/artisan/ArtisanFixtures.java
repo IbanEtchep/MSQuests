@@ -1,6 +1,5 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -11,7 +10,6 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestStageConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective;
 import com.github.ibanetchep.msquests.core.quest.objective.Flow;
@@ -95,20 +93,6 @@ final class ArtisanFixtures {
         }
 
         final java.util.Set<UUID> members = new java.util.HashSet<>();
-    }
-
-    static final class TestAction extends QuestAction {
-        TestAction(String type, String name) {
-            super(new QuestActionDTO(type, name, Map.of(), null));
-        }
-
-        @Override
-        public void execute(Quest quest) {}
-
-        @Override
-        public QuestActionDTO toDTO() {
-            return new QuestActionDTO(getType(), getName(), Map.of(), null);
-        }
     }
 
     /** A group with no period bounds — `hasStartedInCurrentPeriod` then only ignores EXPIRED. */

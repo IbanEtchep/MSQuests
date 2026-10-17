@@ -2,8 +2,8 @@ package com.github.ibanetchep.msquests.core.quest.config;
 
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translator;
-import com.github.ibanetchep.msquests.core.quest.condition.Condition;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.condition.Conditions;
+import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
 import org.jetbrains.annotations.Nullable;
@@ -18,11 +18,12 @@ public class QuestConfig implements PlaceholderProvider {
     private String name;
     private String description;
     private final Map<String, QuestStageConfig> stages;
-    private final List<QuestAction> rewards;
+    private ActionChain rewards = ActionChain.EMPTY;
+    private List<String> rewardDisplay = List.of();
     private long duration; // max in seconds
     private String tier;
     private QuestGroupConfig group;
-    private List<Condition> conditions = List.of();
+    private Conditions requirements = Conditions.NONE;
 
     public QuestConfig(String key, String name, String description, long duration) {
         this.key = key;
@@ -30,7 +31,6 @@ public class QuestConfig implements PlaceholderProvider {
         this.description = description;
         this.duration = duration;
         this.stages = new LinkedHashMap<>();
-        this.rewards = new ArrayList<>();
     }
 
     public String getKey() {
@@ -85,12 +85,22 @@ public class QuestConfig implements PlaceholderProvider {
         this.tier = tier;
     }
 
-    public List<QuestAction> getRewards() {
+    /** Chain run for the actor's members when the quest completes. */
+    public ActionChain getRewards() {
         return rewards;
     }
 
-    public void addReward(QuestAction questAction) {
-        rewards.add(questAction);
+    public void setRewards(ActionChain rewards) {
+        this.rewards = rewards;
+    }
+
+    /** One line per reward, as menus show them; independent of the chain, which may do more or less. */
+    public List<String> getRewardDisplay() {
+        return rewardDisplay;
+    }
+
+    public void setRewardDisplay(List<String> rewardDisplay) {
+        this.rewardDisplay = List.copyOf(rewardDisplay);
     }
 
     public void setGroup(QuestGroupConfig group) {
@@ -109,12 +119,13 @@ public class QuestConfig implements PlaceholderProvider {
         stages.put(stage.getKey(), stage);
     }
 
-    public List<Condition> getConditions() {
-        return conditions;
+    /** Conditions the starting player must meet; checked by a {@code ConditionChecker}. */
+    public Conditions getRequirements() {
+        return requirements;
     }
 
-    public void setConditions(List<Condition> conditions) {
-        this.conditions = conditions;
+    public void setRequirements(Conditions requirements) {
+        this.requirements = requirements;
     }
 
     @Override

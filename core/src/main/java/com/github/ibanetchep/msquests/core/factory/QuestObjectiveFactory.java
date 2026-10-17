@@ -1,9 +1,8 @@
 package com.github.ibanetchep.msquests.core.factory;
 
-import com.github.ibanetchep.msquests.core.dto.ConditionConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
+import com.github.ibanetchep.msquests.core.quest.config.condition.Conditions;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
-import com.github.ibanetchep.msquests.core.quest.condition.Condition;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
@@ -13,9 +12,7 @@ import com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator;
 import com.github.ibanetchep.msquests.core.util.JsonSchemaValidator;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class QuestObjectiveFactory {
 
@@ -45,11 +42,6 @@ public class QuestObjectiveFactory {
     }
 
     private final Map<String, Type<?, ?>> types = new HashMap<>();
-    private final ConditionFactory conditionFactory;
-
-    public QuestObjectiveFactory(ConditionFactory conditionFactory) {
-        this.conditionFactory = conditionFactory;
-    }
 
     public <C extends QuestObjectiveConfig, O extends QuestObjective> void register(
             Class<C> configClass,
@@ -78,7 +70,7 @@ public class QuestObjectiveFactory {
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + dto.type());
         JsonSchemaValidator.validate(dto.params(), type.schema());
         QuestObjectiveConfig config = type.createConfig(dto);
-        config.setConditions(resolveConditions(dto.params()));
+        config.setConditions(Conditions.of(dto.params().get("conditions")));
         return config;
     }
 
@@ -87,19 +79,5 @@ public class QuestObjectiveFactory {
         Type<QuestObjectiveConfig, QuestObjective> type = (Type<QuestObjectiveConfig, QuestObjective>) types.get(config.getType());
         if (type == null) throw new IllegalArgumentException("Unknown objective type: " + config.getType());
         return type.createObjective(stage, config, progress, status);
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Condition> resolveConditions(Map<String, Object> params) {
-        Object raw = params.get("conditions");
-        if (!(raw instanceof List<?> list)) return List.of();
-        return list.stream()
-                .filter(item -> item instanceof Map)
-                .map(item -> {
-                    Map<String, Object> map = (Map<String, Object>) item;
-                    return conditionFactory.build(ConditionConfigDTO.of((String) map.get("type"), map));
-                })
-                .filter(Objects::nonNull)
-                .toList();
     }
 }
