@@ -39,7 +39,7 @@ public class CronDistributionService {
             if (groupConfig.getResetCron() == null) continue;
             if (!groupConfig.hasDistributionTrigger(DistributionTrigger.PERIOD_RESET)) continue;
 
-            Instant previousReset = CronUtils.getPreviousExecution(groupConfig.getResetCron(), now);
+            Instant previousReset = CronUtils.getPreviousExecution(groupConfig.getResetCron(), now, groupConfig.getResetZone());
             if (previousReset == null) continue;
 
             Instant lastKnown = lastResetTimes.get(groupConfig.getKey());

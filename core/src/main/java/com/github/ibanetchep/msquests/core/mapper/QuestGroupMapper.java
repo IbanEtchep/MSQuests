@@ -10,6 +10,7 @@ import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigge
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,7 +80,9 @@ public class QuestGroupMapper {
                 entity.getTierDistribution(),
                 entity.isRotatable(),
                 entity.getMaxRotationsPerPeriod(),
-                distributionDto
+                distributionDto,
+                entity.getUid(),
+                entity.getUid() != null ? entity.getResetZone().getId() : null
         );
     }
 
@@ -140,8 +143,11 @@ public class QuestGroupMapper {
             distributionConfig = new DistributionConfig(strategy, amount, triggers);
         }
 
-        QuestGroupConfig questGroupConfig = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description(), dto.actorType())
-                .maxActive(dto.maxActive())
+        QuestGroupConfig.Builder builder = new QuestGroupConfig.Builder(dto.key(), dto.name(), dto.description(), dto.actorType());
+        if (dto.maxActive() != null) {
+            builder.maxActive(dto.maxActive()); // absent: the builder's default, instead of an unboxing NPE
+        }
+        QuestGroupConfig questGroupConfig = builder
                 .maxPerPeriod(dto.maxPerPeriod())
                 .resetCron(dto.resetCron())
                 .startAt(dto.startAt())
@@ -158,6 +164,8 @@ public class QuestGroupMapper {
                 .rotatable(dto.rotatable() != null && dto.rotatable())
                 .maxRotationsPerPeriod(dto.maxRotationsPerPeriod())
                 .distributionConfig(distributionConfig)
+                .uid(dto.uid())
+                .resetZone(dto.resetTimezone() != null ? ZoneId.of(dto.resetTimezone()) : null)
                 .build();
 
         for (QuestConfigDTO questConfigDTO : dto.quests()) {

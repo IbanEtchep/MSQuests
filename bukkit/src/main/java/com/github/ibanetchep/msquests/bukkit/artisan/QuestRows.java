@@ -285,7 +285,7 @@ public final class QuestRows {
         if (group == null) return null;
         String cron = group.getResetCron();
         if (cron != null) {
-            Instant next = CronUtils.getNextExecution(cron, quest.getCreatedAt().toInstant());
+            Instant next = CronUtils.getNextExecution(cron, quest.getCreatedAt().toInstant(), group.getResetZone());
             if (next != null) return next;
         }
         return group.getEndAt();

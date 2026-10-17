@@ -161,7 +161,7 @@ public class Quest implements PlaceholderProvider {
 
         String resetCron = group.getResetCron();
         if (resetCron != null) {
-            Instant expiration = CronUtils.getNextExecution(resetCron, createdAtInstant);
+            Instant expiration = CronUtils.getNextExecution(resetCron, createdAtInstant, group.getResetZone());
             if (expiration != null) {
                 return now.isAfter(expiration);
             }

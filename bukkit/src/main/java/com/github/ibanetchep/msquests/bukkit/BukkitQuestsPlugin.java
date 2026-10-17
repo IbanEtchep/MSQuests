@@ -13,6 +13,11 @@ import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
+import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
+import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
+import com.github.ibanetchep.msquests.bukkit.document.MigrationMapFile;
+import com.github.ibanetchep.msquests.bukkit.document.QuestGroupDocumentRepository;
+import com.github.ibanetchep.msquests.bukkit.migration.ContentMigration;
 import com.github.ibanetchep.msquests.bukkit.zmenu.ZMenuIntegration;
 import com.github.ibanetchep.msquests.bukkit.quest.action.*;
 import com.github.ibanetchep.msquests.bukkit.quest.condition.PlaceholderCondition;
@@ -75,10 +80,16 @@ import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicLocalQuestExecutor;
 import com.github.ibanetchep.msquests.core.quest.executor.AtomicQuestExecutor;
 import com.github.ibanetchep.msquests.core.registry.*;
+import com.github.ibanetchep.msquests.core.migration.MigrationMap;
 import com.github.ibanetchep.msquests.core.repository.PlayerProfileRepository;
+import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
+import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.service.*;
 import com.github.ibanetchep.msquests.database.DbAccess;
 import com.github.ibanetchep.msquests.database.DbCredentials;
+import com.github.ibanetchep.msquests.database.LegacyDataCopier;
+import com.github.ibanetchep.msquests.database.SqlTables;
+import com.github.ibanetchep.msquests.database.repository.ArtisanQuestSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.ActorSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.PlayerProfileSqlRepository;
 import com.github.ibanetchep.msquests.database.repository.QuestSqlRepository;
@@ -88,6 +99,7 @@ import com.tcoded.folialib.impl.PlatformScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.bukkit.BukkitLampConfig;
@@ -136,6 +148,11 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private ArtisanIntegration artisanIntegration;
 
+    private ContentSource contentSource;
+    private @Nullable QuestGroupDocumentRepository documentRepository;
+    /** Fingerprint of the Documents the loaded groups come from; null until the first load. */
+    private volatile @Nullable String loadedFingerprint;
+
 
     @Override
     public void onEnable() {
@@ -171,11 +188,29 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questFactory = new QuestFactory(questObjectiveFactory);
         QuestMapper questMapper = new QuestMapper();
 
-        QuestConfigYamlRepository questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger());
-        ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess);
-        QuestSqlRepository questRepository = new QuestSqlRepository(dbAccess);
-        RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess);
-        PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess);
+        // Read once: the repositories below are bound to it until the next start.
+        contentSource = globalConfig.contentSource();
+        QuestConfigRepository questConfigRepository;
+        QuestRepository questRepository;
+        SqlTables tables;
+        if (contentSource == ContentSource.ARTISAN) {
+            if (!prepareArtisanStorage()) {
+                return;
+            }
+            documentRepository = new QuestGroupDocumentRepository(EditorProject.directory(getDataFolder()).toPath());
+            questConfigRepository = documentRepository;
+            questRepository = new ArtisanQuestSqlRepository(dbAccess);
+            tables = SqlTables.ARTISAN;
+        } else {
+            questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger());
+            questRepository = new QuestSqlRepository(dbAccess);
+            tables = SqlTables.LEGACY;
+        }
+        getLogger().info("Quests are read from " + (contentSource == ContentSource.ARTISAN
+                ? "editor/quest_groups/ and the artisan_quests_* tables." : "quests/ and the msquests_* tables."));
+        ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess, tables);
+        RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess, tables);
+        PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess, tables);
 
         QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory, conditionFactory);
         QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper, questActionFactory);
@@ -205,6 +240,88 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         UUID globalActorUUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
         BukkitQuestGlobalActor actor = new BukkitQuestGlobalActor(globalActorUUID, "default");
         questActorService.loadActor(actor);
+    }
+
+    /**
+     * First start with {@code content_source: artisan}: copies {@code msquests_*} into
+     * {@code artisan_quests_*} (once) with the uids of {@code migration/map.yaml}. Nothing writes
+     * to the old tables at this point, so no progress made before the restart is missed. Refuses
+     * to start rather than run with empty progress on a server that has some.
+     *
+     * @return false when the plugin is being disabled
+     */
+    private boolean prepareArtisanStorage() {
+        LegacyDataCopier copier = new LegacyDataCopier(dbAccess.getJdbi());
+        try {
+            if (copier.isCopied()) {
+                return true;
+            }
+            MigrationMap map = MigrationMapFile.read(ContentMigration.mapFile(getDataFolder().toPath()));
+            if (map == null) {
+                if (copier.legacyQuestRows() > 0) {
+                    getLogger().severe("content_source is artisan, but the quests were never converted: run"
+                            + " /msquests migrate --confirm with content_source: legacy first. Disabling MSQuests;"
+                            + " quests/ and the msquests_* tables are untouched.");
+                    disableFor("no migration/map.yaml");
+                    return false;
+                }
+                map = MigrationMap.empty(); // a server without saved progress has nothing to copy
+            }
+            LegacyDataCopier.Result result = copier.copy(map);
+            getLogger().info("Saved progress copied into artisan_quests_*: " + result.summary());
+            result.notes().forEach(note -> getLogger().warning("Not copied: " + note));
+            return true;
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Copying the saved progress into artisan_quests_* failed and was rolled back;"
+                    + " the msquests_* tables are untouched. Set content_source: legacy to run as before.", e);
+            disableFor("progress copy failed");
+            return false;
+        }
+    }
+
+    private void disableFor(String reason) {
+        getLogger().severe("MSQuests disabled: " + reason + ".");
+        Bukkit.getPluginManager().disablePlugin(this);
+    }
+
+    /** Startup load of the quest groups, remembering which Documents it read. */
+    public CompletableFuture<Void> loadQuestContent() {
+        String fingerprint = documentRepository != null ? documentRepository.fingerprint() : null;
+        return questConfigService.loadQuestGroups().thenRun(() -> loadedFingerprint = fingerprint);
+    }
+
+    /**
+     * Replaces the quest groups and rebuilds every loaded actor on them: progress is flushed
+     * first, and a refused reload (a broken file) changes nothing.
+     */
+    public CompletableFuture<Void> reloadQuestContent() {
+        String fingerprint = documentRepository != null ? documentRepository.fingerprint() : null;
+        questService.clearMissingConfigReports();
+        // Write batched progress first: actors are rebuilt from the database just after.
+        return questProgressService.flushPendingProgress()
+                .thenCompose(v -> questConfigService.reloadQuestGroups())
+                .thenRun(() -> loadedFingerprint = fingerprint)
+                .thenCompose(v -> questActorService.reloadActors())
+                .thenRun(() -> artisanIntegration.signalDataReload());
+    }
+
+    /**
+     * Artisan reloaded its projects (a publish, {@code /artisan reload}). With
+     * {@code content_source: artisan} the groups are reloaded when their Documents changed;
+     * a reload of anything else leaves the quests alone.
+     */
+    public void onArtisanProjectsReloaded() {
+        if (documentRepository == null || loadedFingerprint == null) {
+            return; // legacy content, or the startup load has not happened yet
+        }
+        if (documentRepository.fingerprint().equals(loadedFingerprint)) {
+            return;
+        }
+        getLogger().info("Quest group Documents changed, reloading the quests.");
+        reloadQuestContent().exceptionally(e -> {
+            getLogger().log(Level.SEVERE, "Quest reload refused, the previous quests are still active", e);
+            return null;
+        });
     }
 
     private void refreshActors(Object task) {
@@ -412,6 +529,16 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     public QuestActionFactory getQuestActionFactory() {
         return questActionFactory;
+    }
+
+    /** The content source this run was started with (config changes apply at the next start). */
+    public ContentSource getContentSource() {
+        return contentSource;
+    }
+
+    /** Null when the database pool could not be opened. */
+    public @Nullable DbAccess getDbAccess() {
+        return dbAccess;
     }
 
     public GlobalConfig getGlobalConfig() {

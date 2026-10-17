@@ -68,8 +68,10 @@ Package racine : `com.github.ibanetchep.msquests.database`
 | `DbAccess` | Pool de connexions HikariCP, instance JDBI, executor single-thread |
 | `DbCredentials` | Record de configuration (H2 ou MySQL) |
 | `MigrationManager` | Systeme de migrations sequentielles avec table `schema_version` |
-| `migrations/` | `CreateTablesMigration` (v1), `AddRotationTableMigration` (v2) |
-| `repository/` | `SqlRepository` (base async), implementations SQL pour Quest, PlayerProfile, Actor, Rotation |
+| `migrations/` | `CreateTablesMigration` (v1), `AddRotationTableMigration` (v2), `CreateArtisanTablesMigration` (v3, tables `artisan_quests_*`) |
+| `SqlTables` | Noms des tables d'un layout : `LEGACY` (`msquests_*`) ou `ARTISAN` (`artisan_quests_*`) |
+| `LegacyDataCopier` | Copie unique et transactionnelle de `msquests_*` vers `artisan_quests_*` (voir *Source du contenu*) |
+| `repository/` | `SqlRepository` (base async), implementations SQL pour Quest, PlayerProfile, Actor, Rotation ; `ArtisanQuestSqlRepository` pour `artisan_quests_quest/objective` |
 | `RecordRowMapper` | Mapper JDBI generique pour Java records |
 
 **Schema principal :**
@@ -79,7 +81,18 @@ msquests_actor          (id, actor_type, created_at, updated_at)
 msquests_quest          (id, quest_key, group_key, status, actor_id FK, timestamps)
 msquests_objective      (objective_key, quest_id FK, status, type, progress) -- PK composite
 msquests_rotation       (actor_id, group_key, rotated_at)
+
+-- v3, utilisees avec content_source: artisan (les msquests_* restent intactes)
+artisan_quests_profile   (comme msquests_player_profile)
+artisan_quests_actor     (comme msquests_actor)
+artisan_quests_quest     (id, quest_uid, quest_key, group_key, status, actor_id FK, timestamps)
+artisan_quests_objective (quest_id FK, stage_key, objective_key, status, type, progress) -- PK composite
+artisan_quests_rotation  (actor_id, group_uid, rotated_at)
+artisan_quests_data_copy (une ligne une fois la copie faite)
 ```
+
+`quest_key` / `group_key` de `artisan_quests_quest` ne sont que les derniers noms
+enregistres (logs, support) : une ligne est resolue par `quest_uid`.
 
 ### `bukkit/` - Integration Paper
 
@@ -96,7 +109,9 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `quest/actor/` | `BukkitQuestPlayerActor`, `BukkitQuestGlobalActor` |
 | `quest/condition/` | `WorldCondition`, `BiomeCondition` |
 | `config/` | `GlobalConfig`, `GlobalConfigLoaderService` |
-| `repository/` | `QuestConfigYamlRepository` (Jackson YAML) |
+| `repository/` | `QuestConfigYamlRepository` (Jackson YAML, `quests/*.yml`) |
+| `document/` | Documents `quest_group` : `QuestGroupDocumentReader`/`Writer`, `QuestGroupDocumentRepository`, `LegacyContentConverter`, `MigrationMapFile` |
+| `migration/` | `ContentMigration` (`/msquests migrate`) |
 | `service/` | `QuestPlayerService` (chargement joueurs) |
 | `lang/` | `BukkitTranslator` |
 | `text/` | `PlaceholderEngine`, `MessageBuilder` |
@@ -119,9 +134,10 @@ est enregistre et declare :
   n'y ecrit que `manifest.yaml` (langue par defaut = partie langue du reglage `language`)
   et `quest_groups/` ; un dossier non vide n'est jamais touche ;
 - **le kind de Document `quest_group`** (dossier `quest_groups/`, schema `quest_group/v1`) :
-  un Document par groupe, nomme d'apres la cle du groupe. **Les quetes se chargent toujours
-  depuis `quests/*.yml`** : le lecteur de ces Documents et le convertisseur arrivent au lot
-  L2 (`design-artisan-quests.md`) ;
+  un Document par groupe, nomme d'apres la cle du groupe. Les quetes s'y chargent avec
+  `content_source: artisan` (voir *Source du contenu*) ; sinon depuis `quests/*.yml`.
+  `onReload` (publication, `/artisan reload`) recharge les quetes quand ces Documents ont
+  change (empreinte SHA-256), et ne fait rien sinon ;
 - **les actions `quests:*`** (`QuestActions`), utilisables dans toute chaine Artisan :
 
 | Action | Arguments | Effet |
@@ -390,12 +406,45 @@ Toutes les actions supportent les placeholders dynamiques via `PlaceholderEngine
 
 | Fichier | Contenu |
 |---------|---------|
-| `bukkit/src/main/resources/config.yml` | Config globale (BDD, langue) |
+| `core/src/main/resources/config.yml` | Config globale (BDD, langue, `content_source`) |
 | `bukkit/src/main/resources/quests/*.yml` | Definitions de groupes de quetes (Jackson YAML) |
 | `core/src/main/resources/lang/*.yml` | Fichiers de traduction |
 | `paper-plugin.yml` | Descripteur plugin Paper |
 
-Les configs de quetes sont chargees par `QuestConfigYamlRepository` avec Jackson (`SNAKE_CASE` naming strategy).
+Les configs de quetes sont chargees par `QuestConfigYamlRepository` avec Jackson (`SNAKE_CASE` naming strategy),
+ou par `QuestGroupDocumentRepository` avec `content_source: artisan`.
+
+### Source du contenu (`content_source`) et migration
+
+Lu au demarrage seulement ; un changement demande un redemarrage (`/msquests reload` le signale).
+
+| `content_source` | Contenu | Progression |
+|---|---|---|
+| `legacy` (defaut) | `quests/*.yml` | `msquests_*`, par `(group_key, quest_key)` |
+| `artisan` | `editor/quest_groups/<groupe>.yaml` (Documents `quest_group/v1`) | `artisan_quests_*`, par `uid` |
+
+Un Document porte un `uid` (ULID) immuable pour le groupe et pour chaque quete ; la cle du
+groupe est le nom du fichier, renommable comme les cles de quete sans perte de progression.
+`QuestGroupDocumentReader` produit le meme `QuestGroupConfigDTO` que le lecteur YAML (textes
+`ltext` resolus dans la `default_lang` du manifest, `duration` en `24h`/`90m`, cron avec
+`reset.timezone`) et refuse tout le fichier, chemin de la valeur fautive en tete, sur une
+erreur : `uid` absent ou deja pris (dans tout le projet), cle d'objectif repetee dans une
+quete, etc. Actions et conditions gardent pour l'instant le format MSQuests (`type: ...`).
+
+Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
+
+1. `/msquests migrate` (dry run) : convertit en memoire, relit chaque Document produit et le
+   compare au groupe d'origine, compte ce que la copie en base fera, et ecrit
+   `migration/report-<date>.txt`. Rien d'autre n'est ecrit.
+2. `/msquests migrate --confirm` : ecrit les Documents absents (jamais par-dessus un Document
+   existant) et `migration/map.yaml` (`(groupe, cle) -> uid`, `objectif -> stage`). Relance,
+   il garde les memes `uid`.
+3. `content_source: artisan` puis redemarrage : avant tout chargement, `LegacyDataCopier`
+   copie `msquests_*` dans `artisan_quests_*` en une transaction (comptes verifies, sinon
+   rollback), une seule fois. Sans `map.yaml` alors que `msquests_quest` a des lignes, le
+   plugin refuse de demarrer.
+4. `/msquests stats` avant et apres pour comparer. Retour arriere : `content_source: legacy`
+   ou l'ancien jar ; la progression faite entre-temps reste dans `artisan_quests_*`.
 
 ---
 

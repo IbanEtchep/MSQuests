@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.database;
 
 import com.github.ibanetchep.msquests.database.migrations.AddRotationTableMigration;
+import com.github.ibanetchep.msquests.database.migrations.CreateArtisanTablesMigration;
 import com.github.ibanetchep.msquests.database.migrations.CreateTablesMigration;
 import org.jdbi.v3.core.Jdbi;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public class MigrationManager {
         this.logger = logger;
         migrations.add(new CreateTablesMigration(jdbi));
         migrations.add(new AddRotationTableMigration(jdbi));
+        migrations.add(new CreateArtisanTablesMigration(jdbi));
     }
 
     public void initialize() {
