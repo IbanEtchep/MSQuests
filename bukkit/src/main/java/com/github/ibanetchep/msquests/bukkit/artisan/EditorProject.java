@@ -55,7 +55,7 @@ public final class EditorProject {
     }
 
     /** {@code fr_FR} → {@code fr}; anything unusable → {@code en}. */
-    static String defaultLang(String language) {
+    public static String defaultLang(String language) {
         if (language == null) return "en";
         String head = language.split("[_-]", 2)[0].toLowerCase(Locale.ROOT);
         return head.matches("[a-z]{2,3}") ? head : "en";

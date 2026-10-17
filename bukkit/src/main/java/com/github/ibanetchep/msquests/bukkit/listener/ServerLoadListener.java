@@ -18,7 +18,7 @@ public class ServerLoadListener implements Listener {
 
     @EventHandler
     public void onServerLoad(ServerLoadEvent event) {
-        plugin.getQuestConfigService().loadQuestGroups()
+        plugin.loadQuestContent()
                 .thenCompose(v -> plugin.getQuestPlayerService().loadAllPlayers())
                 .thenRun(() -> plugin.getLogger().info("Quests loaded"));
     }

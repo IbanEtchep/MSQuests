@@ -13,19 +13,17 @@ public class QuestMapper {
 
     public QuestDTO toDTO(Quest quest) {
         Map<String, QuestObjectiveDTO> objectiveDtos = quest.getStages().entrySet().stream()
-                .flatMap(stage -> stage.getValue().getObjectives().entrySet().stream())
+                .flatMap(stage -> stage.getValue().getObjectives().values().stream())
                 .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> {
-                            QuestObjective objective = entry.getValue();
-                            return new QuestObjectiveDTO(
-                                    objective.getQuest().getId(),
-                                    objective.getObjectiveConfig().getKey(),
-                                    objective.getType(),
-                                    objective.getStatus(),
-                                    objective.getProgress()
-                            );
-                        }
+                        objective -> objective.getObjectiveConfig().getKey(),
+                        objective -> new QuestObjectiveDTO(
+                                objective.getQuest().getId(),
+                                objective.getObjectiveConfig().getKey(),
+                                objective.getType(),
+                                objective.getStatus(),
+                                objective.getProgress(),
+                                objective.getStage().getKey()
+                        )
                 ));
 
         QuestConfig questConfig = quest.getQuestConfig();
@@ -39,7 +37,8 @@ public class QuestMapper {
                 quest.getCompletedAt() != null ? quest.getCompletedAt().getTime() : null,
                 quest.getCreatedAt().getTime(),
                 quest.getUpdatedAt().getTime(),
-                objectiveDtos
+                objectiveDtos,
+                questConfig.getUid()
         );
     }
 }

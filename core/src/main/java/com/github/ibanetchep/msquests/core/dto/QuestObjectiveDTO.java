@@ -9,5 +9,12 @@ public record QuestObjectiveDTO(
         String objectiveKey,
         String objectiveType,
         QuestObjectiveStatus objectiveStatus,
-        int progress
-) {}
+        int progress,
+        // Stage holding the objective: part of the artisan_quests_objective key. Null when read from msquests_objective.
+        String stageKey
+) {
+    public QuestObjectiveDTO(UUID questEntryId, String objectiveKey, String objectiveType,
+                             QuestObjectiveStatus objectiveStatus, int progress) {
+        this(questEntryId, objectiveKey, objectiveType, objectiveStatus, progress, null);
+    }
+}

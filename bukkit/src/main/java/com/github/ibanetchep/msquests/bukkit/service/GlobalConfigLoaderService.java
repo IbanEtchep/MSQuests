@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.service;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
 import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.config.PlaceholdersConfig;
 import com.github.ibanetchep.msquests.bukkit.config.TrackingBossBarConfig;
@@ -61,6 +62,7 @@ public class GlobalConfigLoaderService {
     public GlobalConfig load() {
         loadYamlDocument();
         String language = config.getString("language", "en_EN");
+        ContentSource contentSource = ContentSource.parse(config.getString("content_source", "legacy"));
 
         GlobalConfig.DatabaseConfig database = new GlobalConfig.DatabaseConfig(
                 config.getString("database.type", "mysql"),
@@ -84,6 +86,6 @@ public class GlobalConfigLoaderService {
         int cycleDurationSeconds = Math.max(1, config.getInt("placeholders.cycle_duration_seconds", 5));
         PlaceholdersConfig placeholdersConfig = new PlaceholdersConfig(cycleDurationSeconds);
 
-        return new GlobalConfig(language, database, trackingBossBarConfig, placeholdersConfig);
+        return new GlobalConfig(language, contentSource, database, trackingBossBarConfig, placeholdersConfig);
     }
 }
