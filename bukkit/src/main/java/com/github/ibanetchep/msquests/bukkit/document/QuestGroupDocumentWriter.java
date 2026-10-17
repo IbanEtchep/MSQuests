@@ -136,10 +136,7 @@ public final class QuestGroupDocumentWriter {
         out.put("stages", stageList);
 
         if (quest.rewards() != null && !quest.rewards().isEmpty()) {
-            out.put("rewards", quest.rewards());
-        }
-        if (quest.rewardDisplay() != null && !quest.rewardDisplay().isEmpty()) {
-            out.put("reward_display", quest.rewardDisplay().stream().map(line -> Ltext.of(line, lang)).toList());
+            out.put("on", Map.of("complete", quest.rewards()));
         }
         return out;
     }

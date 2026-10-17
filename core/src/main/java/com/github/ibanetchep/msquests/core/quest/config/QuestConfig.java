@@ -19,7 +19,6 @@ public class QuestConfig implements PlaceholderProvider {
     private String description;
     private final Map<String, QuestStageConfig> stages;
     private ActionChain rewards = ActionChain.EMPTY;
-    private List<String> rewardDisplay = List.of();
     private long duration; // max in seconds
     private String tier;
     private QuestGroupConfig group;
@@ -92,15 +91,6 @@ public class QuestConfig implements PlaceholderProvider {
 
     public void setRewards(ActionChain rewards) {
         this.rewards = rewards;
-    }
-
-    /** One line per reward, as menus show them; independent of the chain, which may do more or less. */
-    public List<String> getRewardDisplay() {
-        return rewardDisplay;
-    }
-
-    public void setRewardDisplay(List<String> rewardDisplay) {
-        this.rewardDisplay = List.copyOf(rewardDisplay);
     }
 
     public void setGroup(QuestGroupConfig group) {

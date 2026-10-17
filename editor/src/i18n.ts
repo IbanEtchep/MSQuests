@@ -61,9 +61,9 @@ const en = {
   addObjective: "Add an objective",
   type: "Type",
   required: "Required",
-  rewards: "Rewards",
+  rewards: "When the quest is completed",
   rewardsHint:
-    "Run when the quest is completed: any action Artisan or an installed plugin declares, with conditions; a plugin without an action (guild XP…) is reached with a command.",
+    "Run when the quest is completed: any action Artisan or an installed plugin declares, with conditions; a plugin without an action (guild XP…) is reached with a command. Write what the player wins in the description.",
   legacySteps:
     "Old MSQuests format, kept as is: the server converts it on load, /msquests migrate rewrites it.",
   hooks: "Group events",
@@ -179,9 +179,9 @@ const fr: Record<Key, string> = {
   addObjective: "Ajouter un objectif",
   type: "Type",
   required: "Obligatoire",
-  rewards: "Récompenses",
+  rewards: "À la fin de la quête",
   rewardsHint:
-    "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé, avec conditions ; un plugin sans action (XP de guilde…) passe par une commande.",
+    "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé, avec conditions ; un plugin sans action (XP de guilde…) passe par une commande. Écrivez ce que gagne le joueur dans la description.",
   legacySteps:
     "Ancien format MSQuests, conservé tel quel : le serveur le convertit au chargement, /msquests migrate le réécrit.",
   hooks: "Événements du groupe",

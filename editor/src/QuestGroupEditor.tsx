@@ -27,6 +27,7 @@ import {
   type Stage,
   type Text,
   HOOKS,
+  asMap,
   freeKey,
   joinChain,
   legacyLabel,
@@ -685,7 +686,7 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
   const keyTaken = group.quests.some((q, i) => i !== index && q.key === quest.key);
   const durationBad =
     quest.duration !== "" && !DURATION.test(quest.duration.replace(/\s/g, "").toLowerCase());
-  const kept = Object.keys(quest.rest).filter((k) => k !== "rewards");
+  const kept = Object.keys(quest.rest).filter((k) => k !== "on");
 
   return (
     <>
@@ -805,8 +806,14 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
         <span className="aq-hint">{t("rewardsHint")}</span>
         <ChainField
           ctx={ctx}
-          value={quest.rest.rewards}
-          onChange={(next) => editQuest((q) => setOrDelete(q.rest, "rewards", next))}
+          value={asMap(quest.rest.on).complete}
+          onChange={(next) =>
+            editQuest((q) => {
+              const on = { ...asMap(q.rest.on) };
+              setOrDelete(on, "complete", next);
+              setOrDelete(q.rest, "on", Object.keys(on).length > 0 ? on : undefined);
+            })
+          }
         />
         {kept.length > 0 && (
           <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>

@@ -50,7 +50,7 @@ export interface Quest {
   /** `24h`, `1h30m`, `90s` or seconds; "" = no limit. */
   duration: string;
   stages: Stage[];
-  /** `rewards` (a list of actions), `requirements`, `reward_display`… verbatim. */
+  /** `on.complete` (a list of actions), `requirements`… verbatim. */
   rest: Raw;
 }
 
@@ -141,7 +141,7 @@ export function slugKey(input: string): string {
 
 // ------------------------------------------------------------------ parse
 
-function asMap(value: unknown): Raw {
+export function asMap(value: unknown): Raw {
   return value && typeof value === "object" && !Array.isArray(value) ? { ...(value as Raw) } : {};
 }
 
@@ -218,7 +218,7 @@ export function parseQuestGroup(src: Raw, ctx: DocumentParseContext): DocumentPa
       description: text(q.description),
       duration: asString(q.duration),
       stages,
-      rest: without(q, "key", "uid", "tier", "title", "description", "duration", "stages"),
+      rest: questRest(q),
     };
   });
 
@@ -410,6 +410,17 @@ export function* questGroupTextSites(group: QuestGroup): Iterable<LTextSiteContr
  * server when it loads the group (`LegacyActions`) and by `/msquests migrate`: the view keeps
  * it apart, as it is, since the chain editor does not read that format.
  */
+/** A quest's verbatim fields; `rewards`, the former name of `on.complete`, moves there. */
+function questRest(q: Raw): Raw {
+  const rest = without(q, "key", "uid", "tier", "title", "description", "duration", "stages", "reward_display");
+  if (rest.rewards !== undefined) {
+    const on = asMap(rest.on);
+    if (on.complete === undefined) rest.on = { ...on, complete: rest.rewards };
+    delete rest.rewards;
+  }
+  return rest;
+}
+
 export function rewardSteps(rewards: unknown): Raw[] {
   if (Array.isArray(rewards)) return rewards as Raw[];
   return rewards && typeof rewards === "object" ? [rewards as Raw] : [];

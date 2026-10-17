@@ -262,17 +262,6 @@ class QuestRowsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void rewardsAreAlsoExposedAsRowsSoAMenuCanIterateThem() {
-        mineStone.setRewardDisplay(List.of("<white>+150 XP", "<white>+500$"));
-
-        List<Map<String, Object>> rewards =
-                (List<Map<String, Object>>) QuestRows.questRow(group, mineStone, null, TRANSLATOR).get("rewards");
-
-        assertEquals(List.of(Map.of("name", "<white>+150 XP"), Map.of("name", "<white>+500$")), rewards);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
     void multiStageQuestsKeepTheirStagesOrderedAndIndexed() {
         QuestConfig epic = ArtisanFixtures.multiStageQuest(group, "epic", 3);
 
@@ -288,7 +277,6 @@ class QuestRowsTest {
 
     @Test
     void theWholeTreeStaysJsonShaped() {
-        mineStone.setRewardDisplay(List.of("+150 XP"));
         ArtisanFixtures.instance(actor, mineStone, QuestStatus.IN_PROGRESS, 34);
 
         assertJsonShaped(QuestRows.questRow(group, mineStone, actorGroup(), TRANSLATOR));

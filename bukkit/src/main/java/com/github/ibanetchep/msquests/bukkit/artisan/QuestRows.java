@@ -164,10 +164,9 @@ public final class QuestRows {
         row.put("objective_progress", current != null ? current.getProgress() : 0);
         row.put("objective_target", current != null ? current.getTarget() : 0);
         row.put("progress_ratio", reference != null ? reference.getProgressRatio() : 0.0);
-        row.put("rewards", rewardRows(config));
         // The whole configured tree, with the player's instance laid over it when there is
         // one. Reading it from the config (not from an instance) is what lets a menu show
-        // the objectives and rewards of a quest the player has never started.
+        // the objectives of a quest the player has never started.
         row.put("stages", stageRows(config, reference, translator));
         return row;
     }
@@ -195,16 +194,6 @@ public final class QuestRows {
                 objectives.add(objectiveRow(objectiveConfig, objective, translator));
             }
             row.put("objectives", objectives);
-            rows.add(row);
-        }
-        return rows;
-    }
-
-    private static List<Map<String, Object>> rewardRows(QuestConfig config) {
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (String line : config.getRewardDisplay()) {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("name", line);
             rows.add(row);
         }
         return rows;

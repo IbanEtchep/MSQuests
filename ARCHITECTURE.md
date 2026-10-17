@@ -169,7 +169,7 @@ continue.
 
 ### Recompenses, crochets et requirements : chaines Artisan
 
-Les `rewards` d'une quete et les 7 crochets du groupe (`actions.quest_start`, `quest_complete`,
+Le `on.complete` d'une quete (ancien nom `rewards`, encore lu) et les 7 crochets du groupe (`actions.quest_start`, `quest_complete`,
 `objective_progress`, `objective_complete`, `quest_distribution`, `actor_load`,
 `all_period_quests_complete`) sont des chaines Artisan (wire structure : `{action: args}`,
 `if/do/else`). Le core les porte en `ActionChain` opaque et les execute via le port
@@ -183,8 +183,9 @@ Bindings (`ChainContext#args`) : `actor`, `actor_name`, `group`, `group_title`, 
 `<newline> - {objective_name}`), `tracked` (par joueur), plus tous les anciens placeholders
 MSQuests (`quest_name`, `objective_progress`, `quest_tier_name`...).
 
-`reward_display` (liste d'ltext) remplace les `name` des anciennes actions : c'est ce que
-menus et data sources affichent. Les `requirements` d'une quete et les `conditions` d'un
+Il n'y a plus de liste de recompenses a afficher : ce que gagne le joueur s'ecrit dans la
+description de la quete ou dans l'item du menu. La conversion legacy ajoute les `name` des
+anciennes actions a la fin de la description, et `%quest_rewards%` (zMenu) vaut vide. Les `requirements` d'une quete et les `conditions` d'un
 objectif sont des conditions Artisan (`Conditions`), testees via `ConditionChecker` /
 `ArtisanConditionChecker` (`ConditionsApi.test`) ; un joueur hors ligne ou un appel hors
 de son thread vaut faux. Elles sont validees (`ConditionsApi.validate`) a chaque
@@ -210,7 +211,7 @@ Les data sources et commandes ci-dessous restent (alias `msquests:*`, C7) :
 | Data source | Stability | Contenu |
 |---|---|---|
 | `msquests:groups` | STATIC (`key`) | Groupes de quetes + compteurs de l'acteur, `quests[]` imbriquees |
-| `msquests:quests` | STATIC (`id` = `group:key`) | Catalogue complet : config + `rewards[]` + `stages[] > objectives[]`, avec la progression de l'acteur superposee |
+| `msquests:quests` | STATIC (`id` = `group:key`) | Catalogue complet : config + `stages[] > objectives[]`, avec la progression de l'acteur superposee |
 | `msquests:active` | DYNAMIC | Instances en cours de l'acteur, objectif par objectif |
 
 Trois parametres, communs aux trois sources :
@@ -244,14 +245,12 @@ Deux commandes appelables depuis un bouton de menu : `msquests:track <id>` (togg
 
 **Brut plutot que pre-formate.** La mise en forme appartient au menu. Les lignes
 portent des nombres (`objective_progress` / `objective_target`), des listes
-(`rewards[]`) et des instants absolus en epoch millis (`period_end`,
+(`stages[]`) et des instants absolus en epoch millis (`period_end`,
 `expires_at`) — jamais de chaine deja composee. Cote Artisan, le Template
 recompose ce qu'il veut :
 
 ```
 {objective_progress}/{objective_target}
-{rewards.pluck("name").join("
-")}
 {period_end.until()}
 ```
 
