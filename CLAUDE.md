@@ -21,7 +21,7 @@ This is a Gradle multi-module project targeting Paper 1.21+ (Minecraft plugin):
 - **`core/`** — Platform-agnostic quest logic: domain model, services, registries, factories, DTOs, mappers, event dispatching abstraction
 - **`bukkit/`** — Paper/Bukkit integration: plugin entry point, commands, listeners, Bukkit-specific objective handlers, actions, PlaceholderAPI
 - **`database/`** — SQL persistence: JDBI + HikariCP, schema migrations, async repositories (MySQL or H2)
-- **`editor/`** — the `quest_group` view of the Artisan editor (TypeScript + React against `@artisan/editor-sdk`, vendored in `editor/vendor/`). `cd editor && npm ci && npm test && npm run build` writes `bukkit/src/main/resources/artisan-editor/ui.js`, which is committed; rebuild it after any change in `editor/src`. `MsQuestsArtisanModule` registers it (`EDITOR_SDK` = the SDK version the build prints).
+- **`editor/`** — the `quest_group` view of the Artisan editor (TypeScript + React against `@artisan/editor-sdk`, vendored in `editor/vendor/`). `cd editor && npm ci && npm test && npm run build` writes `bukkit/src/main/resources/artisan-editor/ui.js`, which is committed; rebuild it after any change in `editor/src`. `MsQuestsArtisanModule` registers it (`EDITOR_SDK` = the SDK version the build prints). While developing, `npm run watch` rebuilds `ui.js` on each save; with `dev.editor-bundles.msquests: <absolute path to that ui.js>` in Artisan's `environment.yml`, the server serves it without a restart (reload the editor to see a build).
 
 Root package: `com.github.ibanetchep.msquests`
 

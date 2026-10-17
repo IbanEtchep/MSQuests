@@ -102,7 +102,7 @@ const ee = {
   type: "Type",
   required: "Required",
   rewards: "Rewards",
-  rewardsHint: "Run when the quest is completed: any action Artisan or an installed plugin declares (guild_level…), with conditions.",
+  rewardsHint: "Run when the quest is completed: any action Artisan or an installed plugin declares, with conditions; a plugin without an action (guild XP…) is reached with a command.",
   legacySteps: "Old MSQuests format, kept as is: the server converts it on load, /msquests migrate rewrites it.",
   hooks: "Group events",
   hooksHint: "Actions run on each event of the group, for the player concerned.",
@@ -209,7 +209,7 @@ const ee = {
   type: "Type",
   required: "Obligatoire",
   rewards: "Récompenses",
-  rewardsHint: "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé (guild_level…), avec conditions.",
+  rewardsHint: "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé, avec conditions ; un plugin sans action (XP de guilde…) passe par une commande.",
   legacySteps: "Ancien format MSQuests, conservé tel quel : le serveur le convertit au chargement, /msquests migrate le réécrit.",
   hooks: "Événements du groupe",
   hooksHint: "Actions exécutées à chaque événement du groupe, pour le joueur concerné.",
@@ -265,7 +265,7 @@ function z(e = Date.now()) {
   for (let s = 0; s < 16; s++) r += Q[t[s] % 32];
   return a + r;
 }
-function P(e, a) {
+function M(e, a) {
   const i = new Set(a);
   if (!i.has(e)) return e;
   for (let t = 2; ; t++) if (!i.has(`${e}_${t}`)) return `${e}_${t}`;
@@ -550,12 +550,12 @@ const De = [
     ]
   }
 ];
-function K(e) {
+function P(e) {
   return re.find((a) => a.type === e);
 }
 function se(e) {
   const a = {};
-  for (const i of K(e)?.params ?? [])
+  for (const i of P(e)?.params ?? [])
     i.kind === "int" && (a[i.name] = 1);
   return a;
 }
@@ -563,13 +563,13 @@ function oe(e) {
   return e.amount ?? e.distance;
 }
 function le(e, a) {
-  const i = K(e);
+  const i = P(e);
   return (i ? i.params.filter((r) => r.kind !== "int").map((r) => r.name) : Object.keys(a).filter((r) => typeof a[r] == "string")).map((r) => a[r]).filter((r) => typeof r == "string" && r !== "").join(" = ");
 }
-function Ke(e, a) {
-  return (K(e)?.params ?? []).filter((i) => i.required && (a[i.name] === void 0 || a[i.name] === "")).map((i) => i.name);
+function Pe(e, a) {
+  return (P(e)?.params ?? []).filter((i) => i.required && (a[i.name] === void 0 || a[i.name] === "")).map((i) => i.name);
 }
-const Me = [
+const Ke = [
   "ALLAY",
   "ARMADILLO",
   "AXOLOTL",
@@ -653,7 +653,7 @@ const Me = [
   "ZOMBIE_HORSE",
   "ZOMBIE_VILLAGER",
   "ZOMBIFIED_PIGLIN"
-], Pe = `
+], Me = `
 .aq { display: flex; flex-direction: column; gap: 14px; padding: 12px; color: var(--text); font-size: 12.5px; }
 .aq .input, .aq .select { height: 32px; padding: 5px 10px; font-size: 12.5px; }
 .aq .textarea { padding: 6px 10px; font-size: 12.5px; min-height: 56px; resize: vertical; }
@@ -728,7 +728,7 @@ const Me = [
   }
 })();
 function Ue({ projectId: e, documentId: a, document: i, item: t }) {
-  he("msquests", Pe);
+  he("msquests", Me);
   const r = i, s = ye(e), d = fe(), f = Te(), [u, c] = J(t ?? null);
   Ne(() => {
     c(t ?? null);
@@ -852,7 +852,7 @@ function Qe({
     r(
       (q) => {
         q.quests.push({
-          key: P(
+          key: M(
             "quest",
             q.quests.map((k) => k.key)
           ),
@@ -1036,7 +1036,7 @@ function Qe({
             variant: "ghost",
             onClick: () => r((o) => {
               o.tiers.push({
-                key: P(
+                key: M(
                   "tier",
                   o.tiers.map((y) => y.key)
                 ),
@@ -1060,12 +1060,12 @@ function Qe({
             onBlur: (q) => {
               const k = G(q.target.value);
               k !== o.key && r((g) => {
-                const x = P(
+                const x = M(
                   k,
-                  g.tiers.map((M) => M.key)
+                  g.tiers.map((K) => K.key)
                 );
                 g.tiers[y].key = x;
-                for (const M of g.quests) M.tier === o.key && (M.tier = x);
+                for (const K of g.quests) K.tier === o.key && (K.tier = x);
                 const T = g.distribution.tiers;
                 T && o.key in T && (T[x] = T[o.key], delete T[o.key]);
               });
@@ -1294,7 +1294,7 @@ function We({ ctx: e, group: a, index: i }) {
             size: "sm",
             variant: "ghost",
             onClick: () => d((l) => {
-              const h = P(
+              const h = M(
                 `stage_${l.stages.length + 1}`,
                 l.stages.map((m) => m.key)
               );
@@ -1435,7 +1435,7 @@ function Ze({
   ] });
 }
 function ue(e, a) {
-  return K(a) ? e(`objective.${a}`) : a;
+  return P(a) ? e(`objective.${a}`) : a;
 }
 function Ye({
   t: e,
@@ -1451,7 +1451,7 @@ function Ye({
   onRename: l,
   onRemove: h
 }) {
-  const m = K(i.type), v = m ? m.params : Object.keys(i.params).map((g) => ({ name: g, kind: "text" })), b = oe(i.params), o = le(i.type, i.params), y = Ke(i.type, i.params), q = s || y.length > 0, k = (g) => /* @__PURE__ */ n(
+  const m = P(i.type), v = m ? m.params : Object.keys(i.params).map((g) => ({ name: g, kind: "text" })), b = oe(i.params), o = le(i.type, i.params), y = Pe(i.type, i.params), q = s || y.length > 0, k = (g) => /* @__PURE__ */ n(
     Xe,
     {
       t: e,
@@ -1574,7 +1574,7 @@ function Xe({
         onChange: (c) => t(u ? c.target.value.toUpperCase().replace(/\s+/g, "_") : c.target.value)
       }
     ),
-    u && /* @__PURE__ */ n("datalist", { id: "aq-entities", children: Me.map((c) => /* @__PURE__ */ n("option", { value: c }, c)) })
+    u && /* @__PURE__ */ n("datalist", { id: "aq-entities", children: Ke.map((c) => /* @__PURE__ */ n("option", { value: c }, c)) })
   ] });
 }
 function Je({ ctx: e, quest: a }) {
