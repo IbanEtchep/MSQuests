@@ -5,6 +5,7 @@ import {
   ItemInput,
   type ItemComparisonWire,
   MaterialInput,
+  MiniMessageInput,
   type TextWrite,
   injectModuleStyles,
   newTextKey,
@@ -150,11 +151,7 @@ function TextField({
   const write = (v: string) => ctx.edit(() => {}, [{ key: node.key, lang: ctx.lang, value: v }]);
   return (
     <Field label={`${label} · ${ctx.lang}`}>
-      {multiline ? (
-        <textarea className="textarea" value={value} onChange={(e) => write(e.target.value)} />
-      ) : (
-        <input className="input" value={value} onChange={(e) => write(e.target.value)} />
-      )}
+      <MiniMessageInput value={value} onChange={write} multiline={multiline} aria-label={label} />
     </Field>
   );
 }
@@ -853,15 +850,16 @@ function StageCard({
     <li className="aq-stage">
       <div className="aq-stage-head">
         <span className="aq-stage-n">{si + 1}</span>
-        <input
-          className="input aq-stage-title"
-          value={title}
-          placeholder={t("stageTitle")}
-          aria-label={t("stage", { n: si + 1 })}
-          onChange={(e) =>
-            ctx.edit(() => {}, [{ key: stage.title.key, lang: ctx.lang, value: e.target.value }])
-          }
-        />
+        <div className="aq-stage-title">
+          <MiniMessageInput
+            value={title}
+            placeholder={t("stageTitle")}
+            aria-label={t("stage", { n: si + 1 })}
+            onChange={(value) =>
+              ctx.edit(() => {}, [{ key: stage.title.key, lang: ctx.lang, value }])
+            }
+          />
+        </div>
         <Reorder
           t={t}
           index={si}

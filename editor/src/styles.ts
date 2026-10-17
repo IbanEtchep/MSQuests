@@ -50,8 +50,9 @@ export const QUESTS_CSS = `
 .aq-stage { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 8px; border: 1px solid var(--border); border-left: 3px solid var(--brand); border-radius: var(--r-md); background: var(--surface); }
 .aq-stage-head { display: flex; align-items: center; gap: 6px; }
 .aq-stage-n { flex: none; width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--brand); color: var(--surface); font-weight: 700; font-size: 11.5px; }
-.aq .aq-stage-title { flex: 1; min-width: 0; height: 28px; font-weight: 600; background: transparent; border-color: transparent; }
-.aq .aq-stage-title:hover, .aq .aq-stage-title:focus { border-color: var(--border); background: var(--surface-inset); }
+.aq .aq-stage-title { flex: 1; min-width: 0; font-weight: 600; }
+.aq .aq-stage-title .input { height: 28px; background: transparent; border-color: transparent; }
+.aq .aq-stage-title .input:hover, .aq .aq-stage-title .input:focus { border-color: var(--border); background: var(--surface-inset); }
 .aq-seg { display: flex; gap: 4px; flex-wrap: wrap; }
 .aq-seg .chip { height: 24px; padding: 0 10px; font-size: 11px; cursor: pointer; }
 .aq-objectives { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
