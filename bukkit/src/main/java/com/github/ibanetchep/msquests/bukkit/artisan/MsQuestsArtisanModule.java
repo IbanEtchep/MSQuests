@@ -48,15 +48,15 @@ import java.util.function.Function;
  *       Absent → the viewer.</li>
  *   <li>{@code actor} — which actor's quests to read: {@code player} (default),
  *       {@code global}, or any other registered actor type.</li>
- *   <li>{@code group} — restrict to one quest group ({@code msquests:quests} and
- *       {@code msquests:active}).</li>
+ *   <li>{@code group} — restrict to one quest group ({@code artisanquests:quests} and
+ *       {@code artisanquests:active}).</li>
  * </ul>
  */
 public final class MsQuestsArtisanModule implements ArtisanModule {
 
-    static final String GROUPS = "msquests:groups";
-    static final String QUESTS = "msquests:quests";
-    static final String ACTIVE = "msquests:active";
+    static final String GROUPS = "artisanquests:groups";
+    static final String QUESTS = "artisanquests:quests";
+    static final String ACTIVE = "artisanquests:active";
 
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
@@ -69,12 +69,12 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
     @Override
     public String getId() {
-        return "msquests";
+        return "artisanquests";
     }
 
     @Override
     public String getSchemaVersion() {
-        return "msquests/v1";
+        return "artisanquests/v1";
     }
 
     @Override
@@ -100,7 +100,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("active_count", FieldKind.INTEGER, "Quests in progress for the actor"),
                         new DataSourceField("completed_count", FieldKind.INTEGER, null),
                         new DataSourceField("can_rotate", FieldKind.BOOLEAN, null),
-                        new DataSourceField("quests", FieldKind.LIST, "Nested msquests:quests rows")),
+                        new DataSourceField("quests", FieldKind.LIST, "Nested artisanquests:quests rows")),
                 null,
                 Stability.STATIC,
                 "key"));
@@ -163,20 +163,14 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("stage_flow", FieldKind.STRING, "PARALLEL / SEQUENTIAL"),
                         new DataSourceField("progress_ratio", FieldKind.NUMBER, "0..1"),
                         new DataSourceField("objectives", FieldKind.LIST, "Flattened across stages"),
-                        new DataSourceField("stages", FieldKind.LIST, "Same tree as msquests:quests"),
+                        new DataSourceField("stages", FieldKind.LIST, "Same tree as artisanquests:quests"),
                         new DataSourceField("expires_at", FieldKind.INTEGER, "Epoch millis, or 0")),
                 null,
                 Stability.DYNAMIC,
                 null));
 
-        api.getCommands().register(new CommandDeclaration("msquests:track", (player, args) -> {
-            track(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
-        api.getCommands().register(new CommandDeclaration("msquests:rotate", (player, args) -> {
-            rotate(player, argv(args));
-            return kotlin.Unit.INSTANCE;
-        }));
+        api.getCommands().register(new CommandDeclaration("artisanquests:track", (player, args) -> track(player, argv(args))));
+        api.getCommands().register(new CommandDeclaration("artisanquests:rotate", (player, args) -> rotate(player, argv(args))));
     }
 
     @Override
@@ -260,7 +254,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                     // Named but unresolved: online-only, and worth saying so rather
                     // than returning an empty list the caller has to interpret.
                     ? "player '" + string(params.get("player")) + "' is not online"
-                    : "msquests:active needs a player — pass the `player` parameter to preview it");
+                    : "artisanquests:active needs a player — pass the `player` parameter to preview it");
         }
 
         String groupFilter = string(params.get("group"));
@@ -318,8 +312,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     }
 
     /**
-     * Accepts either an instance id (the {@code id} of an {@code msquests:active} row) or a
-     * {@code group:key} config ref (the {@code id} of an {@code msquests:quests} row), and
+     * Accepts either an instance id (the {@code id} of an {@code artisanquests:active} row) or a
+     * {@code group:key} config ref (the {@code id} of an {@code artisanquests:quests} row), and
      * looks it up across every actor the player belongs to — so a guild quest resolves the
      * same way a personal one does.
      */
