@@ -233,3 +233,22 @@ describe("objectives", () => {
     expect(objectiveSubject("custom", { zone: "spawn", amount: 2 })).toBe("spawn");
   });
 });
+
+describe("the group's board node", () => {
+  it("lists one row per quest, titled, keyed by its uid", async () => {
+    const { questGroupKind } = await import("./questGroupKind");
+    installEditorHost({
+      text: (_p: unknown, key: string) => (key === "t1" ? "Miner" : ""),
+    } as unknown as EditorHost);
+    const doc = {
+      quests: [
+        { uid: "U1", key: "mine", tier: "easy", title: { key: "t1" } },
+        { uid: "U2", key: "fish", tier: "", title: { key: "t2" } },
+      ],
+    };
+    expect(questGroupKind.board?.items?.(doc, { project: {}, lang: "fr" })).toEqual([
+      { id: "U1", label: "Miner", detail: "easy" },
+      { id: "U2", label: "fish", detail: undefined },
+    ]);
+  });
+});
