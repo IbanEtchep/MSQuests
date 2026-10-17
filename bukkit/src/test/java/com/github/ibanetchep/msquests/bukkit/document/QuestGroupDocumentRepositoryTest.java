@@ -73,6 +73,29 @@ class QuestGroupDocumentRepositoryTest {
     }
 
     @Test
+    void questActionsAtCompletionAreReadFromOnComplete() throws Exception {
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", """
+                    on:
+                      complete: [ { send_message: "<green>Bravo" } ]
+                """));
+
+        QuestConfigDTO mine = load().groups().get("daily").quests().getFirst();
+
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Bravo")), mine.rewards());
+    }
+
+    @Test
+    void questRewardsKeyIsStillReadAsTheOldNameOfOnComplete() throws Exception {
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", """
+                    rewards: [ { send_message: "<green>Bravo" } ]
+                """));
+
+        QuestConfigDTO mine = load().groups().get("daily").quests().getFirst();
+
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Bravo")), mine.rewards());
+    }
+
+    @Test
     void refusesAUidUsedByTwoGroupsButKeepsTheFirst() throws Exception {
         Files.writeString(project.resolve("quest_groups/a.yaml"), group("G1", "Q1", ""));
         Files.writeString(project.resolve("quest_groups/b.yaml"), group("G2", "Q1", ""));

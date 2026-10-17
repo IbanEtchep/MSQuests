@@ -194,17 +194,11 @@ public final class QuestGroupDocumentReader {
                     objectives));
         }
 
-        List<Object> rewards = chain(quest.get("rewards"), path + ".rewards");
-        List<String> rewardDisplay = new ArrayList<>();
-        List<Object> displayItems = list(quest.get("reward_display"), path + ".reward_display");
-        for (int i = 0; i < displayItems.size(); i++) {
-            String line = Ltext.resolve(displayItems.get(i), lang, path + ".reward_display[" + i + "]");
-            if (line != null) rewardDisplay.add(line);
-        }
-        if (quest.get("reward_display") == null) {
-            // Rewards still in the MSQuests format carry their display name.
-            rewardDisplay.addAll(legacyActions().rewards(list(quest.get("rewards"), path + ".rewards"), path + ".rewards").display());
-        }
+        // `rewards` is the former name of on.complete, still read.
+        Map<String, Object> on = map(quest.get("on"), path + ".on");
+        List<Object> onComplete = on.get("complete") != null
+                ? chain(on.get("complete"), path + ".on.complete")
+                : chain(quest.get("rewards"), path + ".rewards");
 
         try {
             return new QuestConfigDTO(
@@ -213,8 +207,7 @@ public final class QuestGroupDocumentReader {
                     Ltext.resolve(quest.get("description"), lang, path + ".description"),
                     QuestDuration.parse(quest.get("duration"), path + ".duration"),
                     string(quest.get("tier"), path + ".tier"),
-                    rewards,
-                    rewardDisplay,
+                    onComplete,
                     stages,
                     quest.get("requirements") != null ? conditions(quest.get("requirements"), path + ".requirements") : null,
                     uid);
