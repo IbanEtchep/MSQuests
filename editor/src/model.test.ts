@@ -5,6 +5,7 @@ import {
   freeKey,
   joinChain,
   legacyLabel,
+  newObjectiveKey,
   newUid,
   parseQuestGroup,
   questGroupTextSites,
@@ -216,6 +217,12 @@ describe("rewards (Artisan chain steps)", () => {
 });
 
 describe("objectives", () => {
+  it("keys a new objective by its type and a random suffix, never a taken key", () => {
+    const key = newObjectiveKey("block_break", ["block_break"]);
+    expect(key).toMatch(/^block_break_[0-9a-z]{4}$/);
+    expect(newObjectiveKey("block_break", [key])).not.toBe(key);
+  });
+
   it("says what an objective asks and what it lacks", () => {
     expect(objectiveSubject("deliver_item", { material: "COPPER_BLOCK", amount: 6912 })).toBe(
       "COPPER_BLOCK",
