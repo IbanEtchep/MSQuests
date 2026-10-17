@@ -63,7 +63,7 @@ const en = {
   required: "Required",
   rewards: "Rewards",
   rewardsHint:
-    "Run when the quest is completed: any action Artisan or an installed plugin declares (guild_level…), with conditions.",
+    "Run when the quest is completed: any action Artisan or an installed plugin declares, with conditions; a plugin without an action (guild XP…) is reached with a command.",
   legacySteps:
     "Old MSQuests format, kept as is: the server converts it on load, /msquests migrate rewrites it.",
   hooks: "Group events",
@@ -179,7 +179,7 @@ const fr: Record<Key, string> = {
   required: "Obligatoire",
   rewards: "Récompenses",
   rewardsHint:
-    "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé (guild_level…), avec conditions.",
+    "Exécutées quand la quête est terminée : toute action d'Artisan ou d'un plugin installé, avec conditions ; un plugin sans action (XP de guilde…) passe par une commande.",
   legacySteps:
     "Ancien format MSQuests, conservé tel quel : le serveur le convertit au chargement, /msquests migrate le réécrit.",
   hooks: "Événements du groupe",
