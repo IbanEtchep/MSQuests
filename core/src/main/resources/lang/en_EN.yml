@@ -36,6 +36,8 @@ quest:
     untracked: '<yellow>You are no longer tracking a quest.</yellow>'
     # Not referenced by code yet (no placeholders guaranteed)
     rotated: '<green>Your quest has been replaced by a new one.</green>'
+    # Quest placeholders
+    abandoned: '<yellow>You abandoned <white>%quest_name%</white>.</yellow>'
   status:
     in_progress: 'In progress'
     completed: 'Completed'

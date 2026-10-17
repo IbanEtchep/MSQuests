@@ -23,6 +23,8 @@ public record QuestGroupConfigDTO(
         Boolean rotatable,
         Integer maxRotationsPerPeriod,
         DistributionConfigDTO distribution,
+        // Renders one objective of the {objectives} chain binding; null: the default line.
+        String objectiveLine,
         // Only quest_group Documents carry these (null otherwise); quests/*.yml never does, so a
         // legacy file cannot smuggle in an id the database would then key rows by.
         @JsonIgnore String uid,
@@ -34,7 +36,7 @@ public record QuestGroupConfigDTO(
                                Map<String, QuestTierConfigDTO> tiers, Map<String, Integer> tierDistribution,
                                Boolean rotatable, Integer maxRotationsPerPeriod, DistributionConfigDTO distribution) {
         this(key, name, description, quests, maxActive, maxPerPeriod, resetCron, startAt, endAt, actorType,
-                actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution, null, null);
+                actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution, null, null, null);
     }
 
     public QuestGroupConfigDTO {

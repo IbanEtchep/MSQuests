@@ -12,16 +12,19 @@ public record QuestConfigDTO(
         String description,
         Long duration,
         String tier,
-        List<QuestActionDTO> rewards,
+        // An Artisan action chain, keyed steps (see ActionChain).
+        List<Object> rewards,
+        @Nullable List<String> rewardDisplay,
         List<QuestStageConfigDTO> stages,
-        @Nullable List<ConditionConfigDTO> conditions,
+        // Artisan conditions, keyed (see Conditions).
+        @Nullable List<Object> requirements,
         // quest_group Documents only, see QuestGroupConfigDTO#uid.
         @JsonIgnore String uid
 ) {
     public QuestConfigDTO(String key, String name, String description, Long duration, String tier,
-                          List<QuestActionDTO> rewards, List<QuestStageConfigDTO> stages,
-                          @Nullable List<ConditionConfigDTO> conditions) {
-        this(key, name, description, duration, tier, rewards, stages, conditions, null);
+                          List<Object> rewards, @Nullable List<String> rewardDisplay,
+                          List<QuestStageConfigDTO> stages, @Nullable List<Object> requirements) {
+        this(key, name, description, duration, tier, rewards, rewardDisplay, stages, requirements, null);
     }
 
     /**

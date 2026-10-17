@@ -5,12 +5,13 @@ import com.github.ibanetchep.msquests.core.event.CoreQuestObjectiveProgressedEve
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainContext;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class QuestProgressService {
     private final QuestService questService;
     private final EventDispatcher dispatcher;
     private final QuestRegistry questRegistry;
+    private final ChainRunner chains;
 
     /**
      * Batched progress, keyed by identity of the objective rather than by instance:
@@ -35,12 +37,14 @@ public class QuestProgressService {
             QuestLifecycleService questLifecycleService,
             QuestService questService,
             EventDispatcher dispatcher,
-            QuestRegistry questRegistry
+            QuestRegistry questRegistry,
+            ChainRunner chains
     ) {
         this.questLifecycleService = questLifecycleService;
         this.questService = questService;
         this.dispatcher = dispatcher;
         this.questRegistry = questRegistry;
+        this.chains = chains;
     }
 
     public void progressObjective(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
@@ -79,10 +83,7 @@ public class QuestProgressService {
         var progressedEvent = new CoreQuestObjectiveProgressedEvent(objective, profile);
         dispatcher.dispatch(progressedEvent);
 
-        Map<String, String> context = buildContext(objective);
-        objective.getQuest().getQuestGroup().getObjectiveProgressActions().stream()
-                .filter(a -> profile == null || a.testConditions(profile, context))
-                .forEach(a -> a.execute(objective));
+        chains.run(objective.getQuest().getQuestGroup().getObjectiveProgressActions(), ChainContext.of(objective));
 
         if (objective.isCompleted()) {
             return questLifecycleService.completeObjective(objective, profile);
@@ -117,14 +118,6 @@ public class QuestProgressService {
         }
 
         return null;
-    }
-
-    private Map<String, String> buildContext(QuestObjective objective) {
-        Map<String, String> context = new HashMap<>();
-        Quest quest = objective.getQuest();
-        context.put("quest_name", quest.getQuestConfig().getName());
-        context.put("quest_key", quest.getQuestConfig().getKey());
-        return context;
     }
 
     /** Mirrors the composite primary key objectives are persisted under. */

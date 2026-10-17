@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -48,6 +49,8 @@ import java.util.logging.Level;
  *       Document per group, which the quests load from with {@code content_source: artisan}
  *       ({@code /msquests migrate} converts {@code quests/*.yml} into them);</li>
  *   <li>the {@code quests:*} actions ({@link QuestActions});</li>
+ *   <li>the {@code %quests_*%} placeholders ({@code QuestPlaceholders}), also given to
+ *       PlaceholderAPI when it is installed;</li>
  *   <li>three data sources and the two commands menu buttons used before the actions existed.</li>
  * </ul>
  *
@@ -106,6 +109,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
             api.getActionRegistry().register(declaration);
         }
 
+        registerPlaceholders(api);
+
         // STATIC: the key-set is the loaded configuration, enumerable without a player,
         // so a menu can place "the daily group" on a specific slot. Only the per-actor
         // field values vary at render time.
@@ -157,7 +162,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                         new DataSourceField("objective_progress", FieldKind.INTEGER, "Raw — the menu formats it"),
                         new DataSourceField("objective_target", FieldKind.INTEGER, null),
                         new DataSourceField("progress_ratio", FieldKind.NUMBER, "0..1"),
-                        new DataSourceField("rewards", FieldKind.LIST, "type, name"),
+                        new DataSourceField("rewards", FieldKind.LIST, "name: one line per reward (reward_display)"),
                         new DataSourceField("stages", FieldKind.LIST,
                                 "Configured tree: key, name, flow, index, completed, active, "
                                         + "progress_ratio, objectives[] — player progress laid over it")),
@@ -213,8 +218,22 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         api.getProjectRoots().register(EditorProject.PROJECT_ID, dir, getId());
     }
 
+    private void registerPlaceholders(ArtisanAPI api) {
+        QuestPlaceholders placeholders = plugin.getQuestPlaceholders();
+        try {
+            api.getPlaceholders().register(QuestPlaceholders.NAMESPACE,
+                    (player, key) -> placeholders.resolve(player != null ? player.getUniqueId() : null, key), true);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            plugin.getLogger().warning("The %" + QuestPlaceholders.NAMESPACE + "_*% placeholders are not available: "
+                    + e.getMessage());
+        }
+    }
+
     @Override
     public void onDisable() {
+        if (api != null) {
+            api.getPlaceholders().unregister(QuestPlaceholders.NAMESPACE);
+        }
         this.api = null;
     }
 

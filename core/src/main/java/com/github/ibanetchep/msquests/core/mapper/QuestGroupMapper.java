@@ -1,10 +1,9 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.*;
-import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestTierConfig;
-import com.github.ibanetchep.msquests.core.quest.config.action.QuestAction;
+import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
 import com.github.ibanetchep.msquests.core.quest.config.group.DistributionConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigger;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
@@ -17,11 +16,9 @@ import java.util.stream.Collectors;
 public class QuestGroupMapper {
 
     private final QuestConfigMapper questConfigMapper;
-    private final QuestActionFactory questActionFactory;
 
-    public QuestGroupMapper(QuestConfigMapper questConfigMapper, QuestActionFactory questActionFactory) {
+    public QuestGroupMapper(QuestConfigMapper questConfigMapper) {
         this.questConfigMapper = questConfigMapper;
-        this.questActionFactory = questActionFactory;
     }
 
     /**
@@ -68,19 +65,20 @@ public class QuestGroupMapper {
                 entity.getEndAt(),
                 entity.getActorType(),
                 new QuestGroupConfigActionsDTO(
-                        entity.getQuestStartActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getQuestCompleteActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getObjectiveProgressActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getObjectiveCompleteActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getQuestDistributionActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getActorLoadActions().stream().map(QuestAction::toDTO).toList(),
-                        entity.getAllPeriodQuestsCompleteActions().stream().map(QuestAction::toDTO).toList()
+                        entity.getQuestStartActions().steps(),
+                        entity.getQuestCompleteActions().steps(),
+                        entity.getObjectiveProgressActions().steps(),
+                        entity.getObjectiveCompleteActions().steps(),
+                        entity.getQuestDistributionActions().steps(),
+                        entity.getActorLoadActions().steps(),
+                        entity.getAllPeriodQuestsCompleteActions().steps()
                 ),
                 tierDtos,
                 entity.getTierDistribution(),
                 entity.isRotatable(),
                 entity.getMaxRotationsPerPeriod(),
                 distributionDto,
+                QuestGroupConfig.DEFAULT_OBJECTIVE_LINE.equals(entity.getObjectiveLine()) ? null : entity.getObjectiveLine(),
                 entity.getUid(),
                 entity.getUid() != null ? entity.getResetZone().getId() : null
         );
@@ -96,33 +94,9 @@ public class QuestGroupMapper {
             return null;
         }
 
-        List<QuestAction> questStartActions = dto.actions().questStart().stream()
-                .map(questActionFactory::createAction)
-                .toList();
-
-        List<QuestAction> questCompleteActions = dto.actions().questComplete().stream()
-                .map(questActionFactory::createAction)
-                .toList();
-
-        List<QuestAction> objectiveProgressActions = dto.actions().objectiveProgress().stream()
-                .map(questActionFactory::createAction)
-                .toList();
-
-        List<QuestAction> objectiveCompleteActions = dto.actions().objectiveComplete().stream()
-                .map(questActionFactory::createAction)
-                .toList();
-
-        List<QuestAction> questDistributionActions = dto.actions().questDistribution() != null
-                ? dto.actions().questDistribution().stream().map(questActionFactory::createAction).toList()
-                : List.of();
-
-        List<QuestAction> actorLoadActions = dto.actions().actorLoad() != null
-                ? dto.actions().actorLoad().stream().map(questActionFactory::createAction).toList()
-                : List.of();
-
-        List<QuestAction> allPeriodQuestsCompleteActions = dto.actions().allPeriodQuestsComplete() != null
-                ? dto.actions().allPeriodQuestsComplete().stream().map(questActionFactory::createAction).toList()
-                : List.of();
+        QuestGroupConfigActionsDTO actions = dto.actions() != null
+                ? dto.actions()
+                : new QuestGroupConfigActionsDTO(null, null, null, null, null, null, null);
 
         Map<String, QuestTierConfig> tiers = null;
         if (dto.tiers() != null) {
@@ -152,18 +126,19 @@ public class QuestGroupMapper {
                 .resetCron(dto.resetCron())
                 .startAt(dto.startAt())
                 .endAt(dto.endAt())
-                .questStartActions(questStartActions)
-                .questCompleteActions(questCompleteActions)
-                .objectiveProgressActions(objectiveProgressActions)
-                .objectiveCompleteActions(objectiveCompleteActions)
-                .questDistributionActions(questDistributionActions)
-                .actorLoadActions(actorLoadActions)
-                .allPeriodQuestsCompleteActions(allPeriodQuestsCompleteActions)
+                .questStartActions(ActionChain.of(actions.questStart()))
+                .questCompleteActions(ActionChain.of(actions.questComplete()))
+                .objectiveProgressActions(ActionChain.of(actions.objectiveProgress()))
+                .objectiveCompleteActions(ActionChain.of(actions.objectiveComplete()))
+                .questDistributionActions(ActionChain.of(actions.questDistribution()))
+                .actorLoadActions(ActionChain.of(actions.actorLoad()))
+                .allPeriodQuestsCompleteActions(ActionChain.of(actions.allPeriodQuestsComplete()))
                 .tiers(tiers)
                 .tierDistribution(dto.tierDistribution())
                 .rotatable(dto.rotatable() != null && dto.rotatable())
                 .maxRotationsPerPeriod(dto.maxRotationsPerPeriod())
                 .distributionConfig(distributionConfig)
+                .objectiveLine(dto.objectiveLine())
                 .uid(dto.uid())
                 .resetZone(dto.resetTimezone() != null ? ZoneId.of(dto.resetTimezone()) : null)
                 .build();

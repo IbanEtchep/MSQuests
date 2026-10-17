@@ -36,6 +36,8 @@ quest:
     untracked: '<yellow>Tu ne suis plus aucune quête.</yellow>'
     # Pas encore utilisée par le code (aucun placeholder garanti)
     rotated: '<green>Ta quête a été remplacée par une nouvelle.</green>'
+    # Placeholders de quête
+    abandoned: '<yellow>Tu as abandonné la quête <white>%quest_name%</white>.</yellow>'
   status:
     in_progress: 'En cours'
     completed: 'Terminée'

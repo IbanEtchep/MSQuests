@@ -1,7 +1,6 @@
 package com.github.ibanetchep.msquests.core.service;
 
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
-import com.github.ibanetchep.msquests.core.factory.ConditionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
@@ -55,7 +54,7 @@ class QuestServiceUidResolutionTest {
                         null, null, null, Map.of(), "GONE"))));
 
         QuestService service = new QuestService(Logger.getAnonymousLogger(), configs, repository,
-                mock(RotationRepository.class), new QuestFactory(new QuestObjectiveFactory(new ConditionFactory())),
+                mock(RotationRepository.class), new QuestFactory(new QuestObjectiveFactory()),
                 new QuestRegistry(), new QuestMapper());
         QuestActor actor = new QuestActor(UUID.randomUUID(), "Steve") {
             @Override

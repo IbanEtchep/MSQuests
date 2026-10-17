@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.github.ibanetchep.msquests.core.dto.QuestActionDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
@@ -67,6 +66,15 @@ public final class LegacyContentConverter {
 
     public Plan plan(Map<String, QuestGroupConfigDTO> legacy, List<String> legacyFailures, Path questGroupsDir,
                      MigrationMap previous) {
+        return plan(legacy, legacyFailures, Map.of(), questGroupsDir, previous);
+    }
+
+    /**
+     * @param conversionNotes per group, what reading its MSQuests actions as Artisan chains changed
+     *                        ({@code QuestConfigYamlRepository#getConversionNotes})
+     */
+    public Plan plan(Map<String, QuestGroupConfigDTO> legacy, List<String> legacyFailures,
+                     Map<String, List<String>> conversionNotes, Path questGroupsDir, MigrationMap previous) {
         MigrationReport report = new MigrationReport();
         report.section("Source: quests/*.yml");
         report.line(legacy.size() + " group(s) read.");
@@ -129,8 +137,14 @@ public final class LegacyContentConverter {
                         + " (the server's zone, which it ran in so far).");
             }
             if (actions > 0) {
-                report.line("Actions, rewards and conditions kept in the MSQuests format: they become Artisan"
-                        + " chains in a later step.");
+                report.line("Actions and rewards written as Artisan chains, conditions as Artisan conditions.");
+                if (group.actorType() != null && !"player".equalsIgnoreCase(group.actorType())) {
+                    report.warn("Actor type '" + group.actorType() + "': a chain runs once for each online member"
+                            + " of the actor, a console command included (MSQuests ran a command once per actor).");
+                }
+            }
+            for (String note : conversionNotes.getOrDefault(group.key(), List.of())) {
+                report.warn("Approximated: " + note);
             }
 
             String yaml;
@@ -308,7 +322,7 @@ public final class LegacyContentConverter {
     private static int countActions(QuestGroupConfigDTO group) {
         if (group.actions() == null) return 0;
         int count = 0;
-        for (List<QuestActionDTO> hook : List.of(
+        for (List<Object> hook : List.of(
                 nonNull(group.actions().actorLoad()), nonNull(group.actions().questDistribution()),
                 nonNull(group.actions().questStart()), nonNull(group.actions().questComplete()),
                 nonNull(group.actions().objectiveProgress()), nonNull(group.actions().objectiveComplete()),
@@ -318,7 +332,7 @@ public final class LegacyContentConverter {
         return count;
     }
 
-    private static List<QuestActionDTO> nonNull(@Nullable List<QuestActionDTO> list) {
+    private static List<Object> nonNull(@Nullable List<Object> list) {
         return list != null ? list : List.of();
     }
 

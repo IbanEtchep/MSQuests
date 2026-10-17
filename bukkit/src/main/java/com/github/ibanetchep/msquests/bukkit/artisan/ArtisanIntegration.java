@@ -14,10 +14,11 @@ import java.util.logging.Level;
 public final class ArtisanIntegration {
 
     /**
-     * Lowest Artisan API this plugin compiles against: {@code DocumentKindRegistry} (2.1.0) and
+     * Lowest Artisan API this plugin compiles against: {@code ConditionsApi} and the structured
+     * {@code ModuleActionsApi.run} (2.2.0), {@code DocumentKindRegistry} (2.1.0) and
      * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).
      */
-    public static final String MIN_API_VERSION = "2.1.0";
+    public static final String MIN_API_VERSION = "2.2.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ArtisanAPI api;

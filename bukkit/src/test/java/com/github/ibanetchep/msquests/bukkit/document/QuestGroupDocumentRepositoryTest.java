@@ -34,7 +34,7 @@ class QuestGroupDocumentRepositoryTest {
                 reset: { cron: "0 4 * * *", timezone: Europe/Paris }
                 limits: { max_active: 2 }
                 on:
-                  quest_start: [ { type: message, message: "<green>Go" } ]
+                  quest_start: [ { send_message: "<green>Go" } ]
                 quests:
                   - key: mine
                     uid: %s
@@ -62,7 +62,8 @@ class QuestGroupDocumentRepositoryTest {
         assertEquals("Daily", daily.name());
         assertEquals("G1", daily.uid());
         assertEquals("Europe/Paris", daily.resetTimezone());
-        assertEquals("message", daily.actions().questStart().getFirst().type(), "unquoted on: is a key, not YAML 1.1 true");
+        assertEquals(java.util.Map.of("send_message", "<green>Go"), daily.actions().questStart().getFirst(),
+                "unquoted on: is a key, not YAML 1.1 true");
         assertEquals(java.util.List.of(), daily.actions().questComplete());
         QuestConfigDTO mine = daily.quests().getFirst();
         assertEquals("Q1", mine.uid());

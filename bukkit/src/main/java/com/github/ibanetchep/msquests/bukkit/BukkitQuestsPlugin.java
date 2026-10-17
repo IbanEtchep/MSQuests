@@ -12,6 +12,11 @@ import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
+import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
+import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanChainRunner;
+import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanConditionChecker;
+import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
+import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
 import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
 import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
@@ -19,10 +24,6 @@ import com.github.ibanetchep.msquests.bukkit.document.MigrationMapFile;
 import com.github.ibanetchep.msquests.bukkit.document.QuestGroupDocumentRepository;
 import com.github.ibanetchep.msquests.bukkit.migration.ContentMigration;
 import com.github.ibanetchep.msquests.bukkit.zmenu.ZMenuIntegration;
-import com.github.ibanetchep.msquests.bukkit.quest.action.*;
-import com.github.ibanetchep.msquests.bukkit.quest.condition.PlaceholderCondition;
-import com.github.ibanetchep.msquests.bukkit.quest.condition.PermissionCondition;
-import com.github.ibanetchep.msquests.core.factory.ConditionFactory;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestGlobalActor;
 import com.github.ibanetchep.msquests.bukkit.quest.actor.BukkitQuestPlayerActor;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.blockbreak.BlockBreakObjective;
@@ -66,7 +67,6 @@ import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.event.EventDispatcher;
-import com.github.ibanetchep.msquests.core.factory.QuestActionFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestConfigMapper;
@@ -118,7 +118,9 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     private QuestFactory questFactory;
     private QuestObjectiveFactory questObjectiveFactory;
-    private QuestActionFactory questActionFactory;
+    private ChainRunner chainRunner;
+    private ConditionChecker conditionChecker;
+    private QuestPlaceholders questPlaceholders;
 
     private QuestRegistry questRegistry;
     private PlayerProfileRegistry playerProfileRegistry;
@@ -171,12 +173,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         playerProfileRegistry = new PlayerProfileRegistry();
         questActorRegistry = new QuestActorRegistry();
 
-        ConditionFactory conditionFactory = buildConditionFactory();
-        questActionFactory = new QuestActionFactory(conditionFactory);
-        questObjectiveFactory = new QuestObjectiveFactory(conditionFactory);
+        // Quest actions and conditions are Artisan's: chains run by its engine, conditions read by it.
+        chainRunner = new ArtisanChainRunner(this, artisanIntegration.getApi().getActions());
+        conditionChecker = new ArtisanConditionChecker(artisanIntegration.getApi().getConditions(), getLogger());
+        questObjectiveFactory = new QuestObjectiveFactory();
 
         registerObjectiveTypes();
-        registerActionTypes();
         registerActorTypes();
 
         loadConfig();
@@ -202,7 +204,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
             questRepository = new ArtisanQuestSqlRepository(dbAccess);
             tables = SqlTables.ARTISAN;
         } else {
-            questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger());
+            questConfigRepository = new QuestConfigYamlRepository(Path.of(getDataFolder().toPath() + "/quests"), getLogger(), this::langText);
             questRepository = new QuestSqlRepository(dbAccess);
             tables = SqlTables.LEGACY;
         }
@@ -212,19 +214,19 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess, tables);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess, tables);
 
-        QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory, questActionFactory, conditionFactory);
-        QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper, questActionFactory);
+        QuestConfigMapper questConfigMapper = new QuestConfigMapper(questObjectiveFactory);
+        QuestGroupMapper questGroupMapper = new QuestGroupMapper(questConfigMapper);
 
         AtomicQuestExecutor atomicQuestExecutor = new AtomicLocalQuestExecutor(questRegistry);
 
         questService = new QuestService(getLogger(), questConfigRegistry, questRepository, rotationRepository, questFactory, questRegistry, questMapper);
-        questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper);
+        questConfigService = new QuestConfigService(getLogger(), questConfigRegistry, questConfigRepository, questGroupMapper, conditionChecker);
         playerProfileService = new PlayerProfileService(getLogger(), playerProfileRepository, playerProfileRegistry, questActorRegistry);
-        questDistributionService = new QuestDistributionService();
-        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository, this);
+        questDistributionService = new QuestDistributionService(conditionChecker);
+        questLifecycleService = new QuestLifecycleService(eventDispatcher, questService, questFactory, questRegistry, questConfigRegistry, atomicQuestExecutor, questDistributionService, rotationRepository, this, chainRunner);
         questActorService = new QuestActorService(getLogger(), actorRepository, questActorRegistry, playerProfileRegistry, questService, questLifecycleService, this);
         questPlayerService = new QuestPlayerService(questActorService, playerProfileService);
-        questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher, questRegistry);
+        questProgressService = new QuestProgressService(questLifecycleService, questService, eventDispatcher, questRegistry, chainRunner);
         trackingBossBarService = new TrackingBossBarService(globalConfig.trackingBossBar(), playerProfileRegistry);
 
         registerListeners();
@@ -419,13 +421,6 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         pluginManager.registerEvents(new QuestTrackingListener(trackingBossBarService, questPlayerService), this);
     }
 
-    private ConditionFactory buildConditionFactory() {
-        ConditionFactory factory = new ConditionFactory();
-        factory.register("placeholder", PlaceholderCondition::new);
-        factory.register("permission", PermissionCondition::new);
-        return factory;
-    }
-
     private void registerObjectiveTypes() {
         questObjectiveFactory.register(BlockBreakObjectiveConfig.class, BlockBreakObjective.class, new BlockBreakObjectiveHandler(this));
         questObjectiveFactory.register(BreedAnimalObjectiveConfig.class, BreedAnimalObjective.class, new BreedAnimalObjectiveHandler(this));
@@ -439,24 +434,16 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questObjectiveFactory.register(TravelObjectiveConfig.class, TravelObjective.class, new TravelObjectiveHandler(this));
     }
 
-    public void registerActionTypes() {
-        questActionFactory.register(CommandAction.class, dto -> new CommandAction(dto, this));
-        questActionFactory.register(PlayerCommandAction.class, dto -> new PlayerCommandAction(dto, this));
-        questActionFactory.register(GiveItemAction.class, dto -> new GiveItemAction(dto, this));
-        questActionFactory.register(PlayerMessageAction.class, dto -> new PlayerMessageAction(dto, this));
-        questActionFactory.register(PlayerActionBarAction.class, dto -> new PlayerActionBarAction(dto, this));
-        questActionFactory.register(PlayerTitleAction.class, dto -> new PlayerTitleAction(dto, this));
-        questActionFactory.register(PlayerBossBarAction.class, dto -> new PlayerBossBarAction(dto, this));
-    }
-
     public void registerActorTypes() {
         actorTypeRegistry.registerType("player", BukkitQuestPlayerActor.class);
         actorTypeRegistry.registerType("global", BukkitQuestGlobalActor.class);
     }
 
     public void registerExpansions() {
+        questPlaceholders = new QuestPlaceholders(playerProfileRegistry, questConfigRegistry, questActorRegistry,
+                globalConfig.placeholders());
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new QuestsPlaceholderExpansion(playerProfileRegistry, questConfigRegistry, globalConfig.placeholders()).register();
+            new QuestsPlaceholderExpansion(questPlaceholders).register(); // %msquests_*%, alias for one version
         }
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();
@@ -527,8 +514,18 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         return questObjectiveFactory;
     }
 
-    public QuestActionFactory getQuestActionFactory() {
-        return questActionFactory;
+    public ConditionChecker getConditionChecker() {
+        return conditionChecker;
+    }
+
+    public QuestPlaceholders getQuestPlaceholders() {
+        return questPlaceholders;
+    }
+
+    /** Text of a MSQuests lang key, null when the lang files do not have it. */
+    public @Nullable String langText(String key) {
+        String text = getTranslator().getRaw(key);
+        return text == null || text.startsWith("Missing translation: ") ? null : text;
     }
 
     /** The content source this run was started with (config changes apply at the next start). */
