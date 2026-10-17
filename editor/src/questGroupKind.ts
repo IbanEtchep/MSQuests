@@ -44,6 +44,14 @@ export const questGroupKind: DocumentKindContribution = {
   serialize: (doc, project) => serializeQuestGroup(doc as QuestGroup, project),
   ltextSites: (doc) => questGroupTextSites(doc as QuestGroup),
   board: {
+    size: { width: 220, height: 48 },
+    // The group's quests, one selectable row each: the Properties panel opens the one clicked.
+    items: (doc, { project, lang }) =>
+      (doc as QuestGroup).quests.map((q) => ({
+        id: q.uid,
+        label: textValue(project, q.title.key, lang) || q.key,
+        detail: q.tier || undefined,
+      })),
     summary: (doc) => {
       const n = (doc as QuestGroup).quests.length;
       return `quest_group · ${n}`;
