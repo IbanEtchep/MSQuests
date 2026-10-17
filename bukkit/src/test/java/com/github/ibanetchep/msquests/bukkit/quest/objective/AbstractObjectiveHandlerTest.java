@@ -16,10 +16,15 @@ import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestProgressService;
+import net.artisanmc.modules.api.item.ItemComparison;
+import net.artisanmc.modules.api.item.ItemStackApi;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -34,6 +39,22 @@ public abstract class AbstractObjectiveHandlerTest {
     protected BukkitQuestsPlugin plugin;
     protected PlayerProfileRegistry playerProfileRegistry;
     protected QuestProgressService questProgressService;
+
+    /**
+     * Artisan's item comparison reduced to what the handlers' tests need: the material, and
+     * {@code name} against the spec's {@code title}. Artisan's own tests cover the rest.
+     */
+    protected final ItemStackApi items = new ItemStackApi() {
+        @Override public String serialize(ItemStack stack) { return ""; }
+        @Override public Map<String, Object> describe(ItemStack stack) { return Map.of(); }
+        @Override public boolean matches(Map<String, ?> spec, ItemStack stack, Set<ItemComparison> comparisons) {
+            if (!stack.getType().name().equalsIgnoreCase(String.valueOf(spec.get("material")))) return false;
+            if (!comparisons.contains(ItemComparison.NAME) || spec.get("title") == null) return true;
+            return stack.getItemMeta() != null && stack.getItemMeta().hasDisplayName()
+                    && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(stack.getItemMeta().displayName()).equals(spec.get("title"));
+        }
+    };
 
     @BeforeEach
     void setUpBase() {
@@ -50,6 +71,7 @@ public abstract class AbstractObjectiveHandlerTest {
         when(plugin.getServer()).thenReturn(server);
         when(plugin.getPlayerProfileRegistry()).thenReturn(playerProfileRegistry);
         when(plugin.getQuestProgressService()).thenReturn(questProgressService);
+        when(plugin.getItems()).thenReturn(items);
     }
 
     @AfterEach

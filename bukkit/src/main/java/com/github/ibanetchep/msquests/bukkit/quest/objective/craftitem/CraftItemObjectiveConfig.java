@@ -1,37 +1,36 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective.craftitem;
 
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemTarget;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ObjectiveTypes;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestObjectiveConfig;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ConfigField;
 import com.github.ibanetchep.msquests.core.quest.config.annotation.ObjectiveType;
-import org.bukkit.Material;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ObjectiveType(ObjectiveTypes.CRAFT_ITEM)
 public class CraftItemObjectiveConfig extends QuestObjectiveConfig {
 
-    @ConfigField(name = "material")
-    private @Nullable Material material;
+    /** {@code item} + {@code match}, or the legacy {@code material}. */
+    @ConfigField(name = "item")
+    private final ItemTarget item;
 
     @ConfigField(name = "amount", required = true)
     private int amount = 1;
 
     public CraftItemObjectiveConfig(QuestObjectiveConfigDTO dto) {
         super(dto);
-        if (dto.params().containsKey("material") && dto.params().get("material") != null) {
-            material = Material.valueOf(dto.params().get("material").toString().toUpperCase());
-        }
+        item = ItemTarget.read(dto.params(), "material");
         if (dto.params().containsKey("amount")) {
             amount = (int) dto.params().get("amount");
         }
     }
 
-    public @Nullable Material getMaterial() {
-        return material;
+    public ItemTarget getItem() {
+        return item;
     }
 
     public int getAmount() {
@@ -41,22 +40,19 @@ public class CraftItemObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "material", material != null ? "<lang:" + material.translationKey() + ">" : "",
+                "material", item.placeholder(),
                 "amount", String.valueOf(amount)
         );
     }
 
     @Override
     public QuestObjectiveConfigDTO toDTO() {
-        return new QuestObjectiveConfigDTO(
-                getKey(),
-                getType(),
-                Map.of(
-                        "material", material != null ? material.name() : null,
-                        "amount", amount
-                )
-        );
+        Map<String, Object> params = new LinkedHashMap<>();
+        item.write(params);
+        params.put("amount", amount);
+        return new QuestObjectiveConfigDTO(getKey(), getType(), params);
     }
+
     @Override
     public int getTarget() {
         return amount;

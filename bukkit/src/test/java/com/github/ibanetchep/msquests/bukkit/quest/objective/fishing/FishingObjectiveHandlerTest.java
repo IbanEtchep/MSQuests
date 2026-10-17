@@ -3,6 +3,7 @@ package com.github.ibanetchep.msquests.bukkit.quest.objective.fishing;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.AbstractObjectiveHandlerTest;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -10,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
@@ -122,5 +124,36 @@ public class FishingObjectiveHandlerTest extends AbstractObjectiveHandlerTest {
         handler.onPlayerFish(mockFishEvent(Material.COD));
 
         verify(questProgressService, never()).progressObjective(any(), anyInt(), any());
+    }
+
+    @Test
+    void itemSpecIsComparedOnItsCriteria() {
+        FishingObjective objective = createObjective(stage -> {
+            QuestObjectiveConfigDTO dto = new QuestObjectiveConfigDTO(
+                    "obj_named", "fishing",
+                    Map.of("item", Map.of("material", "COD", "title", "Golden cod"), "match", List.of("material", "name"), "amount", 1)
+            );
+            return new FishingObjective(stage, new FishingObjectiveConfig(dto), 0, QuestObjectiveStatus.IN_PROGRESS);
+        });
+
+        ItemStack plain = new ItemStack(Material.COD);
+        ItemStack named = new ItemStack(Material.COD);
+        named.editMeta(meta -> meta.displayName(Component.text("Golden cod")));
+
+        handler.onPlayerFish(fishEvent(plain));
+        verify(questProgressService, never()).progressObjective(any(), anyInt(), any());
+
+        handler.onPlayerFish(fishEvent(named));
+        verify(questProgressService).progressObjective(objective, 1, profile);
+    }
+
+    private PlayerFishEvent fishEvent(ItemStack stack) {
+        Item caughtItem = mock(Item.class);
+        when(caughtItem.getItemStack()).thenReturn(stack);
+        PlayerFishEvent event = mock(PlayerFishEvent.class);
+        when(event.getState()).thenReturn(PlayerFishEvent.State.CAUGHT_FISH);
+        when(event.getCaught()).thenReturn(caughtItem);
+        when(event.getPlayer()).thenReturn(player);
+        return event;
     }
 }

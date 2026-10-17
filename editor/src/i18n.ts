@@ -101,6 +101,7 @@ const en = {
   "objective.execute_command": "Run a command",
   "objective.placeholder": "Reach a placeholder value",
   "param.material": "Material",
+  "param.item": "Item",
   "param.crop": "Crop",
   "param.fish_type": "Fish",
   "param.amount": "Amount",
@@ -111,6 +112,7 @@ const en = {
   "param.placeholder": "Placeholder",
   "param.value": "Value",
   any: "any",
+  anyItem: "Empty: any item counts.",
 };
 
 type Key = keyof typeof en;
@@ -218,6 +220,7 @@ const fr: Record<Key, string> = {
   "objective.execute_command": "Exécuter une commande",
   "objective.placeholder": "Atteindre une valeur de placeholder",
   "param.material": "Matériau",
+  "param.item": "Item",
   "param.crop": "Culture",
   "param.fish_type": "Poisson",
   "param.amount": "Quantité",
@@ -228,6 +231,7 @@ const fr: Record<Key, string> = {
   "param.placeholder": "Placeholder",
   "param.value": "Valeur",
   any: "n'importe lequel",
+  anyItem: "Vide : n’importe quel item compte.",
 };
 
 export const LABELS = { en: en.kindLabel, fr: fr.kindLabel };

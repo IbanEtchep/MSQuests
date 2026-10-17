@@ -422,12 +422,14 @@ Chaque type d'objectif suit un pattern en 3 classes + registration :
 |------|-----------------|-------------------|
 | `block_break` | `BlockBreakEvent` | material |
 | `kill_entity` | `EntityDeathEvent` | entity type |
-| `fishing` | `PlayerFishEvent` | - |
+| `fishing` | `PlayerFishEvent` | item (`item` + `match`, legacy `fish_type`) |
 | `execute_command` | `PlayerCommandPreprocessEvent` | command pattern |
-| `craft_item` | `CraftItemEvent` | material |
+| `craft_item` | `CraftItemEvent` | item (`item` + `match`, legacy `material`) |
 | `breed_animal` | `EntityBreedEvent` | entity type |
-| `deliver_item` | Integration custom | target NPC |
+| `deliver_item` | Integration custom (not wired yet) | item (`item` + `match`, legacy `material`) |
 | `harvest_crop` | `BlockBreakEvent` | crop type |
+
+An objective's **item** (`ItemTarget`) is an Artisan item spec: the fields of a menu button's appearance (`material`: vanilla, `item:<captured id>` or `nexo:<id>`…; `title`, `lore`, `enchants`, `custom_model_data`), built and compared by `api.getItems()` (Artisan API 2.4.0). `match` lists the criteria (`material`, `custom_item`, `name`, `lore`, `enchants`, `custom_model_data`, `damage`, `exact`); absent, those the item carries. A legacy bare material is compared on the material alone, and is rewritten as `item` + `match: [material]` on save. No item: any item.
 | `placeholder` | Polling scheduler | placeholder, interval, condition |
 | `travel` | `PlayerMoveEvent` | distance |
 
