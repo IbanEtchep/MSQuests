@@ -26,6 +26,7 @@ import net.artisanmc.modules.api.datasource.FieldKind;
 import net.artisanmc.modules.api.datasource.PlayerRequiredException;
 import net.artisanmc.modules.api.datasource.Stability;
 import net.artisanmc.modules.api.document.DocumentKindDeclaration;
+import net.artisanmc.modules.api.editor.EditorBundleDeclaration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +49,8 @@ import java.util.logging.Level;
  *   <li>the {@code quest_group} Document kind ({@code quest_groups/}, {@code quest_group/v1}): one
  *       Document per group, which the quests load from with {@code content_source: artisan}
  *       ({@code /msquests migrate} converts {@code quests/*.yml} into them);</li>
+ *   <li>its editor view, {@code artisan-editor/ui.js} built from {@code editor/}, which the Artisan
+ *       editor loads for the {@code quest_group} kind;</li>
  *   <li>the {@code quests:*} actions ({@link QuestActions});</li>
  *   <li>the {@code %quests_*%} placeholders ({@code QuestPlaceholders}), also given to
  *       PlaceholderAPI when it is installed;</li>
@@ -76,6 +79,10 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     static final String GROUP_DIR = "quest_groups";
     static final String GROUP_SCHEMA = "quest_group/v1";
 
+    /** Built by {@code editor/} ({@code npm run build}); the SDK version its build prints. */
+    static final String EDITOR_BUNDLE = "artisan-editor/ui.js";
+    static final String EDITOR_SDK = "1.0.0";
+
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
     private @Nullable ArtisanAPI api;
@@ -103,6 +110,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         api.getDocumentKinds().register(new DocumentKindDeclaration(
                 QuestActions.GROUP_KIND, GROUP_DIR, List.of(GROUP_SCHEMA), null));
         registerProject(api);
+        registerEditorBundle(api);
 
         QuestActions actions = new QuestActions(plugin);
         for (ActionDeclaration declaration : actions.declarations()) {
@@ -216,6 +224,24 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         }
         // Artisan reloads its projects on the next tick, after this onEnable returns.
         api.getProjectRoots().register(EditorProject.PROJECT_ID, dir, getId());
+    }
+
+    /**
+     * Hands the editor view to Artisan, which serves it to the editor. Artisan before 2.3.0
+     * has no editor bundles: the quests then run without a view in the editor.
+     */
+    private void registerEditorBundle(ArtisanAPI api) {
+        if (!api.isCompatibleWith("2.3.0")) {
+            plugin.getLogger().warning("Artisan " + api.getApiVersion()
+                    + " cannot serve the quest editor view; it needs Artisan API 2.3.0 or later.");
+            return;
+        }
+        try {
+            api.getEditorBundles().register(
+                    EditorBundleDeclaration.fromResource(getClass().getClassLoader(), EDITOR_BUNDLE, EDITOR_SDK));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            plugin.getLogger().log(Level.WARNING, "The quest editor view is not available", e);
+        }
     }
 
     private void registerPlaceholders(ArtisanAPI api) {

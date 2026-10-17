@@ -137,6 +137,14 @@ est enregistre et declare :
   `content_source: artisan` (voir *Source du contenu*) ; sinon depuis `quests/*.yml`.
   `onReload` (publication, `/artisan reload`) recharge les quetes quand ces Documents ont
   change (empreinte SHA-256), et ne fait rien sinon ;
+- **sa vue editeur** `artisan-editor/ui.js` (Artisan 2.3.0+, sinon un avertissement et pas de
+  vue) : le dossier `editor/` du depot (TypeScript + React, contre `@artisan/editor-sdk`, pris
+  dans `editor/vendor/` tant que le SDK n'est pas publie) la construit dans
+  `bukkit/src/main/resources/artisan-editor/` (`cd editor && npm ci && npm run build`, sortie
+  versionnee : le build Gradle n'a pas besoin de Node). Artisan la sert a l'editeur, qui la
+  charge pour le kind `quest_group` : vue du groupe puis d'une quete (etapes, objectifs,
+  recompenses `run_command`, textes dans le panneau Traductions). `EDITOR_SDK` doit egaler la
+  version du SDK que le build affiche ;
 - **les actions `quests:*`** (`QuestActions`), utilisables dans toute chaine Artisan :
 
 | Action | Arguments | Effet |
