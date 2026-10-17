@@ -37,10 +37,11 @@ class ItemTargetTest {
     }
 
     @Test
-    void readsTheLegacyMaterialAsAMaterialComparison() {
+    void readsTheLegacyMaterialAsAVanillaMaterialComparison() {
         ItemTarget target = ItemTarget.read(Map.of("fish_type", "cod"), "fish_type");
 
-        assertEquals(Map.of("item", Map.of("material", "COD"), "match", List.of("material")), written(target));
+        assertEquals(Map.of("item", Map.of("material", "COD"), "match", List.of("material", "custom_item")), written(target),
+                "a custom item built on the material does not count");
         assertEquals("<lang:item.minecraft.cod>", target.placeholder());
         assertThrows(IllegalArgumentException.class, () -> ItemTarget.read(Map.of("material", "NOPE"), "material"));
     }
