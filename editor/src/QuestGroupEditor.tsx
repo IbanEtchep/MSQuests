@@ -2,6 +2,8 @@ import {
   ActionChainEditor,
   Button,
   type DocumentEditorProps,
+  ItemInput,
+  type ItemComparisonWire,
   MaterialInput,
   type TextWrite,
   injectModuleStyles,
@@ -36,6 +38,7 @@ import {
 } from "./model";
 import {
   ENTITY_TYPES,
+  itemValue,
   OBJECTIVE_TYPES,
   type ParamSpec,
   defaultParams,
@@ -43,6 +46,7 @@ import {
   objectiveSpec,
   objectiveSubject,
   objectiveTarget,
+  writeItemParam,
 } from "./objectives";
 import { QUESTS_CSS } from "./styles";
 
@@ -889,6 +893,7 @@ function StageCard({
           <ObjectiveRow
             key={`${objective.key}-${oi}`}
             t={t}
+            projectId={ctx.projectId}
             n={flow === "sequential" ? `${si + 1}.${oi + 1}` : "•"}
             objective={objective}
             open={openKey === objective.key}
@@ -942,6 +947,7 @@ function typeLabel(t: T, type: string): string {
  */
 function ObjectiveRow({
   t,
+  projectId,
   n,
   objective,
   open,
@@ -955,6 +961,7 @@ function ObjectiveRow({
   onRemove,
 }: {
   t: T;
+  projectId: string;
   n: string;
   objective: Objective;
   open: boolean;
@@ -975,7 +982,17 @@ function ObjectiveRow({
   const subject = objectiveSubject(objective.type, objective.params);
   const missing = missingParams(objective.type, objective.params);
   const problem = keyTaken || missing.length > 0;
-  const field = (p: ParamSpec) => (
+  const field = (p: ParamSpec) =>
+    p.kind === "item" ? (
+      <ItemParamField
+        key={p.name}
+        t={t}
+        projectId={projectId}
+        spec={p}
+        params={objective.params}
+        onChange={(recipe) => onChange((o) => recipe(o.params))}
+      />
+    ) : (
     <ParamField
       key={p.name}
       t={t}
@@ -1078,6 +1095,44 @@ function ObjectiveRow({
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * An objective's item: the whole item of menus (vanilla, custom or captured item, name, lore,
+ * enchantments…) and the criteria a player's item is compared on (`match`), ticked by default
+ * from the item. Empty: any item. Replaces the legacy bare material on the first edit.
+ */
+function ItemParamField({
+  t,
+  projectId,
+  spec,
+  params,
+  onChange,
+}: {
+  t: T;
+  projectId: string;
+  spec: ParamSpec;
+  params: Raw;
+  onChange: (recipe: (params: Raw) => void) => void;
+}) {
+  const item = itemValue(params, spec);
+  const match = Array.isArray(params.match) ? (params.match as ItemComparisonWire[]) : undefined;
+  const write = (next: Raw | undefined, nextMatch: ItemComparisonWire[] | undefined) =>
+    onChange((p) => writeItemParam(p, spec, next, nextMatch));
+  return (
+    <Field
+      label={t(`param.${spec.name}` as Parameters<T>[0])}
+      hint={Object.keys(item).length === 0 ? <span className="aq-hint">{t("anyItem")}</span> : undefined}
+    >
+      <ItemInput
+        projectId={projectId}
+        value={item}
+        match={match}
+        onChange={(next) => write(next, match)}
+        onMatchChange={(next) => write(item, next)}
+      />
+    </Field>
   );
 }
 
