@@ -268,4 +268,40 @@ class QuestLifecycleAllCompleteTest {
 
         assertDoesNotThrow(() -> lifecycleService.completeObjective(objective, null).join());
     }
+
+    // =========================================================================
+    // Test 4: a forced completion queued twice pays the rewards once
+    // =========================================================================
+    @Test
+    void completeQuestTwicePaysRewardsOnce() {
+        QuestGroupConfig groupConfig = buildGroupConfig(List.of());
+        TestActor actor = new TestActor();
+        Quest quest = buildQuestWithSingleObjective(actor, groupConfig, "quest1", QuestObjectiveStatus.IN_PROGRESS);
+        QuestAction reward = mock(QuestAction.class);
+        quest.getQuestConfig().addReward(reward);
+
+        wireExecutor(quest);
+
+        lifecycleService.completeQuest(quest);
+        lifecycleService.completeQuest(quest);
+
+        verify(reward, times(1)).execute(quest);
+        verify(persistenceService, times(1)).saveQuest(quest);
+    }
+
+    @Test
+    void completeQuestIgnoresAQuestNoLongerInProgress() {
+        QuestGroupConfig groupConfig = buildGroupConfig(List.of());
+        TestActor actor = new TestActor();
+        Quest quest = buildCompletedQuest(actor, groupConfig, "quest1");
+        QuestAction reward = mock(QuestAction.class);
+        quest.getQuestConfig().addReward(reward);
+
+        wireExecutor(quest);
+
+        lifecycleService.completeQuest(quest);
+
+        verify(reward, never()).execute(any(Quest.class));
+        verify(persistenceService, never()).saveQuest(any());
+    }
 }
