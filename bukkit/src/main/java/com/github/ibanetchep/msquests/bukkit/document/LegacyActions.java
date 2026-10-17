@@ -97,8 +97,8 @@ public final class LegacyActions {
     // ----------------------------------------------------------------- groups
 
     /**
-     * Rewrites the tree of a {@code quests/*.yml} group in place: hooks, rewards ({@code rewards} +
-     * {@code reward_display}), quest {@code conditions} (→ {@code requirements}), objective
+     * Rewrites the tree of a {@code quests/*.yml} group in place: hooks, rewards (a chain, their names
+     * appended to the quest {@code description}), quest {@code conditions} (→ {@code requirements}), objective
      * {@code conditions} and the group's {@code objective_line}.
      */
     @SuppressWarnings("unchecked")
@@ -118,11 +118,17 @@ public final class LegacyActions {
                 if (!(item instanceof Map<?, ?> raw)) continue;
                 Map<String, Object> quest = (Map<String, Object>) raw;
                 String path = key + "/" + quest.get("key");
-                // A file already holding chains (saved after the conversion) keeps its reward_display.
+                // A file already holding chains (saved after the conversion) is left as is.
                 if (quest.get("rewards") instanceof List<?> legacy && legacy.stream().anyMatch(LegacyActions::isLegacy)) {
                     Rewards rewards = rewards(legacy, path + ".rewards");
                     quest.put("rewards", rewards.steps());
-                    quest.put("reward_display", rewards.display());
+                    if (!rewards.display().isEmpty()) {
+                        Object description = quest.get("description");
+                        List<String> lines = new ArrayList<>();
+                        if (description != null && !description.toString().isBlank()) lines.add(description.toString());
+                        lines.addAll(rewards.display());
+                        quest.put("description", String.join("\n", lines));
+                    }
                 }
                 if (quest.containsKey("conditions")) {
                     Object conditions = quest.remove("conditions");
@@ -175,7 +181,7 @@ public final class LegacyActions {
             if (name != null && !name.toString().isBlank()) {
                 display.add(name.toString());
             } else {
-                notes.add("Reward without a name at " + path + ": no line in the menus' reward list.");
+                notes.add("Reward without a name at " + path + ": not listed in the quest description.");
             }
         }
         return new Rewards(actions(legacy, path), display);

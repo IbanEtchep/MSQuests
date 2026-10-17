@@ -108,7 +108,8 @@ public class QuestGroupPaginationButton extends PaginateButton {
             }
 
             addProgressPlaceholders(placeholders, actorGroup, questKey);
-            addRewardsPlaceholder(placeholders, questConfig);
+            // Rewards are written in the quest description now: empty, so menus still using it do not print it raw.
+            placeholders.register("quest_rewards", "");
 
             if (isCompleted) {
                 completedSlots.add(slot);
@@ -153,15 +154,6 @@ public class QuestGroupPaginationButton extends PaginateButton {
 
     private @Nullable Quest currentAttempt(ActorQuestGroup actorGroup, QuestConfig questConfig) {
         return actorGroup != null ? actorGroup.getCurrentAttempt(questConfig.getKey()) : null;
-    }
-
-    private void addRewardsPlaceholder(Placeholders placeholders, QuestConfig questConfig) {
-        List<String> rewards = questConfig.getRewardDisplay();
-        if (rewards.isEmpty()) {
-            placeholders.register("quest_rewards", "Aucune");
-            return;
-        }
-        placeholders.register("quest_rewards", String.join("\n", rewards));
     }
 
     private void addProgressPlaceholders(Placeholders placeholders, ActorQuestGroup actorGroup, String questKey) {

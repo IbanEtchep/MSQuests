@@ -67,7 +67,8 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(quest1, "Quest 1 should exist");
         assertEquals("quest_1", quest1.key());
         assertEquals("First Quest", quest1.name());
-        assertEquals("This is the first quest", quest1.description());
+        assertEquals("This is the first quest\nCommand Reward\nItem Reward", quest1.description(),
+                "the reward names end the description");
         assertEquals(120, quest1.duration());
 
         // Quest 1 - Rewards
@@ -77,7 +78,6 @@ public class QuestConfigYamlRepositoryTest {
         assertEquals(Map.of("run_command", Map.of("command", "give {actor_name} diamond 1", "as", "console")),
                 quest1.rewards().get(0));
         assertEquals(Map.of("give_item", Map.of("material", "DIAMOND", "count", 10)), quest1.rewards().get(1));
-        assertEquals(List.of("Command Reward", "Item Reward"), quest1.rewardDisplay());
 
         // Quest 1 - Stages
         List<QuestStageConfigDTO> stages1 = quest1.stages();
@@ -129,7 +129,7 @@ public class QuestConfigYamlRepositoryTest {
         assertNotNull(quest2, "Quest 2 should exist");
         assertEquals("quest_2", quest2.key());
         assertEquals("Second Quest", quest2.name());
-        assertEquals("This is the second quest", quest2.description());
+        assertEquals("This is the second quest\nCommand Reward\nItem Reward", quest2.description());
         assertEquals(180, quest2.duration());
 
         // Quest 2 - Rewards
@@ -300,7 +300,6 @@ public class QuestConfigYamlRepositoryTest {
                 3600L,
                 null,
                 List.of(reward),
-                List.of("Diamond Pickaxe"),
                 List.of(stage),  // ✅ List
                 null
         );
@@ -364,7 +363,6 @@ public class QuestConfigYamlRepositoryTest {
 
         // A saved chain reads back as it was: keyed steps pass through the conversion.
         assertEquals(List.of(reward), reloadedQuest.rewards());
-        assertEquals(List.of("Diamond Pickaxe"), reloadedQuest.rewardDisplay());
     }
 
     @Test
