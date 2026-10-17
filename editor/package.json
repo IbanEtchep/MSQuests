@@ -1,0 +1,24 @@
+{
+  "name": "@msquests/editor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The quest_group view of the Artisan editor, built into the MSQuests jar (artisan-editor/ui.js).",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@artisan/editor-sdk": "file:vendor/artisan-editor-sdk-1.0.0.tgz"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.5"
+  }
+}
