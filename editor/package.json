@@ -6,6 +6,7 @@
   "description": "The quest_group view of the Artisan editor, built into the MSQuests jar (artisan-editor/ui.js).",
   "scripts": {
     "build": "tsc --noEmit && vite build",
+    "watch": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
