@@ -388,41 +388,52 @@ export function* questGroupTextSites(group: QuestGroup): Iterable<LTextSiteContr
 }
 
 /**
- * A reward is a step of an Artisan action chain (L3): `{run_command: {command, as}}` for a
- * command, any other step kept as is. Legacy MSQuests rewards (`{type: command, command}`)
- * still read as commands; MSQuests converts them when it loads the group.
+ * A reward is a step of an Artisan action chain (L3), in the file's keyed wire
+ * (`{run_command: {command, as}}`, `{if, do, else}`…), edited with the editor's chain editor.
+ * A step still in the MSQuests format (`{type: command, command}`) is converted by the
+ * server when it loads the group (`LegacyActions`) and by `/msquests migrate`: the view keeps
+ * it apart, as it is, since the chain editor does not read that format.
  */
 export function rewardSteps(rewards: unknown): Raw[] {
   if (Array.isArray(rewards)) return rewards as Raw[];
   return rewards && typeof rewards === "object" ? [rewards as Raw] : [];
 }
 
-export function newCommandReward(): Raw {
-  return { run_command: { command: "", as: "console" } };
+/** A step in the MSQuests format (`type:`), what `LegacyActions.isLegacy` tests. */
+export function isLegacyStep(step: unknown): boolean {
+  return !!step && typeof step === "object" && !Array.isArray(step) && "type" in step;
 }
 
-/** The command of a command reward, or null for another action. */
-export function rewardCommand(step: Raw): string | null {
-  const run = step.run_command;
-  if (typeof run === "string") return run;
-  if (run && typeof run === "object") {
-    const command = (run as Raw).command;
-    return typeof command === "string" ? command : "";
-  }
-  if (step.type === "command" || step.type === "player_command")
-    return typeof step.command === "string" ? step.command : "";
-  return null;
+/** The steps the chain editor edits, and the legacy ones kept as they are. */
+export function splitChain(value: unknown): { chain: unknown[]; legacy: Raw[] } {
+  const steps: unknown[] = Array.isArray(value) ? value : value == null ? [] : [value];
+  return {
+    chain: steps.filter((s) => !isLegacyStep(s)),
+    legacy: steps.filter(isLegacyStep) as Raw[],
+  };
 }
 
-export function withRewardCommand(step: Raw, command: string): Raw {
-  if (step.type === "command" || step.type === "player_command") return { ...step, command };
-  const run = step.run_command;
-  const args = run && typeof run === "object" ? (run as Raw) : { as: "console" };
-  return { ...step, run_command: { ...args, command } };
+/** The value written back: the edited chain, then the legacy steps; undefined when empty. */
+export function joinChain(chain: unknown[], legacy: Raw[]): unknown[] | undefined {
+  const all = [...chain, ...legacy];
+  return all.length ? all : undefined;
 }
 
-/** The action a step runs: its single key, or `type` for a legacy reward. */
-export function rewardAction(step: Raw): string {
-  if (typeof step.type === "string") return step.type;
-  return Object.keys(step).find((k) => k !== "if" && k !== "do" && k !== "else") ?? "if";
+/** What a legacy step does, for its label: `command`, `message`… */
+export function legacyLabel(step: Raw): string {
+  const type = String(step.type);
+  const detail = step.command ?? step.message ?? step.title ?? step.material;
+  return typeof detail === "string" ? `${type} · ${detail}` : type;
 }
+
+/** The group hooks (`on.*`) of `QuestGroupDocumentReader.HOOKS`, in the order a period lives them. */
+export const HOOKS = [
+  "distribution",
+  "actor_load",
+  "quest_start",
+  "objective_progress",
+  "objective_complete",
+  "quest_complete",
+  "period_complete",
+] as const;
+export type Hook = (typeof HOOKS)[number];

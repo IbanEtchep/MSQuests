@@ -46,7 +46,9 @@ public class QuestStage implements PlaceholderProvider {
     public List<QuestObjective> getActiveObjectives() {
         Flow flow = stageConfig.getFlow();
 
-        if (flow == Flow.PARALLEL) {
+        // A stage without `flow` (optional in a quest_group Document) runs its objectives in parallel,
+        // as AbstractQuestObjective#getStatus already reports them.
+        if (flow == null || flow == Flow.PARALLEL) {
             return objectives.values().stream()
                     .filter(o -> !o.isCompleted())
                     .toList();

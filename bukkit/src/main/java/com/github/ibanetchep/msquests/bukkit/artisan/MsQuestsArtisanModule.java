@@ -81,7 +81,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
     /** Built by {@code editor/} ({@code npm run build}); the SDK version its build prints. */
     static final String EDITOR_BUNDLE = "artisan-editor/ui.js";
-    static final String EDITOR_SDK = "1.0.0";
+    static final String EDITOR_SDK = "1.1.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
