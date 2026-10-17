@@ -6,13 +6,14 @@ import {
   type TextWrite,
   injectModuleStyles,
   newTextKey,
+  selectDocumentItem,
   textValue,
   updateDocument,
   useContentLang,
   useProject,
   useUiLang,
 } from "@artisan/editor-sdk";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { describeCron, isCronShape } from "./cron";
 import { type T, useT } from "./i18n";
 import {
@@ -74,13 +75,23 @@ interface Ctx {
  * the group's rules and its ordered quests, then one quest at a time with its stages,
  * objectives and rewards.
  */
-export function QuestGroupEditor({ projectId, documentId, document }: DocumentEditorProps) {
+export function QuestGroupEditor({ projectId, documentId, document, item }: DocumentEditorProps) {
   injectModuleStyles("msquests", QUESTS_CSS);
   const group = document as QuestGroup;
   const project = useProject(projectId);
   const lang = useContentLang();
   const t = useT();
-  const [openUid, setOpenUid] = useState<string | null>(null);
+  // The open quest follows the board: a quest row selected there opens it here, and opening
+  // or leaving one here selects its row or the group. Outside the board (the Document's own
+  // page) `item` never comes, so the local state carries it alone.
+  const [openUid, setOpenUid] = useState<string | null>(item ?? null);
+  useEffect(() => {
+    setOpenUid(item ?? null);
+  }, [item]);
+  const open = (uid: string | null) => {
+    setOpenUid(uid);
+    selectDocumentItem({ documentId, item: uid });
+  };
 
   const edit: Edit = (recipe, texts) => {
     const next = structuredClone(group) as QuestGroup;
@@ -93,7 +104,7 @@ export function QuestGroupEditor({ projectId, documentId, document }: DocumentEd
   if (index >= 0) {
     return (
       <div className="aq">
-        <Button variant="ghost" size="sm" className="aq-back" onClick={() => setOpenUid(null)}>
+        <Button variant="ghost" size="sm" className="aq-back" onClick={() => open(null)}>
           ← {t("back")}
         </Button>
         <QuestView ctx={ctx} group={group} index={index} />
@@ -102,7 +113,7 @@ export function QuestGroupEditor({ projectId, documentId, document }: DocumentEd
   }
   return (
     <div className="aq">
-      <GroupView ctx={ctx} group={group} onOpen={setOpenUid} />
+      <GroupView ctx={ctx} group={group} onOpen={open} />
     </div>
   );
 }
