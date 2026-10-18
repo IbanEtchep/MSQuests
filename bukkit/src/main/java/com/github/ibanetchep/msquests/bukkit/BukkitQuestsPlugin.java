@@ -18,6 +18,7 @@ import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanConditionChecker;
 import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
+import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanProjectFiles;
 import net.artisanmc.modules.api.item.ItemStackApi;
 import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
 import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
@@ -200,7 +201,8 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
             if (!prepareArtisanStorage()) {
                 return;
             }
-            documentRepository = new QuestGroupDocumentRepository(EditorProject.directory(getDataFolder()).toPath());
+            documentRepository = new QuestGroupDocumentRepository(
+                    new ArtisanProjectFiles(artisanIntegration.getApi().getProject()));
             questConfigRepository = documentRepository;
             questRepository = new ArtisanQuestSqlRepository(dbAccess);
             tables = SqlTables.ARTISAN;
@@ -210,7 +212,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
             tables = SqlTables.LEGACY;
         }
         getLogger().info("Quests are read from " + (contentSource == ContentSource.ARTISAN
-                ? "editor/quest_groups/ and the artisan_quests_* tables." : "quests/ and the msquests_* tables."));
+                ? "the quest_groups/ of every Artisan project and the artisan_quests_* tables." : "quests/ and the msquests_* tables."));
         ActorSqlRepository actorRepository = new ActorSqlRepository(dbAccess, tables);
         RotationSqlRepository rotationRepository = new RotationSqlRepository(dbAccess, tables);
         PlayerProfileRepository playerProfileRepository = new PlayerProfileSqlRepository(dbAccess, tables);

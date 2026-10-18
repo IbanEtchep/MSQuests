@@ -71,7 +71,7 @@ There are no MSQuests action types any more. A generic action belongs in Artisan
 
 - `core/src/main/resources/config.yml` — database settings, language, actor type action hooks
 - Quest YAML configs live in `bukkit/src/main/resources/quests/` and are loaded via `QuestConfigYamlRepository`
-- With `content_source: artisan`, quests load from the `quest_group` Documents of `editor/quest_groups/` (`QuestGroupDocumentRepository`) and progress from the `artisan_quests_*` tables, keyed by immutable uids; `/msquests migrate` converts (see `ARCHITECTURE.md`, *Source du contenu*)
+- With `content_source: artisan`, quests load from the `quest_group` Documents of `<project>/quest_groups/` in every Artisan project (`QuestGroupDocumentRepository`, group keys unique on the server) and progress from the `artisan_quests_*` tables, keyed by immutable uids; `/msquests migrate` converts (see `ARCHITECTURE.md`, *Source du contenu*)
 - Language files: `core/src/main/resources/lang/`
 
 ## Testing
