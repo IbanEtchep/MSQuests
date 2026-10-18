@@ -106,4 +106,18 @@ class ArtisanChainRunnerTest {
         scheduled.getValue().run();
         verify(actions).run(eq(online), eq(chain.steps()), anyMap(), eq(EditorProject.PROJECT_ID));
     }
+
+    @Test
+    void runsInTheProjectHoldingTheGroupsDocument() {
+        Player online = server.addPlayer();
+        QuestGroupConfig group = new QuestGroupConfig.Builder("levels", "Levels", "", "player")
+                .sourceProject("guildes")
+                .build();
+        TestActor actor = new TestActor(UUID.randomUUID(), "Actor", "player");
+        actor.addProfile(new PlayerProfile(online.getUniqueId(), "p"));
+
+        runner.run(chain, ChainContext.of(actor, group));
+
+        verify(actions).run(eq(online), eq(chain.steps()), anyMap(), eq("guildes"));
+    }
 }
