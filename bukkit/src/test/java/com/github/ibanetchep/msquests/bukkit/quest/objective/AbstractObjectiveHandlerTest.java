@@ -16,8 +16,7 @@ import com.github.ibanetchep.msquests.core.quest.objective.Flow;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestProgressService;
-import net.artisanmc.modules.api.item.ItemComparison;
-import net.artisanmc.modules.api.item.ItemStackApi;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemMatcher;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,12 +43,11 @@ public abstract class AbstractObjectiveHandlerTest {
      * Artisan's item comparison reduced to what the handlers' tests need: the material, and
      * {@code name} against the spec's {@code title}. Artisan's own tests cover the rest.
      */
-    protected final ItemStackApi items = new ItemStackApi() {
-        @Override public String serialize(ItemStack stack) { return ""; }
-        @Override public Map<String, Object> describe(ItemStack stack) { return Map.of(); }
-        @Override public boolean matches(Map<String, ?> spec, ItemStack stack, Set<ItemComparison> comparisons) {
+    protected final ItemMatcher items = new ItemMatcher() {
+        @Override public ItemStack build(Map<String, ?> spec) { return null; }
+        @Override public boolean matches(Map<String, ?> spec, ItemStack stack, Set<String> comparisons) {
             if (!stack.getType().name().equalsIgnoreCase(String.valueOf(spec.get("material")))) return false;
-            if (!comparisons.contains(ItemComparison.NAME) || spec.get("title") == null) return true;
+            if (!comparisons.contains("name") || spec.get("title") == null) return true;
             return stack.getItemMeta() != null && stack.getItemMeta().hasDisplayName()
                     && net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
                     .serialize(stack.getItemMeta().displayName()).equals(spec.get("title"));

@@ -21,12 +21,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /** Core-only doubles (no Bukkit) shared by the Artisan integration tests. */
-final class ArtisanFixtures {
+public final class ArtisanFixtures {
 
     private ArtisanFixtures() {}
 
     /** Identity translator: a key translates to itself, so assertions stay readable. */
-    static final Translator TRANSLATOR = new Translator() {
+    public static final Translator TRANSLATOR = new Translator() {
         @Override
         public String getRaw(String key) {
             return key;
@@ -69,10 +69,10 @@ final class ArtisanFixtures {
         }
     }
 
-    static final class TestActor extends QuestActor {
+    public static final class TestActor extends QuestActor {
         private final String actorType;
 
-        TestActor(UUID id, String name, String actorType) {
+        public TestActor(UUID id, String name, String actorType) {
             super(id, name);
             this.actorType = actorType;
         }
@@ -96,7 +96,7 @@ final class ArtisanFixtures {
     }
 
     /** A group with no period bounds — `hasStartedInCurrentPeriod` then only ignores EXPIRED. */
-    static QuestGroupConfig group(String key, String actorType) {
+    public static QuestGroupConfig group(String key, String actorType) {
         return new QuestGroupConfig.Builder(key, "Group " + key, "desc " + key, actorType)
                 .maxActive(6)
                 .maxPerPeriod(6)
@@ -107,12 +107,12 @@ final class ArtisanFixtures {
 
     static final int DEFAULT_TARGET = 64;
 
-    static QuestConfig quest(QuestGroupConfig group, String key, String tier) {
+    public static QuestConfig quest(QuestGroupConfig group, String key, String tier) {
         return quest(group, key, tier, DEFAULT_TARGET);
     }
 
     /** One stage, one objective — the target lives on the config, as the runtime reads it. */
-    static QuestConfig quest(QuestGroupConfig group, String key, String tier, int target) {
+    public static QuestConfig quest(QuestGroupConfig group, String key, String tier, int target) {
         QuestConfig config = new QuestConfig(key, "Quest " + key, "desc " + key, 86400L);
         config.setTier(tier);
         config.setGroup(group);
@@ -144,7 +144,7 @@ final class ArtisanFixtures {
      * and attaches it to the actor (which creates the
      * {@link com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup}).
      */
-    static Quest instance(QuestActor actor, QuestConfig config, QuestStatus status, int progress) {
+    public static Quest instance(QuestActor actor, QuestConfig config, QuestStatus status, int progress) {
         Date now = new Date();
         Quest quest = new Quest(UUID.randomUUID(), config, actor, status, null, now, now);
         QuestStageConfig stageConfig = config.getStages().get("stage_1");

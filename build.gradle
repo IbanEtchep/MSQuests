@@ -1,5 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '2.2.20' apply false
+    // The same Kotlin as Artisan: its runtime bundles that stdlib, which the suite module shades as is.
+    id 'org.jetbrains.kotlin.jvm' version '2.0.21' apply false
     id 'io.github.goooler.shadow' version '8.1.7' apply false
 }
 

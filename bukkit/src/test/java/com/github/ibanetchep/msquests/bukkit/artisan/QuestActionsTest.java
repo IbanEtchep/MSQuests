@@ -9,10 +9,10 @@ import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
 import com.github.ibanetchep.msquests.core.service.QuestLifecycleService;
-import net.artisanmc.modules.api.action.ActionContext;
-import net.artisanmc.modules.api.action.ActionDeclaration;
-import net.artisanmc.modules.api.action.ActionRuntime;
-import net.artisanmc.modules.api.model.ModelField;
+import com.github.ibanetchep.msquests.suite.ActionArg;
+import com.github.ibanetchep.msquests.suite.ActionCall;
+import com.github.ibanetchep.msquests.suite.ActionSpec;
+import org.jetbrains.annotations.NotNull;
 import org.bukkit.entity.Player;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.service.TrackingBossBarService;
@@ -55,9 +55,8 @@ class QuestActionsTest {
     private QuestGroupConfig daily;
     private QuestConfig mineStone;
     private TestActor actor;
-    private Map<String, ActionDeclaration> actions;
-    private ActionContext ctx;
-    private ActionRuntime runtime;
+    private Map<String, ActionSpec> actions;
+    private Map<String, Object> ctxArgs;
     private BukkitQuestsPlugin plugin;
     private Player player;
 
@@ -82,39 +81,53 @@ class QuestActionsTest {
         when(plugin.getQuestLifecycleService()).thenReturn(lifecycle);
 
         actions = new HashMap<>();
-        for (ActionDeclaration declaration : new QuestActions(plugin).declarations()) {
+        for (ActionSpec declaration : new QuestActions(plugin).declarations()) {
             actions.put(declaration.getName(), declaration);
         }
 
         player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(playerId);
-        ctx = context(player, Map.of("row_key", "mine_stone"));
-        runtime = new ActionRuntime() {
+        ctxArgs = Map.of("row_key", "mine_stone");
+    }
+
+    private void run(String name, Object wire) {
+        run(name, wire, ctxArgs);
+    }
+
+    /** The engine reduced to what the handlers use: `{name}` placeholders read the chain's bindings. */
+    private void run(String name, Object wire, Map<String, Object> contextArgs) {
+        ActionSpec declaration = actions.get(name);
+        declaration.getHandler().run(new ActionCall() {
             @Override
-            public String text(ActionContext c, @Nullable Object text) {
+            public @NotNull Player getPlayer() {
+                return player;
+            }
+
+            @Override
+            public @NotNull Map<String, Object> getArgs() {
+                return declaration.bind(wire);
+            }
+
+            @Override
+            public @NotNull Map<String, Object> getContextArgs() {
+                return contextArgs;
+            }
+
+            @Override
+            public @NotNull String text(@Nullable Object text) {
                 if (text == null) return "";
                 String out = String.valueOf(text);
-                for (Map.Entry<String, Object> arg : c.getArgs().entrySet()) {
+                for (Map.Entry<String, Object> arg : contextArgs.entrySet()) {
                     out = out.replace("{" + arg.getKey() + "}", String.valueOf(arg.getValue()));
                 }
                 return out;
             }
 
             @Override
-            public ActionContext run(ActionContext c, @Nullable Object chain) {
-                return c;
-            }
-
-            @Override
-            public void warn(String message) {
+            public void warn(@NotNull String message) {
                 warnings.add(message);
             }
-        };
-    }
-
-    private ActionContext run(String name, Object wire) {
-        ActionDeclaration declaration = actions.get(name);
-        return declaration.getHandler().execute(ctx, declaration.bind(wire), runtime);
+        });
     }
 
     // ------------------------------------------------------------ declarations
@@ -123,14 +136,15 @@ class QuestActionsTest {
     void declaresTheQuestActionsWithAGroupPicker() {
         assertEquals(java.util.Set.of("quests:start", "quests:track", "quests:rotate", "quests:complete",
                 "quests:distribute", "quests:abandon", "quests:action_bar", "quests:boss_bar"), actions.keySet());
-        for (ActionDeclaration declaration : actions.values()) {
+        for (ActionSpec declaration : actions.values()) {
             if (declaration.getName().endsWith("_bar")) continue; // display actions, no group
-            ModelField group = declaration.arg("group");
+            ActionArg group = declaration.arg("group");
             assertNotNull(group, declaration.getName());
-            assertTrue(group.isRequired());
-            assertEquals("quest_group", group.getType().getDocumentKind(), declaration.getName());
+            assertTrue(group.getRequired());
+            assertEquals(ActionArg.Type.DOCUMENT_REF, group.getType(), declaration.getName());
+            assertEquals("quest_group", group.getDocumentKind(), declaration.getName());
         }
-        assertTrue(actions.get("quests:start").arg("quest").isRequired());
+        assertTrue(actions.get("quests:start").arg("quest").getRequired());
         assertEquals("group", actions.get("quests:distribute").getPrimary());
     }
 
@@ -145,7 +159,7 @@ class QuestActionsTest {
     void completeActsOnTheActorsActiveInstance() {
         Quest quest = ArtisanFixtures.instance(actor, mineStone, QuestStatus.IN_PROGRESS, 3);
 
-        assertSame(ctx, run("quests:complete", Map.of("group", "daily", "quest", "mine_stone")));
+        run("quests:complete", Map.of("group", "daily", "quest", "mine_stone"));
 
         verify(lifecycle).completeQuest(quest);
         assertTrue(warnings.isEmpty(), warnings::toString);
@@ -186,8 +200,8 @@ class QuestActionsTest {
 
     @Test
     void unknownGroupOrQuestWarnsAndKeepsTheChainGoing() {
-        assertSame(ctx, run("quests:complete", Map.of("group", "weekly", "quest", "mine_stone")));
-        assertSame(ctx, run("quests:complete", Map.of("group", "daily", "quest", "nope")));
+        run("quests:complete", Map.of("group", "weekly", "quest", "mine_stone"));
+        run("quests:complete", Map.of("group", "daily", "quest", "nope"));
 
         assertEquals(2, warnings.size(), warnings::toString);
         assertTrue(warnings.get(0).contains("weekly"));
@@ -231,7 +245,7 @@ class QuestActionsTest {
         when(plugin.getPlayerProfileService()).thenReturn(mock(PlayerProfileService.class));
         when(plugin.getTrackingBossBarService()).thenReturn(mock(TrackingBossBarService.class));
 
-        assertSame(ctx, run("quests:abandon", Map.of("group", "daily", "quest", "mine_stone")));
+        run("quests:abandon", Map.of("group", "daily", "quest", "mine_stone"));
 
         verify(lifecycle).abandonQuest(quest);
         assertNull(profile.getTrackedQuestId());
@@ -259,11 +273,10 @@ class QuestActionsTest {
     @Test
     void bossBarShowsTheChainProgress() {
         PlatformScheduler scheduler = scheduler();
-        ActionContext objectiveHook = ctx.withArgs(Map.of("progress_ratio", 0.25));
-        ActionDeclaration declaration = actions.get("quests:boss_bar");
+        Map<String, Object> objectiveHook = new HashMap<>(ctxArgs);
+        objectiveHook.put("progress_ratio", 0.25);
 
-        declaration.getHandler().execute(objectiveHook,
-                declaration.bind(Map.of("text", "{row_key}", "color", "red")), runtime);
+        run("quests:boss_bar", Map.of("text", "{row_key}", "color", "red"), objectiveHook);
 
         ArgumentCaptor<BossBar> bar = ArgumentCaptor.forClass(BossBar.class);
         verify(player).showBossBar(bar.capture());
@@ -296,36 +309,5 @@ class QuestActionsTest {
         new BukkitTranslator(langFolder.toFile(), "fr_FR",
                 locale -> getClass().getResourceAsStream("/lang/" + locale + ".yml"),
                 java.util.logging.Logger.getAnonymousLogger()).load();
-    }
-
-    private static ActionContext context(Player player, Map<String, Object> args) {
-        return new ActionContext() {
-            @Override
-            public Player getPlayer() {
-                return player;
-            }
-
-            @Override
-            public Map<String, Object> getArgs() {
-                return args;
-            }
-
-            @Override
-            public String getLang() {
-                return "fr";
-            }
-
-            @Override
-            public @Nullable String getProjectId() {
-                return "quests";
-            }
-
-            @Override
-            public ActionContext withArgs(Map<String, Object> more) {
-                Map<String, Object> merged = new HashMap<>(args);
-                merged.putAll(more);
-                return context(player, merged);
-            }
-        };
     }
 }

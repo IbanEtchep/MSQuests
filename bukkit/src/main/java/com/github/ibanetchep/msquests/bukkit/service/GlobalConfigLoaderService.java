@@ -64,14 +64,6 @@ public class GlobalConfigLoaderService {
         String language = config.getString("language", "en_EN");
         ContentSource contentSource = ContentSource.parse(config.getString("content_source", "legacy"));
 
-        GlobalConfig.DatabaseConfig database = new GlobalConfig.DatabaseConfig(
-                config.getString("database.type", "mysql"),
-                config.getString("database.host"),
-                config.getInt("database.port"),
-                config.getString("database.name"),
-                config.getString("database.user"),
-                config.getString("database.password")
-        );
 
         boolean bossBarEnabled = config.getBoolean("tracking.bossbar.enabled", false);
         String bossBarMessage = config.getString("tracking.bossbar.message", "%objective_name% - %objective_progress%");
@@ -88,6 +80,6 @@ public class GlobalConfigLoaderService {
 
         boolean deliverFromShulkerBoxes = config.getBoolean("deliver_item.include_shulker_boxes", true);
 
-        return new GlobalConfig(language, contentSource, database, trackingBossBarConfig, placeholdersConfig, deliverFromShulkerBoxes);
+        return new GlobalConfig(language, contentSource, trackingBossBarConfig, placeholdersConfig, deliverFromShulkerBoxes);
     }
 }

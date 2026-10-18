@@ -14,9 +14,6 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import net.artisanmc.modules.api.translation.MessageBundle;
-import net.artisanmc.modules.api.translation.MessageBundleDeclaration;
-import net.artisanmc.modules.api.translation.TranslationsApi;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +27,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * MSQuests' messages. The lang file is still read and kept up to date here (BoostedYAML,
- * {@code file_version}, custom keys kept); its keys are served through Artisan's translations
- * as the bundle {@value #NAMESPACE}, in the configured {@code language}.
+ * MSQuests' messages. The lang file is read and kept up to date here (BoostedYAML,
+ * {@code file_version}, custom keys kept); with the Artisan plugin its keys are served through
+ * Artisan's translations ({@link TranslationsPort}) as the bundle {@value #NAMESPACE}, in the
+ * configured {@code language}; without it they are read from the file directly.
  */
 public class BukkitTranslator implements Translator {
 
@@ -44,13 +42,13 @@ public class BukkitTranslator implements Translator {
     private final Function<String, InputStream> defaultLangProvider;
     private final Logger logger;
     private final @Nullable Plugin owner;
-    private final @Nullable TranslationsApi translations;
+    private final @Nullable TranslationsPort translations;
     private YamlDocument messages;
-    private @Nullable MessageBundle bundle;
+    private @Nullable TranslationsPort.Lookup bundle;
 
     private static BukkitTranslator INSTANCE;
 
-    /** Without Artisan (tests): the keys are read from the lang file directly. */
+    /** Without Artisan: the keys are read from the lang file directly. */
     public BukkitTranslator(File langFolder,
                             String language,
                             Function<String, InputStream> defaultLangProvider,
@@ -63,7 +61,7 @@ public class BukkitTranslator implements Translator {
                             Function<String, InputStream> defaultLangProvider,
                             Logger logger,
                             @Nullable Plugin owner,
-                            @Nullable TranslationsApi translations) {
+                            @Nullable TranslationsPort translations) {
         this.langFolder = langFolder;
         this.language = language;
         this.defaultLangProvider = defaultLangProvider;
@@ -101,8 +99,7 @@ public class BukkitTranslator implements Translator {
             // A reload builds a new translator: its bundle replaces the previous one.
             translations.unregister(NAMESPACE);
             Map<String, Map<String, String>> tables = Map.of(language, flatten(messages));
-            bundle = translations.register(MessageBundleDeclaration.of(owner, NAMESPACE, () -> tables)
-                    .withDefaultLang(language));
+            bundle = translations.register(owner, NAMESPACE, language, () -> tables);
         }
     }
 
@@ -240,7 +237,7 @@ public class BukkitTranslator implements Translator {
     @Override
     public String getRaw(String key) {
         String text = bundle != null
-                ? bundle.find(bundle.getDefaultLang(), key)
+                ? bundle.find(key)
                 : messages != null ? messages.getString(key) : null;
         return text != null ? text : "Missing translation: " + key;
     }

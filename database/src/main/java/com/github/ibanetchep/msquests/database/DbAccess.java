@@ -17,10 +17,23 @@ public class DbAccess {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbAccess.class);
 
-	private HikariDataSource dataSource;
+	private DataSource dataSource;
+	/** The pool opened here ({@link #initPool}), closed here; null for a pool lent by the suite's runtime. */
+	private HikariDataSource ownedPool;
 	private Jdbi jdbi;
 	private ExecutorService singleThreadExecutor;
 
+	/**
+	 * Uses a pool the suite's runtime opened (Artisan's {@code ModuleDatabase}, one per plugin):
+	 * JDBI on it, the migrations run. The caller closes that pool.
+	 */
+	public void init(DataSource dataSource) {
+		singleThreadExecutor = Executors.newSingleThreadExecutor();
+		this.dataSource = dataSource;
+		start();
+	}
+
+	/** Opens MSQuests' own pool (tests, and the plugin before the suite's runtime). */
 	public void initPool(DbCredentials credentials) {
 		HikariConfig config = new HikariConfig();
 
@@ -65,7 +78,12 @@ public class DbAccess {
 			default -> throw new IllegalArgumentException("Base de données non supportée: " + dbType);
 		}
 
-		this.dataSource = new HikariDataSource(config);
+		this.ownedPool = new HikariDataSource(config);
+		this.dataSource = ownedPool;
+		start();
+	}
+
+	private void start() {
 		this.jdbi = Jdbi.create(dataSource);
 
 		jdbi.registerRowMapper(new RecordRowMapper());
@@ -82,9 +100,9 @@ public class DbAccess {
 	}
 
 	public void closePool() {
-		if (dataSource != null && !dataSource.isClosed()) {
+		if (ownedPool != null && !ownedPool.isClosed()) {
 			LOGGER.info("Closing database connection pool");
-			dataSource.close();
+			ownedPool.close();
 		}
 
 		if (singleThreadExecutor != null) {
@@ -93,7 +111,7 @@ public class DbAccess {
 	}
 
 	public DataSource getDataSource() {
-		if (dataSource == null || dataSource.isClosed()) {
+		if (dataSource == null || (ownedPool != null && ownedPool.isClosed())) {
 			throw new IllegalStateException("Database connection pool is not initialized");
 		}
 		return dataSource;

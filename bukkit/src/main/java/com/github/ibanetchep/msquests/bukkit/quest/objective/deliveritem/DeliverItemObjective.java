@@ -5,7 +5,7 @@ import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemTarget;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStage;
 import com.github.ibanetchep.msquests.core.quest.objective.AbstractQuestObjective;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
-import net.artisanmc.modules.api.item.ItemStackApi;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemMatcher;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -21,8 +21,8 @@ public class DeliverItemObjective extends AbstractQuestObjective<DeliverItemObje
 
     // ponytail: static because MSQuests builds objectives reflectively; set by the plugin on (re)load.
     private static boolean includeShulkerBoxes = true;
-    private static Supplier<ItemStackApi> items = () -> {
-        throw new IllegalStateException("Artisan items are not available yet");
+    private static Supplier<ItemMatcher> items = () -> {
+        throw new IllegalStateException("The item matcher is not available yet");
     };
 
     public DeliverItemObjective(QuestStage questStage, DeliverItemObjectiveConfig objectiveConfig, int progress, QuestObjectiveStatus status) {
@@ -33,7 +33,7 @@ public class DeliverItemObjective extends AbstractQuestObjective<DeliverItemObje
         includeShulkerBoxes = include;
     }
 
-    public static void setItems(Supplier<ItemStackApi> api) {
+    public static void setItems(Supplier<ItemMatcher> api) {
         items = api;
     }
 
@@ -49,7 +49,7 @@ public class DeliverItemObjective extends AbstractQuestObjective<DeliverItemObje
         if (target.isAny()) {
             return new Contribution(0, "objective.contribute.nothing_to_deliver", placeholders);
         }
-        ItemStackApi api = items.get();
+        ItemMatcher api = items.get();
         Predicate<ItemStack> wanted = stack -> target.test(stack, api);
         PlayerInventory inventory = player.getInventory();
 

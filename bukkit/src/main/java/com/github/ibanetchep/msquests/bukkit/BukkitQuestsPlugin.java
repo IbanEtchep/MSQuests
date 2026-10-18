@@ -13,13 +13,13 @@ import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
-import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanChainRunner;
-import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanConditionChecker;
 import com.github.ibanetchep.msquests.core.quest.config.action.ChainRunner;
 import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanIntegration;
-import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanProjectFiles;
-import net.artisanmc.modules.api.item.ItemStackApi;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ItemMatcher;
+import com.github.ibanetchep.msquests.bukkit.suite.LocalSuiteRuntime;
+import com.github.ibanetchep.msquests.bukkit.suite.SuiteRuntime;
+import com.github.ibanetchep.msquests.suite.SuiteDatabase;
 import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
 import com.github.ibanetchep.msquests.bukkit.config.ContentSource;
 import com.github.ibanetchep.msquests.bukkit.document.MigrationMapFile;
@@ -88,7 +88,6 @@ import com.github.ibanetchep.msquests.core.repository.QuestConfigRepository;
 import com.github.ibanetchep.msquests.core.repository.QuestRepository;
 import com.github.ibanetchep.msquests.core.service.*;
 import com.github.ibanetchep.msquests.database.DbAccess;
-import com.github.ibanetchep.msquests.database.DbCredentials;
 import com.github.ibanetchep.msquests.database.LegacyDataCopier;
 import com.github.ibanetchep.msquests.database.SqlTables;
 import com.github.ibanetchep.msquests.database.repository.ArtisanQuestSqlRepository;
@@ -148,9 +147,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
     private BlockPlaceTagListener blockPlaceTagListener;
 
     private DbAccess dbAccess;
+    private @Nullable SuiteDatabase suiteDatabase;
     private FoliaLib foliaLib;
 
-    private ArtisanIntegration artisanIntegration;
+    private SuiteRuntime suite;
 
     private ContentSource contentSource;
     private @Nullable QuestGroupDocumentRepository documentRepository;
@@ -160,12 +160,6 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     @Override
     public void onEnable() {
-        artisanIntegration = ArtisanIntegration.resolve(this);
-        if (artisanIntegration == null) {
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
         foliaLib = new FoliaLib(this);
         eventDispatcher = new BukkitEventDispatcher(this);
 
@@ -175,15 +169,19 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         playerProfileRegistry = new PlayerProfileRegistry();
         questActorRegistry = new QuestActorRegistry();
 
-        // Quest actions and conditions are Artisan's: chains run by its engine, conditions read by it.
-        chainRunner = new ArtisanChainRunner(this, artisanIntegration.getApi().getActions());
-        conditionChecker = new ArtisanConditionChecker(artisanIntegration.getApi().getConditions(), getLogger());
         questObjectiveFactory = new QuestObjectiveFactory();
 
         registerObjectiveTypes();
         registerActorTypes();
 
         loadConfig();
+        // The suite's runtime, chosen once: the Artisan plugin when it runs, else MSQuests' own copy.
+        // Quest actions and conditions are its: chains run by its engine, conditions read by it.
+        SuiteRuntime artisan = ArtisanIntegration.resolve(this);
+        suite = artisan != null ? artisan : LocalSuiteRuntime.start(this);
+        chainRunner = suite.chainRunner();
+        conditionChecker = suite.conditionChecker();
+
         if (!loadDatabase()) {
             return;
         }
@@ -201,8 +199,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
             if (!prepareArtisanStorage()) {
                 return;
             }
-            documentRepository = new QuestGroupDocumentRepository(
-                    new ArtisanProjectFiles(artisanIntegration.getApi().getProject()));
+            documentRepository = new QuestGroupDocumentRepository(suite.projectFiles());
             questConfigRepository = documentRepository;
             questRepository = new ArtisanQuestSqlRepository(dbAccess);
             tables = SqlTables.ARTISAN;
@@ -307,7 +304,7 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
                 .thenCompose(v -> questConfigService.reloadQuestGroups())
                 .thenRun(() -> loadedFingerprint = fingerprint)
                 .thenCompose(v -> questActorService.reloadActors())
-                .thenRun(() -> artisanIntegration.signalDataReload());
+                .thenRun(() -> suite.signalDataReload());
     }
 
     /**
@@ -344,6 +341,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         if (dbAccess != null) {
             dbAccess.closePool();
         }
+        if (suiteDatabase != null) {
+            suiteDatabase.close();
+        }
+        if (suite != null) {
+            suite.close();
+        }
     }
 
     public void loadConfig() {
@@ -360,38 +363,35 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
                 locale -> getResource("lang/" + locale + ".yml"),
                 getLogger(),
                 this,
-                artisanIntegration.getApi().getTranslations()
+                suite.translations()
         );
 
         translator.load();
     }
 
     /**
+     * The pool is the suite's ({@link SuiteDatabase}): the {@code database} section of
+     * {@code plugins/Artisan/environment.yml} when that file exists, else this plugin's own
+     * ({@code database.own: true} forces it).
+     *
      * @return false when the pool could not be opened, in which case the plugin is being
      * disabled and {@code onEnable} must stop: {@code disablePlugin} returns to its caller,
      * so carrying on would wire every service against a null {@code dbAccess}.
      */
     private boolean loadDatabase() {
-        var databaseConfig = globalConfig.databaseConfig();
-
-        var dbCredentials = new DbCredentials(
-                databaseConfig.type(),
-                databaseConfig.host(),
-                databaseConfig.user(),
-                databaseConfig.password(),
-                databaseConfig.name(),
-                databaseConfig.port(),
-                getDataFolder()
-        );
-
         dbAccess = new DbAccess();
-
         try {
-            dbAccess.initPool(dbCredentials);
+            suiteDatabase = SuiteDatabase.open(this,
+                    name -> getLogger().warning("Database setting ${" + name + "} is not defined in the environment."));
+            dbAccess.init(suiteDatabase.dataSource());
             return true;
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to connect to database, disabling plugin.", e);
             dbAccess = null;
+            if (suiteDatabase != null) {
+                suiteDatabase.close();
+                suiteDatabase = null;
+            }
             Bukkit.getPluginManager().disablePlugin(this);
             return false;
         }
@@ -455,12 +455,12 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         if (Bukkit.getPluginManager().getPlugin("zMenu") != null) {
             new ZMenuIntegration(this).register();
         }
-        artisanIntegration.register();
+        suite.register();
     }
 
-    /** Never null once the plugin is enabled: Artisan is a required dependency. */
-    public ArtisanIntegration getArtisanIntegration() {
-        return artisanIntegration;
+    /** The suite's runtime the quests run on: the Artisan plugin, or MSQuests' own copy of its runtime. */
+    public SuiteRuntime getSuite() {
+        return suite;
     }
 
     public QuestConfigRegistry getQuestConfigRegistry() {
@@ -525,9 +525,9 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         return conditionChecker;
     }
 
-    /** Artisan's item specs: what an objective's {@code item} is built and compared with. */
-    public ItemStackApi getItems() {
-        return artisanIntegration.getApi().getItems();
+    /** The suite's item specs: what an objective's {@code item} is built and compared with. */
+    public ItemMatcher getItems() {
+        return suite.items();
     }
 
     public QuestPlaceholders getQuestPlaceholders() {
@@ -536,8 +536,16 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     /** Text of a MSQuests lang key, null when the lang files do not have it. */
     public @Nullable String langText(String key) {
-        String text = getTranslator().getRaw(key);
+        BukkitTranslator translator = getTranslator();
+        if (translator == null) return null;
+        String text = translator.getRaw(key);
         return text == null || text.startsWith("Missing translation: ") ? null : text;
+    }
+
+    /** Text of a MSQuests lang key, {@code fallback} when the lang files do not have it (or are not loaded yet). */
+    public String langText(String key, String fallback) {
+        String text = langText(key);
+        return text != null ? text : fallback;
     }
 
     /** The content source this run was started with (config changes apply at the next start). */
