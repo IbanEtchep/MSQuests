@@ -19,7 +19,7 @@ import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
 import com.github.ibanetchep.msquests.core.registry.ActorResolver;
 import net.artisanmc.modules.api.ArtisanAPI;
 import net.artisanmc.modules.api.ArtisanModule;
-import net.artisanmc.modules.api.action.ActionDeclaration;
+import com.github.ibanetchep.msquests.suite.ActionSpec;
 import net.artisanmc.modules.api.command.CommandDeclaration;
 import net.artisanmc.modules.api.datasource.DataReloadEvent;
 import net.artisanmc.modules.api.datasource.DataSourceDeclaration;
@@ -121,9 +121,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         registerTemplate(api);
         registerEditorBundle(api);
 
-        QuestActions actions = new QuestActions(plugin);
-        for (ActionDeclaration declaration : actions.declarations()) {
-            api.getActionRegistry().register(declaration);
+        for (ActionSpec declaration : new QuestActions(plugin).declarations()) {
+            api.getActionRegistry().register(ArtisanActions.declaration(declaration));
         }
 
         registerPlaceholders(api);
@@ -226,7 +225,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
      * quest groups in it. Before the template, so the seed then finds that project and leaves it.
      */
     private void moveLegacyProject() {
-        File target = plugin.getArtisanIntegration().questsProject();
+        File target = plugin.getSuite().questsProject();
         try {
             if (EditorProject.moveLegacy(plugin.getDataFolder(), target)) {
                 plugin.getLogger().info("plugins/MSQuests/" + EditorProject.LEGACY_DIR

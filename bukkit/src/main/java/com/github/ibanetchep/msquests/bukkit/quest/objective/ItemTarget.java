@@ -1,22 +1,21 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective;
 
-import net.artisanmc.modules.api.item.ItemComparison;
-import net.artisanmc.modules.api.item.ItemStackApi;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * The item an objective is about: {@code item}, a spec Artisan builds and compares
- * ({@code api.getItems()}: vanilla, custom or captured item, name, lore, enchants…), compared on
- * {@code match} (empty: the criteria the item carries), or the legacy bare material under the
+ * The item an objective is about: {@code item}, a spec the suite's runtime builds and compares
+ * ({@link ItemMatcher}: vanilla, custom or captured item, name, lore, enchants…), compared on
+ * {@code match} (comparison ids; empty: the criteria the item carries), or the legacy bare material under the
  * objective's own key ({@code material}, {@code fish_type}), compared on the material, a custom
  * item built on it refused.
  * Neither: any item.
@@ -25,10 +24,14 @@ public final class ItemTarget {
 
     private static final ItemTarget ANY = new ItemTarget(null, Set.of());
 
-    private final @Nullable Map<String, Object> spec;
-    private final Set<ItemComparison> match;
+    /** The comparison ids the suite's runtime knows, in its order; anything else in {@code match} is dropped. */
+    public static final List<String> COMPARISONS = List.of(
+            "material", "custom_item", "name", "lore", "enchants", "custom_model_data", "damage", "exact");
 
-    private ItemTarget(@Nullable Map<String, Object> spec, Set<ItemComparison> match) {
+    private final @Nullable Map<String, Object> spec;
+    private final Set<String> match;
+
+    private ItemTarget(@Nullable Map<String, Object> spec, Set<String> match) {
         this.spec = spec;
         this.match = match;
     }
@@ -44,17 +47,21 @@ public final class ItemTarget {
         if (legacy == null || legacy.toString().isBlank()) return ANY;
         Material material = Material.matchMaterial(legacy.toString().trim());
         if (material == null) throw new IllegalArgumentException("Unknown material '" + legacy + "' in " + legacyKey);
-        return new ItemTarget(Map.of("material", material.name()), EnumSet.of(ItemComparison.MATERIAL, ItemComparison.CUSTOM_ITEM));
+        return new ItemTarget(Map.of("material", material.name()), comparisons(List.of("material", "custom_item")));
     }
 
-    private static Set<ItemComparison> readMatch(@Nullable Object raw) {
+    private static Set<String> readMatch(@Nullable Object raw) {
         if (!(raw instanceof List<?> list)) return Set.of();
-        EnumSet<ItemComparison> out = EnumSet.noneOf(ItemComparison.class);
-        for (Object id : list) {
-            ItemComparison c = ItemComparison.fromId(String.valueOf(id));
-            if (c != null) out.add(c);
+        return comparisons(list.stream().map(id -> String.valueOf(id).trim().toLowerCase(Locale.ROOT)).toList());
+    }
+
+    /** The known ids among {@code ids}, in {@link #COMPARISONS} order. */
+    private static Set<String> comparisons(List<String> ids) {
+        Set<String> out = new LinkedHashSet<>();
+        for (String id : COMPARISONS) {
+            if (ids.contains(id)) out.add(id);
         }
-        return out;
+        return Collections.unmodifiableSet(out);
     }
 
     public boolean isAny() {
@@ -62,7 +69,7 @@ public final class ItemTarget {
     }
 
     /** Whether {@code stack} is this item; always true for any item. */
-    public boolean test(@Nullable ItemStack stack, ItemStackApi items) {
+    public boolean test(@Nullable ItemStack stack, ItemMatcher items) {
         if (spec == null) return true;
         if (stack == null) return false;
         return items.matches(spec, stack, match);
@@ -87,11 +94,11 @@ public final class ItemTarget {
     public void write(Map<String, Object> out) {
         if (spec == null) return;
         out.put("item", spec);
-        if (!match.isEmpty()) out.put("match", match.stream().map(ItemComparison::id).toList());
+        if (!match.isEmpty()) out.put("match", List.copyOf(match));
     }
 
     @Override
     public String toString() {
-        return spec == null ? "any" : spec + (match.isEmpty() ? "" : " on " + match.stream().map(ItemComparison::id).toList());
+        return spec == null ? "any" : spec + (match.isEmpty() ? "" : " on " + List.copyOf(match));
     }
 }

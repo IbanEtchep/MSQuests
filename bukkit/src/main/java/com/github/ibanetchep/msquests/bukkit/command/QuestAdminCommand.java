@@ -77,7 +77,7 @@ public class QuestAdminCommand {
         }
         DbAccess db = plugin.getDbAccess();
         ContentMigration migration = new ContentMigration(plugin.getDataFolder().toPath(),
-                plugin.getArtisanIntegration().questsProject().toPath(),
+                plugin.getSuite().questsProject().toPath(),
                 plugin.getGlobalConfig().language(), plugin.getContentSource(),
                 db != null ? new LegacyDataCopier(db.getJdbi()) : null, plugin.getLogger(), plugin::langText);
 
@@ -95,9 +95,9 @@ public class QuestAdminCommand {
                         "<red>Migration failed, nothing was switched. Check console for details.</red>"));
                 return;
             }
-            // Artisan serves what it read at load: the new Documents reach the editor on a reload.
+            // The runtime serves what it read at load: the new Documents reach the editor on a reload.
             if (outcome.confirmed() && outcome.documentsToWrite() > 0) {
-                plugin.getArtisanIntegration().getApi().getProject().reload();
+                plugin.getSuite().reloadProjects();
             }
             sender.sendMessage(MiniMessage.miniMessage().deserialize(migrationSummary(outcome)));
         });

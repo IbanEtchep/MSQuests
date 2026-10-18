@@ -14,11 +14,14 @@ repositories {
 dependencies {
     implementation(project(":core"))
     implementation(project(":database"))
+    // The suite's runtime (Artisan's engine, relocated): see suite/build.gradle.
+    implementation(project(path: ":suite", configuration: "shadow"))
 
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly('me.clip:placeholderapi:2.11.6')
     compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.0")
-    // Artisan — a required dependency, provided at runtime by the Artisan plugin, never shaded.
+    // Artisan — an optional dependency: its API is provided at runtime by the Artisan plugin, never
+    // shaded, and only the classes of bukkit/.../artisan/ name it (without the plugin they are not loaded).
     // Until 2.6.0 is released on repo.artisanmc.net, publish it from Artisan's v2 branch:
     //   cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.6.0
     compileOnly("net.artisanmc:artisan-core-api:${artisanApiVersion}")
@@ -50,6 +53,7 @@ dependencies {
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
     testImplementation("net.artisanmc:artisan-core-api:${artisanApiVersion}")
+    testImplementation(project(path: ":suite", configuration: "shadow"))
 }
 
 processResources {

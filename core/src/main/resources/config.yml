@@ -9,13 +9,18 @@ language: en_EN
 # the saved progress is copied into artisan_quests_* at the first start in that mode.
 content_source: legacy
 
+# Database of the plugin. Read only when plugins/Artisan/environment.yml does not exist
+# (the suite then shares that file's database), or with `own: true` to keep this section anyway.
+# H2 writes plugins/MSQuests/database/suite.mv.db.
 database:
-  type: h2 # Options: mysql, h2
+  own: false
+  type: h2 # Options: h2, mysql, mariadb
   host: mariadb
   port: 3306
   name: database
   user: username
   password: password
+  pool-size: 4
 
 actor_type:
   player:

@@ -1,9 +1,8 @@
-package com.github.ibanetchep.msquests.bukkit.artisan;
+package com.github.ibanetchep.msquests.bukkit.suite;
 
 import com.github.ibanetchep.msquests.core.quest.config.condition.ConditionChecker;
 import com.github.ibanetchep.msquests.core.quest.config.condition.Conditions;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import net.artisanmc.modules.api.condition.ConditionsApi;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -13,20 +12,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
- * Quest requirements and objective conditions, evaluated by Artisan ({@code api.getConditions()},
- * API 2.2.0): the vocabulary of an {@code if:} in a chain, read strictly (an unknown or malformed
- * condition fails). The bindings only reach {@code expression} conditions.
+ * Quest requirements and objective conditions, evaluated by the suite's engine
+ * ({@link ConditionsPort}: Artisan's {@code api.getConditions()} or the local runtime): the
+ * vocabulary of an {@code if:} in a chain, read strictly (an unknown or malformed condition
+ * fails). The bindings only reach {@code expression} conditions.
  *
- * <p>Artisan reads the player's state on the thread that owns the player; called from elsewhere
- * (a menu rendered for another player on Folia) the check fails closed, with one warning.
+ * <p>The engine reads the player's state on the thread that owns the player; called from
+ * elsewhere (a menu rendered for another player on Folia) the check fails closed, with one warning.
  */
-public final class ArtisanConditionChecker implements ConditionChecker {
+public final class PlayerConditionChecker implements ConditionChecker {
 
-    private final ConditionsApi conditions;
+    private final ConditionsPort conditions;
     private final Logger logger;
     private final AtomicBoolean wrongThreadWarned = new AtomicBoolean();
 
-    public ArtisanConditionChecker(ConditionsApi conditions, Logger logger) {
+    public PlayerConditionChecker(ConditionsPort conditions, Logger logger) {
         this.conditions = conditions;
         this.logger = logger;
     }

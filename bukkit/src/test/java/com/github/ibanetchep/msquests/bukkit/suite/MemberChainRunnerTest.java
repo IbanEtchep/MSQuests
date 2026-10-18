@@ -1,7 +1,9 @@
-package com.github.ibanetchep.msquests.bukkit.artisan;
+package com.github.ibanetchep.msquests.bukkit.suite;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanFixtures;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanFixtures.TestActor;
+import com.github.ibanetchep.msquests.bukkit.artisan.EditorProject;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestStatus;
@@ -10,7 +12,6 @@ import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
 import com.github.ibanetchep.msquests.core.quest.config.action.ChainContext;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
-import net.artisanmc.modules.api.action.ModuleActionsApi;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +33,12 @@ import static org.mockito.Mockito.*;
  * virtual threads: the runner must hop to the server thread, then run the chain once per
  * online member with the quest bindings.
  */
-class ArtisanChainRunnerTest {
+class MemberChainRunnerTest {
 
     private ServerMock server;
     private BukkitQuestsPlugin plugin;
-    private ModuleActionsApi actions;
-    private ArtisanChainRunner runner;
+    private ChainExecutor actions;
+    private MemberChainRunner runner;
     private final ActionChain chain = ActionChain.of(List.of(Map.of("send_message", "{quest_title}")));
 
     @BeforeEach
@@ -45,8 +46,8 @@ class ArtisanChainRunnerTest {
         server = MockBukkit.mock();
         plugin = mock(BukkitQuestsPlugin.class);
         when(plugin.getTranslator()).thenReturn(mock(BukkitTranslator.class));
-        actions = mock(ModuleActionsApi.class);
-        runner = new ArtisanChainRunner(plugin, actions);
+        actions = mock(ChainExecutor.class);
+        runner = new MemberChainRunner(plugin, actions);
     }
 
     @AfterEach

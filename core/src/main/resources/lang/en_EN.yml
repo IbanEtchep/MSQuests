@@ -2,6 +2,9 @@
 # %placeholders% are replaced before MiniMessage parsing.
 file_version: 1
 
+artisan:
+  # Shown when a quest chain opens a menu and the Artisan plugin is not running.
+  menus_unavailable: '<red>This interface needs the Artisan plugin.</red>'
 quest_admin:
   # /msquests reload (no placeholders)
   reload: '<green>MSQuests configuration, languages and quests reloaded.</green>'

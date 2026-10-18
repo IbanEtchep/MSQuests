@@ -14,6 +14,8 @@ dependencies:
     zMenu:
       load: BEFORE
       required: false
+    # Optional: with it, menus, the editor and the other modules' actions; without it, the quests
+    # run on MSQuests' own copy of its runtime (ARCHITECTURE.md, Integration Artisan).
     Artisan:
       load: BEFORE
-      required: true
+      required: false

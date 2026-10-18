@@ -116,17 +116,50 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `placeholder/` | `QuestPlaceholders` (namespace Artisan `quests`) |
 | `placeholderapi/` | `QuestsPlaceholderExpansion` (alias PAPI `msquests`) |
 | `zmenu/` | Integration zMenu (pagination de groupes de quetes) |
-| `artisan/` | Integration Artisan (projet `editor/`, kind `quest_group`, actions `quests:*`, `ArtisanChainRunner`, `ArtisanConditionChecker`, data sources, commandes de menu) |
+| `suite/` | Le runtime de la suite vu par les quetes : port `SuiteRuntime` (`ChainExecutor`, `ConditionsPort`, `ItemMatcher`, `ProjectFiles`, `TranslationsPort`), `MemberChainRunner`, `PlayerConditionChecker`, `LocalSuiteRuntime` (sans le plugin Artisan, sur le module `suite/`) |
+| `artisan/` | `ArtisanIntegration` (le `SuiteRuntime` branche sur le plugin Artisan), projet `editor/`, kind `quest_group`, actions `quests:*` (`ArtisanActions` les declare), data sources, commandes de menu |
 
 ---
 
 ## Integration Artisan
 
-**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.6.0+). Au tout
-debut de `onEnable`, `ArtisanIntegration.resolve` charge `ArtisanAPI` depuis le
-`ServicesManager` ; absente ou trop ancienne, le plugin se desactive avec un message
-SEVERE, avant d'ouvrir la base. Une fois les services cables, `MsQuestsArtisanModule`
-est enregistre et declare :
+**Optionnelle** (`required: false` dans `paper-plugin.yml`, API Artisan 2.6.0+ quand le
+plugin est la). Tout ce que les quetes demandent a la suite passe par le port `SuiteRuntime`
+(`bukkit/.../suite/`) : executer une chaine pour un joueur, tester et valider des conditions,
+construire et comparer un item, lire les fichiers des projets, servir les traductions. Au tout
+debut de `onEnable`, `ArtisanIntegration.resolve` cherche le plugin `Artisan` et charge
+`ArtisanAPI` depuis le `ServicesManager` :
+
+- **Artisan present et a jour** : `ArtisanIntegration` est le `SuiteRuntime`. Tout passe par
+  l'API (chaines via `ModuleActionsApi.run`, conditions, items, projets, traductions) et
+  `MsQuestsArtisanModule` est enregistre une fois les services cables (ci-dessous).
+- **Artisan absent, pas active, trop ancien ou en 1.x** : un warning (rien si le plugin n'est
+  pas installe) et `LocalSuiteRuntime` prend la place. Il tourne sur le module `suite/` du depot,
+  qui embarque `artisan-runtime` (le moteur d'actions, les conditions, les items, les projets et
+  les traductions d'Artisan, ADR `runtime-library` d'Artisan) **relocalise** sous
+  `com.github.ibanetchep.msquests.libs.artisan`, pour ne jamais entrer en conflit avec le vrai
+  plugin. Les actions `quests:*` y sont enregistrees a cote de celles du core d'Artisan
+  (`ActionSpec`, declarees une fois dans `QuestActions` et converties des deux cotes).
+
+Sans Artisan les quetes se jouent, se completent et persistent comme avant, avec ces limites :
+pas de menus ni de dialogues (une action `open_menu`/`open_dialog` envoie
+`artisan.menus_unavailable` au joueur), pas d'editeur, pas de modele d'exemple, pas d'actions
+d'un autre module (`guilds:*`...: la chaine les saute avec un warning et continue), pas de
+traductions partagees (les messages du plugin sortent de ses fichiers `lang/`). Les projets
+sont lus depuis `plugins/Artisan/projects/` si ce dossier existe (contenu publie par un Artisan
+installe auparavant), sinon depuis `plugins/MSQuests/projects/` (cree) ; le projet `quests`
+s'y trouve au meme chemin relatif, donc `/msquests migrate` et le `quest_group` y ecrivent au
+meme endroit dans les deux modes et un Artisan installe plus tard retrouve tout.
+
+Base de donnees : le pool est ouvert par le runtime de la suite dans les deux modes
+(`SuiteDatabase` sur `ModuleDatabase` d'Artisan, ADR `runtime-library` ⑤). La regle :
+`plugins/Artisan/environment.yml` quand il existe, sinon la section `database` de
+`config.yml` (ecrite avec les defauts H2 si elle manque) ; `database.own: true` force la
+section du plugin. Un fichier H2 par plugin, `plugins/MSQuests/database/suite.mv.db` ; l'ancien
+`plugins/MSQuests/database.mv.db` y est deplace une fois. `DbAccess.init(DataSource)` recoit le
+pool, le module `database/` ne lit plus de credentials.
+
+Avec Artisan, `MsQuestsArtisanModule` declare :
 
 - **un modele d'exemple** `daily` (Artisan 2.6.0, `api.getTemplates()`, fichiers dans
   `bukkit/src/main/resources/artisan-templates/daily/`) : un groupe `example_daily` de trois
@@ -182,7 +215,8 @@ chacun execute apres le crochet du groupe pour le meme evenement) et les 7 croch
 `objective_progress`, `objective_complete`, `quest_distribution`, `actor_load`,
 `all_period_quests_complete`) sont des chaines Artisan (wire structure : `{action: args}`,
 `if/do/else`). Le core les porte en `ActionChain` opaque et les execute via le port
-`ChainRunner` ; `ArtisanChainRunner` les passe a `ModuleActionsApi.run` dans le projet
+`ChainRunner` ; `MemberChainRunner` les passe au `ChainExecutor` du `SuiteRuntime`
+(`ModuleActionsApi.run` avec Artisan, `LocalRuntime.runChain` sans) dans le projet
 `quests`, **une fois par membre en ligne de l'acteur** (un groupe global ou guilde execute
 donc une commande console par membre), apres un saut sur le main thread si besoin.
 
@@ -196,7 +230,8 @@ Il n'y a plus de liste de recompenses a afficher : ce que gagne le joueur s'ecri
 description de la quete ou dans l'item du menu. La conversion legacy ajoute les `name` des
 anciennes actions a la fin de la description, et `%quest_rewards%` (zMenu) vaut vide. Les `requirements` d'une quete et les `conditions` d'un
 objectif sont des conditions Artisan (`Conditions`), testees via `ConditionChecker` /
-`ArtisanConditionChecker` (`ConditionsApi.test`) ; un joueur hors ligne ou un appel hors
+`PlayerConditionChecker` (`ConditionsPort` du `SuiteRuntime` : `ConditionsApi.test`, ou
+`ModuleConditions` du runtime local) ; un joueur hors ligne ou un appel hors
 de son thread vaut faux. Elles sont validees (`ConditionsApi.validate`) a chaque
 chargement, les erreurs loggees.
 
@@ -276,11 +311,18 @@ joindre une liste ni formater une duree (ADR `expression-parity`).
 uniquement les registres memoire — jamais de repository, jamais d'I/O. Un acteur non
 charge (joueur hors ligne) donne des valeurs neutres, pas une attente.
 
-Build : `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan, jamais shade),
-version `artisanApiVersion` de `gradle.properties`. Tant que 2.2.0 (API conditions,
-artisanmc/artisan#88) n'est pas publiee sur repo.artisanmc.net, la produire depuis `v2`
-une fois #88 mergee, ou depuis sa branche :
-`cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.2.0`.
+Build : dans `bukkit/`, `artisan-core-api` est `compileOnly` (fourni par le plugin Artisan,
+jamais shade tel quel : le `ServicesManager` compare l'identite des classes), version
+`artisanApiVersion` de `gradle.properties`. Le module `suite/` (Kotlin, la version de Kotlin
+d'Artisan) depend de `artisan-runtime` (`artisanRuntimeVersion`) et de l'API, et les shade
+**relocalises** (`net.artisanmc` → `com.github.ibanetchep.msquests.libs.artisan`, Jackson et
+SnakeYAML aussi) ; `bukkit/` consomme sa configuration `shadow`. Deux passes de relocation :
+la normale, et une passe texte brut (`SimpleRelocator(..., rawString = true)`) parce que les
+descripteurs JVM dans `@kotlin.Metadata` echappent a la premiere et que kotlin-reflect (Jackson
+Kotlin, utilise par `ItemSpecs`) les relit. Kotlin n'est pas shade : le jar `artisan-runtime`
+embarque deja stdlib et reflect. Tant que ces artefacts ne sont pas sur repo.artisanmc.net, les
+publier depuis `v2` d'Artisan :
+`cd <artisan>/plugin && ./gradlew :artisan-api:publishCoreApiPublicationToMavenLocal -PapiVersion=2.6.0 :artisan-runtime:publishRuntimePublicationToMavenLocal`.
 
 ---
 
@@ -471,7 +513,7 @@ Toutes les actions supportent les placeholders dynamiques via `PlaceholderEngine
 
 | Fichier | Contenu |
 |---------|---------|
-| `core/src/main/resources/config.yml` | Config globale (BDD, langue, `content_source`) |
+| `core/src/main/resources/config.yml` | Config globale (langue, `content_source`, BDD du plugin quand `plugins/Artisan/environment.yml` n'existe pas, voir *Integration Artisan*) |
 | `bukkit/src/main/resources/quests/*.yml` | Definitions de groupes de quetes (Jackson YAML) |
 | `core/src/main/resources/lang/*.yml` | Fichiers de traduction |
 | `paper-plugin.yml` | Descripteur plugin Paper |

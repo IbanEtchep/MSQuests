@@ -20,7 +20,8 @@ This is a Gradle multi-module project targeting Paper 1.21+ (Minecraft plugin):
 
 - **`core/`** — Platform-agnostic quest logic: domain model, services, registries, factories, DTOs, mappers, event dispatching abstraction
 - **`bukkit/`** — Paper/Bukkit integration: plugin entry point, commands, listeners, Bukkit-specific objective handlers, actions, PlaceholderAPI
-- **`database/`** — SQL persistence: JDBI + HikariCP, schema migrations, async repositories (MySQL or H2)
+- **`database/`** — SQL persistence: JDBI + HikariCP, schema migrations, async repositories (MySQL or H2); the pool comes from the suite's runtime (`SuiteDatabase`: `plugins/Artisan/environment.yml` if it exists, else the plugin's own `database` section)
+- **`suite/`** — Kotlin; Artisan's `artisan-runtime` (actions, conditions, items, projects, translations) shaded and relocated under `com.github.ibanetchep.msquests.libs.artisan`, so the quests run without the Artisan plugin (`LocalRuntime`, `SuiteDatabase`). Needs `net.artisanmc:artisan-runtime:${artisanRuntimeVersion}` (publish it from Artisan's `v2` with `./gradlew :artisan-runtime:publishRuntimePublicationToMavenLocal` until it is on repo.artisanmc.net)
 - **`editor/`** — the `quest_group` view of the Artisan editor (TypeScript + React against `@artisan/editor-sdk`, vendored in `editor/vendor/`). `cd editor && npm ci && npm test && npm run build` writes `bukkit/src/main/resources/artisan-editor/ui.js`, which is committed; rebuild it after any change in `editor/src`. `MsQuestsArtisanModule` registers it (`EDITOR_SDK` = the SDK version the build prints). While developing, `npm run watch` rebuilds `ui.js` on each save; with `dev.editor-bundles.msquests: <absolute path to that ui.js>` in Artisan's `environment.yml`, the server serves it without a restart (reload the editor to see a build).
 
 Root package: `com.github.ibanetchep.msquests`
@@ -39,7 +40,7 @@ The platform abstraction (`MSQuestsPlatform`) decouples core logic from Bukkit. 
 
 **Factories:** `QuestFactory`, `QuestObjectiveFactory` — create domain objects from config or DTOs.
 
-**Artisan chains:** rewards, group hooks and requirements are Artisan action chains / conditions, carried opaquely by core (`ActionChain`, `Conditions`) and run through the `ChainRunner` / `ConditionChecker` ports (`ArtisanChainRunner`, `ArtisanConditionChecker` in `bukkit/.../artisan/`). Legacy MSQuests actions are converted by `LegacyActions`.
+**Artisan chains:** rewards, group hooks and requirements are Artisan action chains / conditions, carried opaquely by core (`ActionChain`, `Conditions`) and run through the `ChainRunner` / `ConditionChecker` ports (`MemberChainRunner`, `PlayerConditionChecker` in `bukkit/.../suite/`). Both sit on the `SuiteRuntime` port: `ArtisanIntegration` when the Artisan plugin runs (optional, `required: false`), else `LocalSuiteRuntime` on the `suite/` module (no menus, no editor, no other module's actions). Legacy MSQuests actions are converted by `LegacyActions`.
 
 **Services orchestrate everything:**
 - `QuestLifecycleService` — start, complete, expire quests
@@ -69,7 +70,7 @@ There are no MSQuests action types any more. A generic action belongs in Artisan
 
 ## Configuration
 
-- `core/src/main/resources/config.yml` — database settings, language, actor type action hooks
+- `core/src/main/resources/config.yml` — language, actor type action hooks, database settings used only without `plugins/Artisan/environment.yml` (or with `database.own: true`)
 - Quest YAML configs live in `bukkit/src/main/resources/quests/` and are loaded via `QuestConfigYamlRepository`
 - With `content_source: artisan`, quests load from the `quest_group` Documents of `<project>/quest_groups/` in every Artisan project (`QuestGroupDocumentRepository`, group keys unique on the server) and progress from the `artisan_quests_*` tables, keyed by immutable uids; `/msquests migrate` converts (see `ARCHITECTURE.md`, *Source du contenu*)
 - Language files: `core/src/main/resources/lang/`

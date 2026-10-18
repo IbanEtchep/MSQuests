@@ -1,0 +1,54 @@
+// The suite's runtime (Artisan's engine, conditions, items, project reader, database pool) as a
+// library MSQuests runs with or without the Artisan plugin (ADR `runtime-library` in Artisan).
+// Everything of Artisan is relocated: this copy is MSQuests' own, invisible to the other
+// plugins' class lookups, and the real `net.artisanmc.modules.api` (Artisan's, compileOnly in
+// `bukkit`) is only named by the classes that talk to the Artisan plugin.
+import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'io.github.goooler.shadow'
+}
+
+repositories {
+    maven { url = 'https://repo.artisanmc.net/releases' }
+    maven { url = 'https://repo.artisanmc.net/snapshots' }
+}
+
+dependencies {
+    implementation("net.artisanmc:artisan-runtime:${artisanRuntimeVersion}")
+    implementation("net.artisanmc:artisan-core-api:${artisanApiVersion}")
+
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.zaxxer:HikariCP:5.1.0")
+
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.41.0")
+    testImplementation("com.zaxxer:HikariCP:5.1.0")
+    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+shadowJar {
+    archiveClassifier.set('all')
+    relocate 'net.artisanmc', 'com.github.ibanetchep.msquests.libs.artisan'
+    // Kotlin's @Metadata carries JVM method descriptors as plain strings, which the class
+    // relocation above leaves alone; kotlin-reflect (Jackson's Kotlin module, in Artisan's item
+    // specs) then looks for the original names. A raw-string pass rewrites every occurrence.
+    relocate(new SimpleRelocator('net/artisanmc/', 'com/github/ibanetchep/msquests/libs/artisan/', [], [], true))
+    relocate 'com.fasterxml.jackson', 'com.github.ibanetchep.msquests.libs.jackson'
+    relocate 'org.yaml.snakeyaml', 'com.github.ibanetchep.msquests.libs.snakeyaml'
+    mergeServiceFiles()
+    exclude 'META-INF/maven/**'
+    // The runtime jar carries kotlin-stdlib and kotlin-reflect already (not relocated, like Artisan's jar).
+    dependencies {
+        exclude(dependency('org.jetbrains.kotlin:.*'))
+        exclude(dependency('org.jetbrains:annotations'))
+    }
+}
+
+// `bukkit` consumes the shaded jar (configuration `shadow`), never the plain one.
+components.java.withVariantsFromConfiguration(configurations.shadowRuntimeElements) { skip() }

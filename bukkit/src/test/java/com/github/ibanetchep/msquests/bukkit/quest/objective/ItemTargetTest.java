@@ -1,6 +1,9 @@
 package com.github.ibanetchep.msquests.bukkit.quest.objective;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +12,17 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ItemTargetTest {
+
+    // Material.translationKey() reaches the item registry, which needs a server.
+    @BeforeEach
+    void setUp() {
+        MockBukkit.mock();
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockBukkit.unmock();
+    }
 
     private static Map<String, Object> written(ItemTarget target) {
         Map<String, Object> out = new LinkedHashMap<>();
