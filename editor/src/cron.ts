@@ -71,3 +71,65 @@ export function describeCron(expr: string, lang: string): string | null {
   }
   return null;
 }
+
+/** The values a cron field allows, or null when it cannot be read. */
+function field(expr: string, min: number, max: number): Set<number> | null {
+  const out = new Set<number>();
+  for (const part of expr.split(",")) {
+    const m = /^(\*|(\d+)(?:-(\d+))?)(?:\/(\d+))?$/.exec(part);
+    if (!m) return null;
+    const step = m[4] ? Number(m[4]) : 1;
+    const from = m[1] === "*" ? min : Number(m[2]);
+    const to = m[1] === "*" ? max : m[3] ? Number(m[3]) : m[4] ? max : from;
+    if (step < 1 || from < min || to > max || from > to) return null;
+    for (let v = from; v <= to; v += step) out.add(v);
+  }
+  return out;
+}
+
+/**
+ * The next time `expr` fires after `from`, in the browser's clock (the server reads the cron in its
+ * own zone: the same when both are set to the same zone). Null when the cron cannot be read or
+ * never fires within a year.
+ */
+export function nextCronRun(expr: string, from: Date): Date | null {
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length !== 5) return null;
+  const minutes = field(parts[0]!, 0, 59);
+  const hours = field(parts[1]!, 0, 23);
+  const doms = field(parts[2]!, 1, 31);
+  const months = field(parts[3]!, 1, 12);
+  const dows = field(parts[4]!, 0, 7);
+  if (!minutes || !hours || !doms || !months || !dows) return null;
+  if (dows.has(7)) dows.add(0);
+  // UNIX: when both day fields are restricted, either one matching is enough.
+  const domAny = parts[2] === "*";
+  const dowAny = parts[4] === "*";
+  const dayMatches = (d: Date) =>
+    domAny && dowAny
+      ? true
+      : domAny
+        ? dows.has(d.getDay())
+        : dowAny
+          ? doms.has(d.getDate())
+          : doms.has(d.getDate()) || dows.has(d.getDay());
+
+  const t = new Date(from.getTime());
+  t.setSeconds(0, 0);
+  t.setMinutes(t.getMinutes() + 1);
+  const limit = from.getTime() + 366 * 24 * 3600 * 1000;
+  while (t.getTime() <= limit) {
+    if (!months.has(t.getMonth() + 1) || !dayMatches(t)) {
+      t.setDate(t.getDate() + 1);
+      t.setHours(0, 0, 0, 0);
+      continue;
+    }
+    if (!hours.has(t.getHours())) {
+      t.setHours(t.getHours() + 1, 0, 0, 0);
+      continue;
+    }
+    if (minutes.has(t.getMinutes())) return t;
+    t.setMinutes(t.getMinutes() + 1);
+  }
+  return null;
+}

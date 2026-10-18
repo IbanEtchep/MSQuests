@@ -43,6 +43,9 @@ export const QUESTS_CSS = `
 .aq-fold > summary::-webkit-details-marker { display: none; }
 .aq-fold[open] { display: flex; flex-direction: column; gap: 8px; }
 .aq-chain { display: flex; flex-direction: column; gap: 6px; }
+.aq-event { display: flex; flex-direction: column; gap: 6px; }
+.aq-event-name { color: var(--text); font-size: 12px; font-weight: 600; }
+.aq-event-add { align-self: flex-start; width: auto; min-width: 240px; }
 .aq-legacy { display: flex; flex-direction: column; gap: 4px; padding: 8px; border: 1px dashed var(--border); border-radius: var(--r-sm); }
 .aq-legacy-row { display: flex; align-items: center; gap: 6px; }
 .aq-legacy-row code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--text-mut); }
