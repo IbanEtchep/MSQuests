@@ -37,15 +37,18 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
             .comparing(Quest::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(q -> q.getId().toString());
 
+    private final String identifier;
     private final PlayerProfileRegistry playerProfileRegistry;
     private final QuestConfigRegistry questConfigRegistry;
     private final PlaceholdersConfig placeholdersConfig;
 
     public QuestsPlaceholderExpansion(
+            String identifier,
             PlayerProfileRegistry playerProfileRegistry,
             QuestConfigRegistry questConfigRegistry,
             PlaceholdersConfig placeholdersConfig
     ) {
+        this.identifier = identifier;
         this.playerProfileRegistry = playerProfileRegistry;
         this.questConfigRegistry = questConfigRegistry;
         this.placeholdersConfig = placeholdersConfig;
@@ -54,7 +57,7 @@ public class QuestsPlaceholderExpansion extends PlaceholderExpansion {
     @NotNull
     @Override
     public String getIdentifier() {
-        return "msquests";
+        return identifier;
     }
 
     @NotNull
