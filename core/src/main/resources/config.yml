@@ -4,7 +4,7 @@ language: en_EN
 
 # Where quests and their progress are read from. Read at startup only: restart after a change.
 #   legacy  — quests/*.yml and the msquests_* tables, as before.
-#   artisan — the quest_group Documents of editor/quest_groups/ and the artisan_quests_* tables.
+#   artisan — the quest_group Documents of every Artisan project (quest_groups/) and the artisan_quests_* tables.
 # Run /msquests migrate (dry run), then /msquests migrate --confirm, before switching to artisan:
 # the saved progress is copied into artisan_quests_* at the first start in that mode.
 content_source: legacy

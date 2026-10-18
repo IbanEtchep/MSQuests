@@ -153,7 +153,8 @@ public final class QuestGroupDocumentReader {
                     distributionDto,
                     Ltext.resolve(doc.get("objective_line"), lang, "objective_line"),
                     uid,
-                    timezone);
+                    timezone,
+                    null);
         } catch (IllegalArgumentException e) {
             throw new DocumentException("quests", e.getMessage());
         }

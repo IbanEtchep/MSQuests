@@ -122,18 +122,26 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 
 ## Integration Artisan
 
-**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.2.0+). Au tout
+**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.6.0+). Au tout
 debut de `onEnable`, `ArtisanIntegration.resolve` charge `ArtisanAPI` depuis le
 `ServicesManager` ; absente ou trop ancienne, le plugin se desactive avec un message
 SEVERE, avant d'ouvrir la base. Une fois les services cables, `MsQuestsArtisanModule`
 est enregistre et declare :
 
-- **son projet** `plugins/MSQuests/editor/` (`EditorProject`, id `quests`), enregistre comme
-  racine de projet du module : l'editeur le liste sous le module. Au premier demarrage on
-  n'y ecrit que `manifest.yaml` (langue par defaut = partie langue du reglage `language`)
-  et `quest_groups/` ; un dossier non vide n'est jamais touche ;
+- **un modele d'exemple** `daily` (Artisan 2.6.0, `api.getTemplates()`, fichiers dans
+  `bukkit/src/main/resources/artisan-templates/daily/`) : un groupe `example_daily` de trois
+  quetes journalieres, que l'editeur propose de copier dans n'importe quel projet (**+ → Depuis
+  un module…**). Au premier demarrage, Artisan le copie une seule fois dans un nouveau projet
+  ordinaire `quests` (`plugins/Artisan/projects/quests/`, `EditorProject`) ; supprime, il ne
+  revient pas. Monter `TEMPLATE_VERSION` a chaque changement de ces fichiers : l'editeur propose
+  alors la mise a jour aux copies non modifiees. L'ancien projet du module,
+  `plugins/MSQuests/editor/`, est deplace une fois vers `plugins/Artisan/projects/quests/` s'il
+  contient des groupes et que ce projet n'existe pas encore ;
 - **le kind de Document `quest_group`** (dossier `quest_groups/`, schema `quest_group/v1`) :
-  un Document par groupe, nomme d'apres la cle du groupe. Les quetes s'y chargent avec
+  un Document par groupe, nomme d'apres la cle du groupe, dans **n'importe quel projet**
+  Artisan (`ArtisanProjectFiles` sur `api.getProject()`), pas seulement celui du module. Les
+  chaines d'actions d'un groupe s'executent dans le projet qui porte son Document, pour que ses
+  references de menu s'y resolvent. Les quetes s'y chargent avec
   `content_source: artisan` (voir *Source du contenu*) ; sinon depuis `quests/*.yml`.
   `onReload` (publication, `/artisan reload`) recharge les quetes quand ces Documents ont
   change (empreinte SHA-256), et ne fait rien sinon ;
@@ -478,23 +486,26 @@ Lu au demarrage seulement ; un changement demande un redemarrage (`/msquests rel
 | `content_source` | Contenu | Progression |
 |---|---|---|
 | `legacy` (defaut) | `quests/*.yml` | `msquests_*`, par `(group_key, quest_key)` |
-| `artisan` | `editor/quest_groups/<groupe>.yaml` (Documents `quest_group/v1`) | `artisan_quests_*`, par `uid` |
+| `artisan` | `<projet>/quest_groups/<groupe>.yaml` de tous les projets Artisan (Documents `quest_group/v1`) | `artisan_quests_*`, par `uid` |
 
 Un Document porte un `uid` (ULID) immuable pour le groupe et pour chaque quete ; la cle du
 groupe est le nom du fichier, renommable comme les cles de quete sans perte de progression.
 `QuestGroupDocumentReader` produit le meme `QuestGroupConfigDTO` que le lecteur YAML (textes
 `ltext` resolus dans la `default_lang` du manifest, `duration` en `24h`/`90m`, cron avec
 `reset.timezone`) et refuse tout le fichier, chemin de la valeur fautive en tete, sur une
-erreur : `uid` absent ou deja pris (dans tout le projet), cle d'objectif repetee dans une
-quete, etc. Actions et conditions gardent pour l'instant le format MSQuests (`type: ...`).
+erreur : `uid` absent ou deja pris (sur tout le serveur), cle d'objectif repetee dans une
+quete, etc. Une cle de groupe est unique sur le serveur, puisque commandes et placeholders
+nomment un groupe par sa seule cle : deux projets portant `daily.yaml` sont signales avec les
+deux chemins, et aucun des deux ne charge (un rechargement est alors refuse en entier). Actions et conditions gardent pour l'instant le format MSQuests (`type: ...`).
 
 Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
 
 1. `/msquests migrate` (dry run) : convertit en memoire, relit chaque Document produit et le
    compare au groupe d'origine, compte ce que la copie en base fera, et ecrit
    `migration/report-<date>.txt`. Rien d'autre n'est ecrit.
-2. `/msquests migrate --confirm` : ecrit les Documents absents (jamais par-dessus un Document
-   existant) et `migration/map.yaml` (`(groupe, cle) -> uid`, `objectif -> stage`). Relance,
+2. `/msquests migrate --confirm` : ecrit les Documents absents dans le projet Artisan
+   ordinaire `quests` (`plugins/Artisan/projects/quests/`, cree s'il manque ; jamais par-dessus
+   un Document existant), recharge les projets d'Artisan, et ecrit `migration/map.yaml` (`(groupe, cle) -> uid`, `objectif -> stage`). Relance,
    il garde les memes `uid`.
 3. `content_source: artisan` puis redemarrage : avant tout chargement, `LegacyDataCopier`
    copie `msquests_*` dans `artisan_quests_*` en une transaction (comptes verifies, sinon
