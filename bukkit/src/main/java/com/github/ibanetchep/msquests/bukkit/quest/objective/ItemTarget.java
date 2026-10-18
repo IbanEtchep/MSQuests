@@ -17,7 +17,8 @@ import java.util.Set;
  * The item an objective is about: {@code item}, a spec Artisan builds and compares
  * ({@code api.getItems()}: vanilla, custom or captured item, name, lore, enchants…), compared on
  * {@code match} (empty: the criteria the item carries), or the legacy bare material under the
- * objective's own key ({@code material}, {@code fish_type}), compared on the material alone.
+ * objective's own key ({@code material}, {@code fish_type}), compared on the material, a custom
+ * item built on it refused.
  * Neither: any item.
  */
 public final class ItemTarget {
@@ -43,7 +44,7 @@ public final class ItemTarget {
         if (legacy == null || legacy.toString().isBlank()) return ANY;
         Material material = Material.matchMaterial(legacy.toString().trim());
         if (material == null) throw new IllegalArgumentException("Unknown material '" + legacy + "' in " + legacyKey);
-        return new ItemTarget(Map.of("material", material.name()), EnumSet.of(ItemComparison.MATERIAL));
+        return new ItemTarget(Map.of("material", material.name()), EnumSet.of(ItemComparison.MATERIAL, ItemComparison.CUSTOM_ITEM));
     }
 
     private static Set<ItemComparison> readMatch(@Nullable Object raw) {
