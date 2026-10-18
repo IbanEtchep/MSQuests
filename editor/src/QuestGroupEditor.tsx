@@ -262,7 +262,7 @@ function GroupView({
     ? (group.distribution.triggers as string[])
     : [];
   const perTier = (group.distribution.tiers ?? {}) as Record<string, unknown>;
-  const kept = Object.keys(group.rest).filter((k) => k !== "on");
+  const kept = Object.keys(group.rest).filter((k) => k !== "actions");
 
   const addQuest = () => {
     const titleKey = newTextKey();
@@ -627,13 +627,13 @@ function chainLength(value: unknown): number {
 
 function HooksSection({ ctx, group }: { ctx: Ctx; group: QuestGroup }) {
   const { t, edit } = ctx;
-  const on = (group.rest.on && typeof group.rest.on === "object" ? group.rest.on : {}) as Raw;
+  const hooks = asMap(group.rest.actions);
   return (
     <section className="aq-section">
       <span className="aq-h">{t("hooks")}</span>
       <span className="aq-hint">{t("hooksHint")}</span>
       {HOOKS.map((hook) => {
-        const count = chainLength(on[hook]);
+        const count = chainLength(hooks[hook]);
         return (
           <details key={hook} className="aq-fold">
             <summary>
@@ -646,12 +646,12 @@ function HooksSection({ ctx, group }: { ctx: Ctx; group: QuestGroup }) {
             </summary>
             <ChainField
               ctx={ctx}
-              value={on[hook]}
+              value={hooks[hook]}
               onChange={(next) =>
                 edit((g) => {
-                  const map = { ...((g.rest.on ?? {}) as Raw) };
+                  const map = { ...asMap(g.rest.actions) };
                   setOrDelete(map, hook, next);
-                  setOrDelete(g.rest, "on", Object.keys(map).length ? map : undefined);
+                  setOrDelete(g.rest, "actions", Object.keys(map).length ? map : undefined);
                 })
               }
             />
@@ -683,7 +683,7 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
   const keyTaken = group.quests.some((q, i) => i !== index && q.key === quest.key);
   const durationBad =
     quest.duration !== "" && !DURATION.test(quest.duration.replace(/\s/g, "").toLowerCase());
-  const kept = Object.keys(quest.rest).filter((k) => k !== "on");
+  const kept = Object.keys(quest.rest).filter((k) => k !== "actions");
 
   return (
     <>
@@ -803,12 +803,12 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
         <span className="aq-hint">{t("rewardsHint")}</span>
         <ChainField
           ctx={ctx}
-          value={asMap(quest.rest.on).complete}
+          value={asMap(quest.rest.actions).complete}
           onChange={(next) =>
             editQuest((q) => {
-              const on = { ...asMap(q.rest.on) };
-              setOrDelete(on, "complete", next);
-              setOrDelete(q.rest, "on", Object.keys(on).length > 0 ? on : undefined);
+              const actions = { ...asMap(q.rest.actions) };
+              setOrDelete(actions, "complete", next);
+              setOrDelete(q.rest, "actions", Object.keys(actions).length > 0 ? actions : undefined);
             })
           }
         />
