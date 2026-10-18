@@ -17,7 +17,8 @@ public final class ArtisanIntegration {
 
     /**
      * Lowest Artisan API this plugin compiles against: the example template
-     * ({@code TemplateRegistry}, 2.6.0), item specs built and compared by
+     * ({@code TemplateRegistry}, 2.6.0), its messages served by {@code TranslationsApi}
+     * (2.5.0), item specs built and compared by
      * {@code ItemStackApi.matches} (2.4.0), {@code ConditionsApi} and the structured
      * {@code ModuleActionsApi.run} (2.2.0), {@code DocumentKindRegistry} (2.1.0) and
      * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).

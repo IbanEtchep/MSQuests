@@ -358,7 +358,9 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
                 new File(getDataFolder(), "lang"),
                 getGlobalConfig().language(),
                 locale -> getResource("lang/" + locale + ".yml"),
-                getLogger()
+                getLogger(),
+                this,
+                artisanIntegration.getApi().getTranslations()
         );
 
         translator.load();
