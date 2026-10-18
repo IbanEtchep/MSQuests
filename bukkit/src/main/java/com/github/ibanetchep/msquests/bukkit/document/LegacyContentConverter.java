@@ -172,7 +172,7 @@ public final class LegacyContentConverter {
                 report.warn(target.getFileName() + " already exists: kept as it is, not overwritten.");
                 plans.add(new GroupPlan(group.key(), target, null));
             } else {
-                report.line("Writes editor/quest_groups/" + target.getFileName() + ".");
+                report.line("Writes quests/quest_groups/" + target.getFileName() + ".");
                 plans.add(new GroupPlan(group.key(), target, yaml));
             }
         }

@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 /**
  * {@code /msquests migrate}: converts {@code quests/*.yml} into {@code quest_group} Documents of
- * the editor project and says what the database copy will do, in a report written to
+ * the Artisan project {@code quests} ({@link EditorProject}) and says what the database copy will do, in a report written to
  * {@code migration/report-<time>.txt}. A dry run writes only the report; {@code --confirm} also
  * writes the Documents (never over an existing one) and {@code migration/map.yaml}.
  *
@@ -42,22 +42,27 @@ public final class ContentMigration {
     }
 
     private final Path dataFolder;
+    private final Path project;
     private final String language;
     private final ContentSource activeSource;
     private final @Nullable LegacyDataCopier copier;
     private final Logger logger;
     private final Function<String, String> messageKeys;
 
-    public ContentMigration(Path dataFolder, String language, ContentSource activeSource,
+    public ContentMigration(Path dataFolder, Path project, String language, ContentSource activeSource,
                             @Nullable LegacyDataCopier copier, Logger logger) {
-        this(dataFolder, language, activeSource, copier, logger, key -> null);
+        this(dataFolder, project, language, activeSource, copier, logger, key -> null);
     }
 
-    /** @param messageKeys text of a MSQuests lang key, for actions that name one ({@code message_key}) */
-    public ContentMigration(Path dataFolder, String language, ContentSource activeSource,
+    /**
+     * @param project     the project the Documents go to ({@link EditorProject#directory}), created when absent
+     * @param messageKeys text of a MSQuests lang key, for actions that name one ({@code message_key})
+     */
+    public ContentMigration(Path dataFolder, Path project, String language, ContentSource activeSource,
                             @Nullable LegacyDataCopier copier, Logger logger, Function<String, String> messageKeys) {
         this.messageKeys = messageKeys;
         this.dataFolder = dataFolder;
+        this.project = project;
         this.language = language;
         this.activeSource = activeSource;
         this.copier = copier;
@@ -69,7 +74,6 @@ public final class ContentMigration {
     }
 
     public Outcome run(boolean confirm) throws IOException {
-        Path project = EditorProject.directory(dataFolder.toFile()).toPath();
         Path groupsDir = project.resolve(QuestGroupDocumentRepository.DIR);
         Path migrationDir = dataFolder.resolve(DIR);
         Path tmp = migrationDir.resolve("tmp");
@@ -95,7 +99,7 @@ public final class ContentMigration {
             converter.apply(plan, groupsDir, tmp);
             MigrationMapFile.write(mapFile(dataFolder), plan.map(), tmp);
             report.section("Written");
-            report.line(plan.toWrite() + " Document(s) in editor/quest_groups/, and migration/map.yaml.");
+            report.line(plan.toWrite() + " Document(s) in " + project + "/quest_groups/, and migration/map.yaml.");
         } else {
             report.section("Dry run");
             report.line("Nothing was written. Run /msquests migrate --confirm to write the Documents.");

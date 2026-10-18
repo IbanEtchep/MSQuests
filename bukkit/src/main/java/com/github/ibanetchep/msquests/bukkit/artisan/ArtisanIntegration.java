@@ -2,8 +2,10 @@ package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import net.artisanmc.modules.api.ArtisanAPI;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.logging.Level;
 
 /**
@@ -14,12 +16,13 @@ import java.util.logging.Level;
 public final class ArtisanIntegration {
 
     /**
-     * Lowest Artisan API this plugin compiles against: item specs built and compared by
+     * Lowest Artisan API this plugin compiles against: the example template
+     * ({@code TemplateRegistry}, 2.6.0), item specs built and compared by
      * {@code ItemStackApi.matches} (2.4.0), {@code ConditionsApi} and the structured
      * {@code ModuleActionsApi.run} (2.2.0), {@code DocumentKindRegistry} (2.1.0) and
      * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).
      */
-    public static final String MIN_API_VERSION = "2.4.0";
+    public static final String MIN_API_VERSION = "2.6.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ArtisanAPI api;
@@ -56,7 +59,7 @@ public final class ArtisanIntegration {
         }
     }
 
-    /** Registers the module: data sources, commands, actions, the quest_group kind and the editor project. */
+    /** Registers the module: data sources, commands, actions, the quest_group kind and the example template. */
     public void register() {
         MsQuestsArtisanModule created = new MsQuestsArtisanModule(plugin);
         api.getModules().register(created);
@@ -66,6 +69,13 @@ public final class ArtisanIntegration {
 
     public ArtisanAPI getApi() {
         return api;
+    }
+
+    /** The project {@code quests} in Artisan's projects folder ({@link EditorProject}). */
+    public File questsProject() {
+        Plugin artisan = plugin.getServer().getPluginManager().getPlugin("Artisan");
+        File artisanData = artisan != null ? artisan.getDataFolder() : new File(plugin.getDataFolder().getParentFile(), "Artisan");
+        return EditorProject.directory(artisanData);
     }
 
     /** Tells Artisan menus to re-fetch the quest data sources. */
