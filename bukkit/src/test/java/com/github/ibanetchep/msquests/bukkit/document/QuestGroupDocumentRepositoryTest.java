@@ -73,9 +73,9 @@ class QuestGroupDocumentRepositoryTest {
     }
 
     @Test
-    void questActionsAtCompletionAreReadFromOnComplete() throws Exception {
+    void questActionsAtCompletionAreReadFromActionsComplete() throws Exception {
         Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", """
-                    on:
+                    actions:
                       complete: [ { send_message: "<green>Bravo" } ]
                 """));
 
@@ -85,7 +85,16 @@ class QuestGroupDocumentRepositoryTest {
     }
 
     @Test
-    void questRewardsKeyIsStillReadAsTheOldNameOfOnComplete() throws Exception {
+    void questOnAndRewardsKeysAreStillReadAsTheOldNamesOfActions() throws Exception {
+        Files.writeString(project.resolve("quest_groups/old.yaml"), group("G2", "Q2", """
+                    on:
+                      complete: [ { send_message: "<green>Bravo" } ]
+                """));
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Bravo")),
+                load().groups().get("old").quests().getFirst().rewards());
+        Files.delete(project.resolve("quest_groups/old.yaml"));
+
+
         Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", """
                     rewards: [ { send_message: "<green>Bravo" } ]
                 """));
@@ -93,6 +102,15 @@ class QuestGroupDocumentRepositoryTest {
         QuestConfigDTO mine = load().groups().get("daily").quests().getFirst();
 
         assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Bravo")), mine.rewards());
+    }
+
+    @Test
+    void groupHooksAreReadFromActions() throws Exception {
+        Files.writeString(project.resolve("quest_groups/daily.yaml"),
+                group("G1", "Q1", "").replace("on:\n  quest_start", "actions:\n  quest_start"));
+
+        assertEquals(java.util.Map.of("send_message", "<green>Go"),
+                load().groups().get("daily").actions().questStart().getFirst());
     }
 
     @Test

@@ -60,7 +60,7 @@ const daily = {
     tiers: { easy: 3 },
   },
   tiers: { easy: { title: { fr: "<green>Facile" } } },
-  on: { quest_complete: [{ type: "command", command: "say done" }] },
+  actions: { quest_complete: [{ type: "command", command: "say done" }] },
   quests: [
     {
       key: "mine_stone_64",
@@ -77,7 +77,7 @@ const daily = {
           objectives: [{ key: "stone", type: "block_break", material: "STONE", amount: 64 }],
         },
       ],
-      on: { complete: [{ type: "command", command: "levels addxp {player} 150" }] },
+      actions: { complete: [{ type: "command", command: "levels addxp {player} 150" }] },
       requirements: [{ type: "permission", permission: "quests.vip" }],
     },
   ],
@@ -116,7 +116,7 @@ describe("quest_group codec", () => {
       "rotation",
       "distribution",
       "tiers",
-      "on",
+      "actions",
       "quests",
     ]);
   });
@@ -207,14 +207,29 @@ describe("keys and ids", () => {
 });
 
 describe("quest actions at completion", () => {
-  it("reads the former `rewards` as on.complete and drops reward_display", () => {
+  it("reads the former `on` keys as `actions`", () => {
+    const steps = [{ send_message: "gg" }];
+    const { out } = roundTrip({
+      ...daily,
+      actions: undefined,
+      on: { quest_complete: steps },
+      quests: [{ ...daily.quests[0], actions: undefined, on: { complete: steps } }],
+    });
+    expect(out.actions).toEqual({ quest_complete: steps });
+    expect(out).not.toHaveProperty("on");
+    const quest = (out.quests as Record<string, unknown>[])[0]!;
+    expect(quest.actions).toEqual({ complete: steps });
+    expect(quest).not.toHaveProperty("on");
+  });
+
+  it("reads the former `rewards` as actions.complete and drops reward_display", () => {
     const steps = [{ run_command: { command: "levels addxp {actor_name} 150" } }];
     const { out } = roundTrip({
       ...daily,
-      quests: [{ ...daily.quests[0], on: undefined, rewards: steps, reward_display: ["+150 XP"] }],
+      quests: [{ ...daily.quests[0], actions: undefined, rewards: steps, reward_display: ["+150 XP"] }],
     });
     const quest = (out.quests as Record<string, unknown>[])[0]!;
-    expect(quest.on).toEqual({ complete: steps });
+    expect(quest.actions).toEqual({ complete: steps });
     expect(quest).not.toHaveProperty("rewards");
     expect(quest).not.toHaveProperty("reward_display");
   });

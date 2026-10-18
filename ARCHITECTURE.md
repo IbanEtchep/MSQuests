@@ -169,7 +169,7 @@ continue.
 
 ### Recompenses, crochets et requirements : chaines Artisan
 
-Le `on.complete` d'une quete (ancien nom `rewards`, encore lu) et les 7 crochets du groupe (`actions.quest_start`, `quest_complete`,
+Le `actions.complete` d'une quete et les 7 crochets du groupe (cle `actions` ; anciens noms `on` et `rewards`, encore lus) (`actions.quest_start`, `quest_complete`,
 `objective_progress`, `objective_complete`, `quest_distribution`, `actor_load`,
 `all_period_quests_complete`) sont des chaines Artisan (wire structure : `{action: args}`,
 `if/do/else`). Le core les porte en `ActionChain` opaque et les execute via le port
