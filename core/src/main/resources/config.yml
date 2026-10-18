@@ -67,3 +67,7 @@ tracking:
 
 placeholders:
   cycle_duration_seconds: 5
+
+deliver_item:
+  # Also take the items from shulker boxes carried in the inventory, once the inventory itself is empty.
+  include_shulker_boxes: true

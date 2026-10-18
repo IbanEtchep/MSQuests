@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
+import com.github.ibanetchep.msquests.bukkit.quest.objective.ContributableObjective;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.core.lang.Translator;
@@ -11,6 +12,7 @@ import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestDistributionStrategy;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
+import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.quest.result.QuestRotateResult;
 import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
@@ -207,6 +209,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
                 (player, args) -> track(player, argv(args))));
         api.getCommands().register(new CommandDeclaration("msquests:rotate",
                 (player, args) -> rotate(player, argv(args))));
+        api.getCommands().register(new CommandDeclaration("msquests:contribute",
+                (player, args) -> contribute(player, argv(args))));
     }
 
     /**
@@ -395,6 +399,32 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
         QuestRotateResult result = plugin.getQuestLifecycleService().rotateQuest(actor, quest);
         player.sendMessage(MessageBuilder.translatable(result).toComponent());
+    }
+
+    /**
+     * Hands over to every in-progress {@link ContributableObjective} of the quest whatever the
+     * player can give — items from the inventory, money from a bank — and reports each one.
+     */
+    private void contribute(Player player, List<String> argv) {
+        if (argv.isEmpty()) return;
+        Quest quest = findQuest(player, argv.get(0));
+        if (quest == null) return;
+
+        PlayerProfile profile = plugin.getPlayerProfileRegistry().getPlayerProfile(player.getUniqueId());
+        for (QuestObjective objective : quest.getActiveObjectives()) {
+            if (!(objective instanceof ContributableObjective contributable) || objective.isCompleted()) continue;
+
+            ContributableObjective.Contribution[] contribution = new ContributableObjective.Contribution[1];
+            boolean allowed = plugin.getQuestProgressService().contributeNow(objective, () -> {
+                contribution[0] = contributable.contribute(player);
+                return contribution[0].amount();
+            }, profile);
+            if (!allowed) continue; // refused by another plugin: nothing was taken, nothing to report
+
+            MessageBuilder message = MessageBuilder.translatable(contribution[0].messageKey());
+            contribution[0].placeholders().forEach(message::placeholder);
+            player.sendMessage(message.toComponent());
+        }
     }
 
     /**
