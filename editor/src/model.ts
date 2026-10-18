@@ -256,10 +256,10 @@ export function parseQuestGroup(src: Raw, ctx: DocumentParseContext): DocumentPa
   return { doc, i18nKeys, unsupported };
 }
 
-/** `on`, the former name of `actions`, moves there. */
+/** `on`, the former name of `actions`, moves there; a null `actions` counts as absent, as on the server. */
 function renameOn(rest: Raw): Raw {
   if (rest.on !== undefined) {
-    if (rest.actions === undefined) rest.actions = rest.on;
+    if (rest.actions == null) rest.actions = rest.on;
     delete rest.on;
   }
   return rest;
@@ -272,7 +272,7 @@ function questRest(q: Raw): Raw {
   );
   if (rest.rewards !== undefined) {
     const actions = asMap(rest.actions);
-    if (actions.complete === undefined) rest.actions = { ...actions, complete: rest.rewards };
+    if (actions.complete == null) rest.actions = { ...actions, complete: rest.rewards };
     delete rest.rewards;
   }
   return rest;

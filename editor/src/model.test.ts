@@ -222,6 +222,18 @@ describe("quest actions at completion", () => {
     expect(quest).not.toHaveProperty("on");
   });
 
+  it("treats a null `actions` as absent, like the server", () => {
+    const steps = [{ send_message: "gg" }];
+    const { out } = roundTrip({
+      ...daily,
+      actions: null,
+      on: { quest_complete: steps },
+      quests: [{ ...daily.quests[0], actions: { complete: null }, rewards: steps }],
+    });
+    expect(out.actions).toEqual({ quest_complete: steps });
+    expect((out.quests as Record<string, unknown>[])[0]!.actions).toEqual({ complete: steps });
+  });
+
   it("reads the former `rewards` as actions.complete and drops reward_display", () => {
     const steps = [{ run_command: { command: "levels addxp {actor_name} 150" } }];
     const { out } = roundTrip({
