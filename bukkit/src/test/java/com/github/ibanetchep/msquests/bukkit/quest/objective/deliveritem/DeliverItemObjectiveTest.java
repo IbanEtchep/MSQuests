@@ -70,6 +70,14 @@ class DeliverItemObjectiveTest extends AbstractObjectiveHandlerTest {
         assertEquals(10, count(Material.STONE));
     }
 
+    @Test
+    void aLegacyMaterialPassesTheSchema() {
+        String schema = com.github.ibanetchep.msquests.core.util.JsonSchemaGenerator.generateSchema(DeliverItemObjectiveConfig.class);
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> com.github.ibanetchep.msquests.core.util.JsonSchemaValidator
+                .validate(Map.of("material", "STONE", "amount", 64), schema));
+    }
+
     @AfterEach
     void restoreDefault() {
         DeliverItemObjective.setIncludeShulkerBoxes(true);
