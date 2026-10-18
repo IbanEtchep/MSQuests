@@ -50,7 +50,7 @@ export interface Quest {
   /** `24h`, `1h30m`, `90s` or seconds; "" = no limit. */
   duration: string;
   stages: Stage[];
-  /** `on.complete` (a list of actions), `requirements`… verbatim. */
+  /** `actions.complete` (a list of actions), `requirements`… verbatim. */
   rest: Raw;
 }
 
@@ -235,7 +235,7 @@ export function parseQuestGroup(src: Raw, ctx: DocumentParseContext): DocumentPa
     distribution: asMap(src.distribution),
     tiers,
     quests,
-    rest: without(
+    rest: renameOn(without(
       asMap(src),
       "id",
       "schema",
@@ -249,11 +249,33 @@ export function parseQuestGroup(src: Raw, ctx: DocumentParseContext): DocumentPa
       "distribution",
       "tiers",
       "quests",
-    ),
+    )),
   };
   if (src.schema !== undefined && src.schema !== SCHEMA)
     unsupported.push(`schema: ${String(src.schema)}`);
   return { doc, i18nKeys, unsupported };
+}
+
+/** `on`, the former name of `actions`, moves there; a null `actions` counts as absent, as on the server. */
+function renameOn(rest: Raw): Raw {
+  if (rest.on !== undefined) {
+    if (rest.actions == null) rest.actions = rest.on;
+    delete rest.on;
+  }
+  return rest;
+}
+
+/** A quest's verbatim fields; `rewards`, the former name of `actions.complete`, moves there. */
+function questRest(q: Raw): Raw {
+  const rest = renameOn(
+    without(q, "key", "uid", "tier", "title", "description", "duration", "stages", "reward_display"),
+  );
+  if (rest.rewards !== undefined) {
+    const actions = asMap(rest.actions);
+    if (actions.complete == null) rest.actions = { ...actions, complete: rest.rewards };
+    delete rest.rewards;
+  }
+  return rest;
 }
 
 // ------------------------------------------------------------------ serialize
@@ -288,7 +310,7 @@ const ORDER = [
   "rotation",
   "distribution",
   "tiers",
-  "on",
+  "actions",
   "quests",
 ];
 
@@ -410,17 +432,6 @@ export function* questGroupTextSites(group: QuestGroup): Iterable<LTextSiteContr
  * server when it loads the group (`LegacyActions`) and by `/msquests migrate`: the view keeps
  * it apart, as it is, since the chain editor does not read that format.
  */
-/** A quest's verbatim fields; `rewards`, the former name of `on.complete`, moves there. */
-function questRest(q: Raw): Raw {
-  const rest = without(q, "key", "uid", "tier", "title", "description", "duration", "stages", "reward_display");
-  if (rest.rewards !== undefined) {
-    const on = asMap(rest.on);
-    if (on.complete === undefined) rest.on = { ...on, complete: rest.rewards };
-    delete rest.rewards;
-  }
-  return rest;
-}
-
 export function rewardSteps(rewards: unknown): Raw[] {
   if (Array.isArray(rewards)) return rewards as Raw[];
   return rewards && typeof rewards === "object" ? [rewards as Raw] : [];
@@ -453,7 +464,7 @@ export function legacyLabel(step: Raw): string {
   return typeof detail === "string" ? `${type} · ${detail}` : type;
 }
 
-/** The group hooks (`on.*`) of `QuestGroupDocumentReader.HOOKS`, in the order a period lives them. */
+/** The group hooks (`actions.*`) of `QuestGroupDocumentReader.HOOKS`, in the order a period lives them. */
 export const HOOKS = [
   "distribution",
   "actor_load",
