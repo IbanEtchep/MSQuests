@@ -85,6 +85,23 @@ class QuestGroupDocumentRepositoryTest {
     }
 
     @Test
+    void questHooksAreReadFromActions() throws Exception {
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", """
+                    actions:
+                      start: [ { send_message: "<green>Go" } ]
+                      objective_progress: [ { send_message: "+1" } ]
+                      objective_complete: [ { send_message: "<green>Done" } ]
+                """));
+
+        QuestConfigDTO mine = load().groups().get("daily").quests().getFirst();
+
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Go")), mine.hooks().start());
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "+1")), mine.hooks().objectiveProgress());
+        assertEquals(java.util.List.of(java.util.Map.of("send_message", "<green>Done")), mine.hooks().objectiveComplete());
+        assertEquals(java.util.List.of(), mine.rewards());
+    }
+
+    @Test
     void questOnAndRewardsKeysAreStillReadAsTheOldNamesOfActions() throws Exception {
         Files.writeString(project.resolve("quest_groups/old.yaml"), group("G2", "Q2", """
                     on:

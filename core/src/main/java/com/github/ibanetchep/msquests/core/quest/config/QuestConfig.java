@@ -19,6 +19,9 @@ public class QuestConfig implements PlaceholderProvider {
     private String description;
     private final Map<String, QuestStageConfig> stages;
     private ActionChain rewards = ActionChain.EMPTY;
+    private ActionChain startActions = ActionChain.EMPTY;
+    private ActionChain objectiveProgressActions = ActionChain.EMPTY;
+    private ActionChain objectiveCompleteActions = ActionChain.EMPTY;
     private long duration; // max in seconds
     private String tier;
     private QuestGroupConfig group;
@@ -91,6 +94,33 @@ public class QuestConfig implements PlaceholderProvider {
 
     public void setRewards(ActionChain rewards) {
         this.rewards = rewards;
+    }
+
+    /** Chain run when the quest starts, after the group's {@code quest_start}. */
+    public ActionChain getStartActions() {
+        return startActions;
+    }
+
+    public void setStartActions(ActionChain startActions) {
+        this.startActions = startActions;
+    }
+
+    /** Chain run when one of the quest's objectives progresses, after the group's {@code objective_progress}. */
+    public ActionChain getObjectiveProgressActions() {
+        return objectiveProgressActions;
+    }
+
+    public void setObjectiveProgressActions(ActionChain objectiveProgressActions) {
+        this.objectiveProgressActions = objectiveProgressActions;
+    }
+
+    /** Chain run when one of the quest's objectives completes, after the group's {@code objective_complete}. */
+    public ActionChain getObjectiveCompleteActions() {
+        return objectiveCompleteActions;
+    }
+
+    public void setObjectiveCompleteActions(ActionChain objectiveCompleteActions) {
+        this.objectiveCompleteActions = objectiveCompleteActions;
     }
 
     public void setGroup(QuestGroupConfig group) {

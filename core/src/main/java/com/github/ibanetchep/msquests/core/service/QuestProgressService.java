@@ -106,6 +106,7 @@ public class QuestProgressService {
         dispatcher.dispatch(progressedEvent);
 
         chains.run(objective.getQuest().getQuestGroup().getObjectiveProgressActions(), ChainContext.of(objective));
+        chains.run(objective.getQuest().getQuestConfig().getObjectiveProgressActions(), ChainContext.of(objective));
 
         if (objective.isCompleted()) {
             return questLifecycleService.completeObjective(objective, profile);
