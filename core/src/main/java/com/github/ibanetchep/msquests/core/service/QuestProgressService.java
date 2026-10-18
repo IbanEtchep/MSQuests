@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntSupplier;
 
 public class QuestProgressService {
 
@@ -48,12 +49,17 @@ public class QuestProgressService {
     }
 
     public void progressObjective(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
-        if(objective.isCompleted()) return;
+        if (objective.isCompleted() || !mayProgress(objective, profile)) return;
+        addPending(objective, progress, profile);
+    }
 
+    private boolean mayProgress(QuestObjective objective, @Nullable PlayerProfile profile) {
         var progressEvent = new CoreQuestObjectiveProgressEvent(objective, profile);
         dispatcher.dispatch(progressEvent);
-        if (progressEvent.isCancelled()) return;
+        return !progressEvent.isCancelled();
+    }
 
+    private void addPending(QuestObjective objective, int progress, @Nullable PlayerProfile profile) {
         ObjectiveKey key = ObjectiveKey.of(objective);
 
         var pendingObjectiveProgress = pendingProgress.compute(key, (k, existing) ->
@@ -65,6 +71,22 @@ public class QuestProgressService {
         if(objective.getProgress() + pendingObjectiveProgress.progress >= objective.getTarget()) {
             flushProgress(pendingObjectiveProgress);
         }
+    }
+
+    /**
+     * What a player hands over (items, money): the progress event is fired first, and {@code take}
+     * only runs when it is allowed, so a refused progress takes nothing. The amount taken is
+     * persisted right away, and the next contribution reads an up-to-date {@code getProgress()}
+     * to know what is still missing. Returns false when the progress was refused.
+     */
+    public boolean contributeNow(QuestObjective objective, IntSupplier take, @Nullable PlayerProfile profile) {
+        if (objective.isCompleted() || !mayProgress(objective, profile)) return false;
+        int amount = take.getAsInt();
+        if (amount <= 0) return true;
+        addPending(objective, amount, profile);
+        PendingObjectiveProgress pending = pendingProgress.get(ObjectiveKey.of(objective));
+        if (pending != null) flushProgress(pending);
+        return true;
     }
 
     private CompletableFuture<Quest> flushProgress(PendingObjectiveProgress pendingObjectiveProgress) {

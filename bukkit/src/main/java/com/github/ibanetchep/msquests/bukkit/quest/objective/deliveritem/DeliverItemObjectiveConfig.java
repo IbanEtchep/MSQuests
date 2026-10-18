@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ObjectiveType(ObjectiveTypes.DELIVER_ITEM)
-@AtLeastOneOfFields({"item", "itemKey"})
+@AtLeastOneOfFields({"item", "material", "itemKey"})
 public class DeliverItemObjectiveConfig extends QuestObjectiveConfig {
 
     /** {@code item} + {@code match}, or the legacy {@code material}. */

@@ -240,8 +240,13 @@ Cela suppose que la cible d'un objectif soit lisible sans instance : `QuestObjec
 declare `getTarget()`, et `AbstractQuestObjective` la lit de la, au lieu de la recevoir en
 argument de constructeur. Catalogue et instance live ne peuvent donc pas diverger.
 
-Deux commandes appelables depuis un bouton de menu : `msquests:track <id>` (toggle) et
-`msquests:rotate <id>`, ou `<id>` est soit l'UUID d'une instance, soit un `group:key`.
+Trois commandes appelables depuis un bouton de menu : `msquests:track <id>` (toggle),
+`msquests:rotate <id>` et `msquests:contribute <id>`, ou `<id>` est soit l'UUID d'une instance,
+soit un `group:key`. `contribute` donne a chaque objectif en cours qui implemente
+`ContributableObjective` ce que le joueur peut fournir (items de l'inventaire pour `deliver_item`,
+argent pour un objectif de banque fourni par un plugin tiers), jamais plus que ce qui manque. La
+progression est ecrite tout de suite (`progressObjectiveNow`), pas mise en batch : ce que le joueur
+a donne a deja quitte son inventaire.
 
 **Brut plutot que pre-formate.** La mise en forme appartient au menu. Les lignes
 portent des nombres (`objective_progress` / `objective_target`), des listes
@@ -425,7 +430,7 @@ Chaque type d'objectif suit un pattern en 3 classes + registration :
 | `execute_command` | `PlayerCommandPreprocessEvent` | command pattern |
 | `craft_item` | `CraftItemEvent` | item (`item` + `match`, legacy `material`) |
 | `breed_animal` | `EntityBreedEvent` | entity type |
-| `deliver_item` | Integration custom (not wired yet) | item (`item` + `match`, legacy `material`) |
+| `deliver_item` | `msquests:contribute` (menu) | item (`item` + `match`, legacy `material`), amount — inventaire puis shulkers portees (`deliver_item.include_shulker_boxes` dans config.yml) |
 | `harvest_crop` | `BlockBreakEvent` | crop type |
 
 An objective's **item** (`ItemTarget`) is an Artisan item spec: the fields of a menu button's appearance (`material`: vanilla, `item:<captured id>` or `nexo:<id>`…; `title`, `lore`, `enchants`, `custom_model_data`), built and compared by `api.getItems()` (Artisan API 2.4.0). `match` lists the criteria (`material`, `custom_item`, `name`, `lore`, `enchants`, `custom_model_data`, `damage`, `exact`); absent, those the item carries. A legacy bare material is compared on the material alone, and is rewritten as `item` + `match: [material]` on save. No item: any item.
