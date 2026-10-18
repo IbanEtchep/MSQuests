@@ -28,7 +28,7 @@ import java.util.Set;
  * shared. The group key is the Document's id (its file name); the {@code uid}s are what the
  * database stores.
  *
- * <p>Actions ({@code on.*}, {@code rewards}) are Artisan chains and conditions ({@code requirements},
+ * <p>Actions ({@code actions.*}; formerly {@code on.*} and {@code rewards}, still read) are Artisan chains and conditions ({@code requirements},
  * objective {@code conditions}) Artisan conditions, in the keyed wire; Artisan checks their
  * vocabulary when it runs them. A step or condition still in the MSQuests format
  * ({@code type: command}, written by the first migration) is converted as it is read
@@ -40,7 +40,7 @@ public final class QuestGroupDocumentReader {
 
     public static final String SCHEMA = "quest_group/v1";
 
-    /** {@code on.<hook>} → the hook of {@link QuestGroupConfigActionsDTO}. */
+    /** {@code actions.<hook>} → the hook of {@link QuestGroupConfigActionsDTO}. */
     static final List<String> HOOKS = List.of(
             "actor_load", "distribution", "quest_start", "quest_complete",
             "objective_progress", "objective_complete", "period_complete");
@@ -101,20 +101,21 @@ public final class QuestGroupDocumentReader {
                     strings(distribution.get("triggers"), "distribution.triggers"));
         }
 
-        Map<String, Object> on = map(doc.get("on"), "on");
-        for (String hook : on.keySet()) {
+        String hooksKey = actionsKey(doc);
+        Map<String, Object> hooks = map(doc.get(hooksKey), hooksKey);
+        for (String hook : hooks.keySet()) {
             if (!HOOKS.contains(hook)) {
-                throw new DocumentException("on." + hook, "unknown hook; expected one of " + HOOKS);
+                throw new DocumentException(hooksKey + "." + hook, "unknown hook; expected one of " + HOOKS);
             }
         }
         QuestGroupConfigActionsDTO actions = new QuestGroupConfigActionsDTO(
-                chain(on.get("quest_start"), "on.quest_start"),
-                chain(on.get("quest_complete"), "on.quest_complete"),
-                chain(on.get("objective_progress"), "on.objective_progress"),
-                chain(on.get("objective_complete"), "on.objective_complete"),
-                chain(on.get("distribution"), "on.distribution"),
-                chain(on.get("actor_load"), "on.actor_load"),
-                chain(on.get("period_complete"), "on.period_complete"));
+                chain(hooks.get("quest_start"), hooksKey + ".quest_start"),
+                chain(hooks.get("quest_complete"), hooksKey + ".quest_complete"),
+                chain(hooks.get("objective_progress"), hooksKey + ".objective_progress"),
+                chain(hooks.get("objective_complete"), hooksKey + ".objective_complete"),
+                chain(hooks.get("distribution"), hooksKey + ".distribution"),
+                chain(hooks.get("actor_load"), hooksKey + ".actor_load"),
+                chain(hooks.get("period_complete"), hooksKey + ".period_complete"));
 
         List<QuestConfigDTO> quests = new ArrayList<>();
         Set<String> questUids = new HashSet<>();
@@ -194,10 +195,11 @@ public final class QuestGroupDocumentReader {
                     objectives));
         }
 
-        // `rewards` is the former name of on.complete, still read.
-        Map<String, Object> on = map(quest.get("on"), path + ".on");
-        List<Object> onComplete = on.get("complete") != null
-                ? chain(on.get("complete"), path + ".on.complete")
+        // `rewards` is the former name of actions.complete, still read.
+        String questActionsKey = actionsKey(quest);
+        Map<String, Object> questActions = map(quest.get(questActionsKey), path + "." + questActionsKey);
+        List<Object> onComplete = questActions.get("complete") != null
+                ? chain(questActions.get("complete"), path + "." + questActionsKey + ".complete")
                 : chain(quest.get("rewards"), path + ".rewards");
 
         try {
@@ -291,6 +293,11 @@ public final class QuestGroupDocumentReader {
     }
 
     // ------------------------------------------------------------------ values
+
+    /** {@code actions}, or {@code on}, its former name, in a file that has only that one. */
+    private static String actionsKey(Map<String, Object> node) {
+        return node.get("actions") == null && node.get("on") != null ? "on" : "actions";
+    }
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> map(@Nullable Object value, String path) {

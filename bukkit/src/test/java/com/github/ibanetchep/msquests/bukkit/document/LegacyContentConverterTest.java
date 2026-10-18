@@ -81,8 +81,10 @@ class LegacyContentConverterTest {
         assertTrue(yaml.contains("strategy: random"));
         assertTrue(yaml.contains("period_complete:"), "all_period_quests_complete hook renamed");
         assertFalse(yaml.contains("\nkey: daily"), "the group key is the Document id, not a field");
-        assertTrue(yaml.contains("    \"on\":\n      complete:\n") || yaml.contains("    on:\n      complete:\n"), "quest actions at completion under on.complete");
-        assertFalse(yaml.contains("rewards:"), "quest actions at completion live under on.complete");
+        assertTrue(yaml.contains("    actions:\n      complete:\n"), "quest actions at completion under actions.complete");
+        assertTrue(yaml.contains("\nactions:\n"), "group hooks under actions");
+        assertFalse(yaml.contains("\"on\":"), "on is only read, never written");
+        assertFalse(yaml.contains("rewards:"), "quest actions at completion live under actions.complete");
         assertFalse(yaml.contains("reward_display"), "reward lines are part of the description");
     }
 

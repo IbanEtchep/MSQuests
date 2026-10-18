@@ -78,7 +78,7 @@ public final class QuestGroupDocumentWriter {
         }
 
         putIfSet(doc, "objective_line", Ltext.of(group.objectiveLine(), lang));
-        putIfAny(doc, "on", hooks(group.actions()));
+        putIfAny(doc, "actions", hooks(group.actions()));
 
         List<Object> quests = new ArrayList<>();
         if (group.quests() != null) {
@@ -136,7 +136,7 @@ public final class QuestGroupDocumentWriter {
         out.put("stages", stageList);
 
         if (quest.rewards() != null && !quest.rewards().isEmpty()) {
-            out.put("on", Map.of("complete", quest.rewards()));
+            out.put("actions", Map.of("complete", quest.rewards()));
         }
         return out;
     }
