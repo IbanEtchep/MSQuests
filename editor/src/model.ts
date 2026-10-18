@@ -475,3 +475,7 @@ export const HOOKS = [
   "period_complete",
 ] as const;
 export type Hook = (typeof HOOKS)[number];
+
+/** A quest's hooks (`actions.*`) of `QuestGroupDocumentReader.QUEST_HOOKS`, in the order a quest lives them. */
+export const QUEST_HOOKS = ["start", "objective_progress", "objective_complete", "complete"] as const;
+export type QuestHook = (typeof QUEST_HOOKS)[number];

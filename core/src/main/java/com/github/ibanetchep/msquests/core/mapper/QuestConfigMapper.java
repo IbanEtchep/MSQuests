@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.core.mapper;
 
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestConfigHooksDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestStageConfigDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestObjectiveFactory;
@@ -44,7 +45,11 @@ public class QuestConfigMapper {
                 entity.getRewards().steps(),
                 stageDtos,
                 entity.getRequirements().isEmpty() ? null : entity.getRequirements().conditions(),
-                entity.getUid()
+                entity.getUid(),
+                new QuestConfigHooksDTO(
+                        entity.getStartActions().steps(),
+                        entity.getObjectiveProgressActions().steps(),
+                        entity.getObjectiveCompleteActions().steps())
         );
     }
 
@@ -55,6 +60,11 @@ public class QuestConfigMapper {
         questConfig.setUid(dto.uid());
 
         questConfig.setRewards(ActionChain.of(dto.rewards()));
+        if (dto.hooks() != null) {
+            questConfig.setStartActions(ActionChain.of(dto.hooks().start()));
+            questConfig.setObjectiveProgressActions(ActionChain.of(dto.hooks().objectiveProgress()));
+            questConfig.setObjectiveCompleteActions(ActionChain.of(dto.hooks().objectiveComplete()));
+        }
         questConfig.setRequirements(Conditions.of(dto.requirements()));
 
         for (QuestStageConfigDTO stageDto : dto.stages()) {
