@@ -165,7 +165,13 @@ function NumberField({
   label,
   value,
   onChange,
-}: { label: string; value: unknown; onChange: (v: number | undefined) => void }) {
+  placeholder,
+}: {
+  label: string;
+  value: unknown;
+  onChange: (v: number | undefined) => void;
+  placeholder?: string;
+}) {
   return (
     <Field label={label}>
       <input
@@ -174,6 +180,7 @@ function NumberField({
         min={0}
         step={1}
         value={asNumber(value)}
+        placeholder={placeholder}
         onChange={(e) => {
           const raw = e.target.value.trim();
           onChange(raw === "" ? undefined : Math.max(0, Math.trunc(Number(raw))));
@@ -337,20 +344,23 @@ function GroupView({
             onChange={(e) => edit((g) => setOrDelete(g.reset, "cron", e.target.value))}
           />
         </Field>
-        <Field label={t("timezone")}>
-          <input
-            className="input"
-            list="aq-timezones"
-            value={timezone}
-            placeholder={t("timezoneServer")}
-            onChange={(e) => edit((g) => setOrDelete(g.reset, "timezone", e.target.value.trim()))}
-          />
-          <datalist id="aq-timezones">
-            {TIMEZONES.map((z) => (
-              <option key={z} value={z} />
-            ))}
-          </datalist>
-        </Field>
+        {/* The cron is read in this zone: only meaningful once there is a cron. */}
+        {cron || timezone ? (
+          <Field label={t("timezone")}>
+            <input
+              className="input"
+              list="aq-timezones"
+              value={timezone}
+              placeholder={t("timezoneServer")}
+              onChange={(e) => edit((g) => setOrDelete(g.reset, "timezone", e.target.value.trim()))}
+            />
+            <datalist id="aq-timezones">
+              {TIMEZONES.map((z) => (
+                <option key={z} value={z} />
+              ))}
+            </datalist>
+          </Field>
+        ) : null}
       </section>
 
       <section className="aq-section">
@@ -437,7 +447,8 @@ function GroupView({
             onChange={(v) => edit((g) => setOrDelete(g.limits, "max_active", v))}
           />
           <NumberField
-            label={t("maxPerPeriod")}
+            label={t("questsPerPeriod")}
+            placeholder={t("noLimit")}
             value={group.limits.max_per_period}
             onChange={(v) => edit((g) => setOrDelete(g.limits, "max_per_period", v))}
           />
@@ -454,11 +465,14 @@ function GroupView({
             />
             {t("rotationEnabled")}
           </label>
-          <NumberField
-            label={t("maxPerPeriod")}
-            value={group.rotation.max_per_period}
-            onChange={(v) => edit((g) => setOrDelete(g.rotation, "max_per_period", v))}
-          />
+          {group.rotation.enabled === true ? (
+            <NumberField
+              label={t("rotationsPerPeriod")}
+              placeholder={t("noLimit")}
+              value={group.rotation.max_per_period}
+              onChange={(v) => edit((g) => setOrDelete(g.rotation, "max_per_period", v))}
+            />
+          ) : null}
         </div>
       </section>
 
