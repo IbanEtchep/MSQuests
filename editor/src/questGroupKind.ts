@@ -2,6 +2,7 @@ import type { DocumentKindContribution } from "@artisan/editor-sdk";
 import { textValue } from "@artisan/editor-sdk";
 import { QuestGroupEditor } from "./QuestGroupEditor";
 import { LABELS } from "./i18n";
+import { QUEST_ACCENT, questBoardItems, questBoardSummary } from "./questBoard";
 import {
   DIR,
   KIND,
@@ -44,17 +45,10 @@ export const questGroupKind: DocumentKindContribution = {
   serialize: (doc, project) => serializeQuestGroup(doc as QuestGroup, project),
   ltextSites: (doc) => questGroupTextSites(doc as QuestGroup),
   board: {
-    size: { width: 220, height: 48 },
+    size: { width: 240, height: 48 },
+    accent: QUEST_ACCENT,
     // The group's quests, one selectable row each: the Properties panel opens the one clicked.
-    items: (doc, { project, lang }) =>
-      (doc as QuestGroup).quests.map((q) => ({
-        id: q.uid,
-        label: textValue(project, q.title.key, lang) || q.key,
-        detail: q.tier || undefined,
-      })),
-    summary: (doc) => {
-      const n = (doc as QuestGroup).quests.length;
-      return `quest_group · ${n}`;
-    },
+    items: (doc, { project, lang }) => questBoardItems(doc as QuestGroup, project, lang),
+    summary: (doc, { lang }) => questBoardSummary(doc as QuestGroup, lang),
   },
 };
