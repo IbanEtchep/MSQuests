@@ -51,6 +51,7 @@ import {
   objectiveTarget,
   writeItemParam,
 } from "./objectives";
+import { objectiveLine, typeLabel } from "./questBoard";
 import { QUESTS_CSS } from "./styles";
 
 const DURATION = /^(\d+|(\d+[dhms])+)$/;
@@ -1017,10 +1018,6 @@ function StageCard({
   );
 }
 
-function typeLabel(t: T, type: string): string {
-  return objectiveSpec(type) ? t(`objective.${type}` as Parameters<T>[0]) : type;
-}
-
 /**
  * One objective: a line saying what it asks (`⛏ Break blocks · 64 × STONE`), which opens
  * its form. The key, generated from the type, waits under "More options".
@@ -1275,11 +1272,7 @@ function ParamField({
 
 function Preview({ ctx, quest }: { ctx: Ctx; quest: Quest }) {
   const { t, project, lang } = ctx;
-  const line = (o: Objective) => {
-    const what = objectiveSubject(o.type, o.params);
-    const target = objectiveTarget(o.params);
-    return `${typeLabel(t, o.type)}${what ? ` · ${what}` : ""}${target !== undefined ? ` · 0/${String(target)}` : ""}`;
-  };
+  const line = (o: Objective) => objectiveLine(t, o);
   return (
     <div className="aq-preview">
       <span className="aq-preview-title">
