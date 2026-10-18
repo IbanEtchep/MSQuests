@@ -28,7 +28,9 @@ public record QuestGroupConfigDTO(
         // Only quest_group Documents carry these (null otherwise); quests/*.yml never does, so a
         // legacy file cannot smuggle in an id the database would then key rows by.
         @JsonIgnore String uid,
-        @JsonIgnore String resetTimezone
+        @JsonIgnore String resetTimezone,
+        // The Artisan project the Document was read from; set by the reader of every project.
+        @JsonIgnore String sourceProject
 ) {
     public QuestGroupConfigDTO(String key, String name, String description, List<QuestConfigDTO> quests,
                                Integer maxActive, Integer maxPerPeriod, String resetCron, Instant startAt,
@@ -36,7 +38,14 @@ public record QuestGroupConfigDTO(
                                Map<String, QuestTierConfigDTO> tiers, Map<String, Integer> tierDistribution,
                                Boolean rotatable, Integer maxRotationsPerPeriod, DistributionConfigDTO distribution) {
         this(key, name, description, quests, maxActive, maxPerPeriod, resetCron, startAt, endAt, actorType,
-                actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution, null, null, null);
+                actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution, null, null, null, null);
+    }
+
+    /** This group as read from {@code project}. */
+    public QuestGroupConfigDTO withSourceProject(String project) {
+        return new QuestGroupConfigDTO(key, name, description, quests, maxActive, maxPerPeriod, resetCron, startAt,
+                endAt, actorType, actions, tiers, tierDistribution, rotatable, maxRotationsPerPeriod, distribution,
+                objectiveLine, uid, resetTimezone, project);
     }
 
     public QuestGroupConfigDTO {

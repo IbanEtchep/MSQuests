@@ -192,6 +192,75 @@ class QuestGroupDocumentRepositoryTest {
         assertNotEquals(before, repository.fingerprint());
     }
 
+    // ------------------------------------------------------------ every project
+
+    private static Path newProject(Path parent, String lang) throws Exception {
+        Files.createDirectories(parent.resolve("quest_groups"));
+        Files.writeString(parent.resolve("manifest.yaml"), "schema: manifest/v1\ndefault_lang: " + lang + "\n");
+        return parent;
+    }
+
+    @Test
+    void readsTheGroupsOfEveryProjectEachInItsOwnLanguage(@TempDir Path other) throws Exception {
+        Path guilds = newProject(other, "fr");
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", ""));
+        Files.writeString(guilds.resolve("quest_groups/guild_levels.yaml"), group("G2", "Q2", ""));
+
+        QuestConfigLoad load = new QuestGroupDocumentRepository(
+                ProjectFiles.directories(java.util.Map.of("quests", project, "guildes", guilds))).loadNow();
+
+        assertEquals(java.util.List.of(), load.failures());
+        assertEquals("quests", load.groups().get("daily").sourceProject());
+        assertEquals("Daily", load.groups().get("daily").name());
+        assertEquals("guildes", load.groups().get("guild_levels").sourceProject());
+        assertEquals("Quotidiennes", load.groups().get("guild_levels").name());
+    }
+
+    @Test
+    void aGroupKeyHeldByTwoProjectsLoadsInNeither(@TempDir Path other) throws Exception {
+        Path guilds = newProject(other, "en");
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", ""));
+        Files.writeString(guilds.resolve("quest_groups/daily.yaml"), group("G2", "Q2", ""));
+        Files.writeString(guilds.resolve("quest_groups/weekly.yaml"), group("G3", "Q3", ""));
+
+        QuestConfigLoad load = new QuestGroupDocumentRepository(
+                ProjectFiles.directories(java.util.Map.of("quests", project, "guildes", guilds))).loadNow();
+
+        assertEquals(java.util.Set.of("weekly"), load.groups().keySet());
+        assertEquals(1, load.failures().size());
+        String failure = load.failures().getFirst();
+        assertTrue(failure.contains("guildes/quest_groups/daily.yaml"), failure);
+        assertTrue(failure.contains("quests/quest_groups/daily.yaml"), failure);
+        assertTrue(failure.contains("unique on the server"), failure);
+    }
+
+    @Test
+    void aUidIsUniqueAcrossProjects(@TempDir Path other) throws Exception {
+        Path guilds = newProject(other, "en");
+        Files.writeString(guilds.resolve("quest_groups/a.yaml"), group("G1", "Q1", ""));
+        Files.writeString(project.resolve("quest_groups/b.yaml"), group("G1", "Q2", ""));
+
+        QuestConfigLoad load = new QuestGroupDocumentRepository(
+                ProjectFiles.directories(java.util.Map.of("quests", project, "guildes", guilds))).loadNow();
+
+        assertEquals(java.util.Set.of("a"), load.groups().keySet());
+        assertTrue(load.failures().getFirst().startsWith("quests/quest_groups/b.yaml: uid G1 of b is already used by a"),
+                load.failures().toString());
+    }
+
+    @Test
+    void theFingerprintFollowsTheGroupsOfOtherProjects(@TempDir Path other) throws Exception {
+        Path guilds = newProject(other, "en");
+        QuestGroupDocumentRepository repository = new QuestGroupDocumentRepository(
+                ProjectFiles.directories(java.util.Map.of("quests", project, "guildes", guilds)));
+        Files.writeString(project.resolve("quest_groups/daily.yaml"), group("G1", "Q1", ""));
+        String before = repository.fingerprint();
+
+        Files.writeString(guilds.resolve("quest_groups/levels.yaml"), group("G2", "Q2", ""));
+
+        assertNotEquals(before, repository.fingerprint());
+    }
+
     @Test
     void aLegacyFileCannotCarryAUid() throws Exception {
         Path quests = project.resolve("legacy");

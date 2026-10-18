@@ -133,7 +133,10 @@ est enregistre et declare :
   n'y ecrit que `manifest.yaml` (langue par defaut = partie langue du reglage `language`)
   et `quest_groups/` ; un dossier non vide n'est jamais touche ;
 - **le kind de Document `quest_group`** (dossier `quest_groups/`, schema `quest_group/v1`) :
-  un Document par groupe, nomme d'apres la cle du groupe. Les quetes s'y chargent avec
+  un Document par groupe, nomme d'apres la cle du groupe, dans **n'importe quel projet**
+  Artisan (`ArtisanProjectFiles` sur `api.getProject()`), pas seulement celui du module. Les
+  chaines d'actions d'un groupe s'executent dans le projet qui porte son Document, pour que ses
+  references de menu s'y resolvent. Les quetes s'y chargent avec
   `content_source: artisan` (voir *Source du contenu*) ; sinon depuis `quests/*.yml`.
   `onReload` (publication, `/artisan reload`) recharge les quetes quand ces Documents ont
   change (empreinte SHA-256), et ne fait rien sinon ;
@@ -478,15 +481,17 @@ Lu au demarrage seulement ; un changement demande un redemarrage (`/msquests rel
 | `content_source` | Contenu | Progression |
 |---|---|---|
 | `legacy` (defaut) | `quests/*.yml` | `msquests_*`, par `(group_key, quest_key)` |
-| `artisan` | `editor/quest_groups/<groupe>.yaml` (Documents `quest_group/v1`) | `artisan_quests_*`, par `uid` |
+| `artisan` | `<projet>/quest_groups/<groupe>.yaml` de tous les projets Artisan (Documents `quest_group/v1`) | `artisan_quests_*`, par `uid` |
 
 Un Document porte un `uid` (ULID) immuable pour le groupe et pour chaque quete ; la cle du
 groupe est le nom du fichier, renommable comme les cles de quete sans perte de progression.
 `QuestGroupDocumentReader` produit le meme `QuestGroupConfigDTO` que le lecteur YAML (textes
 `ltext` resolus dans la `default_lang` du manifest, `duration` en `24h`/`90m`, cron avec
 `reset.timezone`) et refuse tout le fichier, chemin de la valeur fautive en tete, sur une
-erreur : `uid` absent ou deja pris (dans tout le projet), cle d'objectif repetee dans une
-quete, etc. Actions et conditions gardent pour l'instant le format MSQuests (`type: ...`).
+erreur : `uid` absent ou deja pris (sur tout le serveur), cle d'objectif repetee dans une
+quete, etc. Une cle de groupe est unique sur le serveur, puisque commandes et placeholders
+nomment un groupe par sa seule cle : deux projets portant `daily.yaml` sont signales avec les
+deux chemins, et aucun des deux ne charge (un rechargement est alors refuse en entier). Actions et conditions gardent pour l'instant le format MSQuests (`type: ...`).
 
 Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
 

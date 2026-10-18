@@ -80,7 +80,8 @@ public class QuestGroupMapper {
                 distributionDto,
                 QuestGroupConfig.DEFAULT_OBJECTIVE_LINE.equals(entity.getObjectiveLine()) ? null : entity.getObjectiveLine(),
                 entity.getUid(),
-                entity.getUid() != null ? entity.getResetZone().getId() : null
+                entity.getUid() != null ? entity.getResetZone().getId() : null,
+                entity.getSourceProject()
         );
     }
 
@@ -140,6 +141,7 @@ public class QuestGroupMapper {
                 .distributionConfig(distributionConfig)
                 .objectiveLine(dto.objectiveLine())
                 .uid(dto.uid())
+                .sourceProject(dto.sourceProject())
                 .resetZone(dto.resetTimezone() != null ? ZoneId.of(dto.resetTimezone()) : null)
                 .build();
 

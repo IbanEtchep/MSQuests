@@ -24,6 +24,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     private final String key;
     private final @Nullable String uid;
+    private final @Nullable String sourceProject;
     private final String name;
     private final String description;
     private final String actorType;
@@ -60,6 +61,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
     private QuestGroupConfig(Builder builder) {
         this.key = builder.key;
         this.uid = builder.uid;
+        this.sourceProject = builder.sourceProject;
         this.name = builder.name;
         this.description = builder.description;
         this.startAt = builder.startAt;
@@ -97,6 +99,15 @@ public class QuestGroupConfig implements PlaceholderProvider {
      */
     public @Nullable String getUid() {
         return uid;
+    }
+
+    /**
+     * The Artisan project whose {@code quest_groups/} holds this group's Document: its action
+     * chains run in that project, so their menu references resolve there. Null for a group read
+     * from {@code quests/*.yml}.
+     */
+    public @Nullable String getSourceProject() {
+        return sourceProject;
     }
 
     /** What rows referencing this group store: its uid when it has one, else its key. */
@@ -295,6 +306,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
         private final String actorType;
 
         private @Nullable String uid;
+        private @Nullable String sourceProject;
         private @Nullable ZoneId resetZone;
         private @Nullable Instant startAt;
         private @Nullable Instant endAt;
@@ -335,6 +347,11 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
         public Builder uid(@Nullable String uid) {
             this.uid = uid;
+            return this;
+        }
+
+        public Builder sourceProject(@Nullable String sourceProject) {
+            this.sourceProject = sourceProject;
             return this;
         }
 
