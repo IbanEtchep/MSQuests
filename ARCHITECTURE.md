@@ -111,7 +111,7 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 | `document/` | Documents `quest_group` : `QuestGroupDocumentReader`/`Writer`, `QuestGroupDocumentRepository`, `LegacyContentConverter`, `MigrationMapFile` |
 | `migration/` | `ContentMigration` (`/msquests migrate`) |
 | `service/` | `QuestPlayerService` (chargement joueurs) |
-| `lang/` | `BukkitTranslator` |
+| `lang/` | `BukkitTranslator` (fichier tenu a jour par BoostedYAML, cles servies par les traductions d'Artisan, bundle `msquests`) |
 | `text/` | `PlaceholderEngine`, `MessageBuilder` |
 | `placeholder/` | `QuestPlaceholders` (namespace Artisan `quests`) |
 | `placeholderapi/` | `QuestsPlaceholderExpansion` (alias PAPI `msquests`) |
