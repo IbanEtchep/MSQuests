@@ -17,7 +17,7 @@ import {
   useUiLang,
 } from "@artisan/editor-sdk";
 import { type ReactNode, useEffect, useState } from "react";
-import { describeCron, isCronShape } from "./cron";
+import { describeCron, isCronShape, nextCronRun } from "./cron";
 import { type T, useT } from "./i18n";
 import {
   KIND,
@@ -28,6 +28,7 @@ import {
   type Stage,
   type Text,
   HOOKS,
+  QUEST_HOOKS,
   asMap,
   freeKey,
   joinChain,
@@ -54,16 +55,30 @@ import { QUESTS_CSS } from "./styles";
 
 const DURATION = /^(\d+|(\d+[dhms])+)$/;
 const TRIGGERS = ["actor_load", "period_reset", "quest_complete"] as const;
-const TIMEZONES: string[] = (() => {
+const BROWSER_ZONE = (() => {
   try {
-    return (
-      (Intl as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ??
-      []
-    );
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch {
-    return [];
+    return "";
   }
 })();
+
+/** When the cron next fires, in the browser's clock: "Sun 19 Oct, 04:00". */
+function nextRunLabel(cron: string, lang: string): string | null {
+  const next = nextCronRun(cron, new Date());
+  if (!next) return null;
+  try {
+    return new Intl.DateTimeFormat(lang, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(next);
+  } catch {
+    return next.toLocaleString();
+  }
+}
 
 /** One edit of the group: a copy changed by `recipe`, committed with the texts it sets. */
 type Edit = (recipe: (draft: QuestGroup) => void, texts?: TextWrite[]) => void;
@@ -265,6 +280,7 @@ function GroupView({
   const cron = typeof group.reset.cron === "string" ? group.reset.cron : "";
   const cronWords = cron ? describeCron(cron, uiLang) : null;
   const timezone = typeof group.reset.timezone === "string" ? group.reset.timezone : "";
+  const nextRun = cron && isCronShape(cron) ? nextRunLabel(cron, uiLang) : null;
   const triggers = Array.isArray(group.distribution.triggers)
     ? (group.distribution.triggers as string[])
     : [];
@@ -332,7 +348,12 @@ function GroupView({
             ) : (
               <span className="aq-ok">
                 {cronWords ?? t("cronRaw")}
-                {timezone ? `, ${timezone}` : ""}
+                {/* A zone written in the file (the editor no longer sets one) still applies. */}
+                {timezone && timezone !== BROWSER_ZONE
+                  ? `, ${timezone}`
+                  : nextRun
+                    ? ` · ${t("nextRun", { when: nextRun })}`
+                    : ""}
               </span>
             )
           }
@@ -344,23 +365,6 @@ function GroupView({
             onChange={(e) => edit((g) => setOrDelete(g.reset, "cron", e.target.value))}
           />
         </Field>
-        {/* The cron is read in this zone: only meaningful once there is a cron. */}
-        {cron || timezone ? (
-          <Field label={t("timezone")}>
-            <input
-              className="input"
-              list="aq-timezones"
-              value={timezone}
-              placeholder={t("timezoneServer")}
-              onChange={(e) => edit((g) => setOrDelete(g.reset, "timezone", e.target.value.trim()))}
-            />
-            <datalist id="aq-timezones">
-              {TIMEZONES.map((z) => (
-                <option key={z} value={z} />
-              ))}
-            </datalist>
-          </Field>
-        ) : null}
       </section>
 
       <section className="aq-section">
@@ -635,44 +639,98 @@ function ChainField({
   );
 }
 
-function chainLength(value: unknown): number {
-  return Array.isArray(value) ? value.length : value == null ? 0 : 1;
+/**
+ * The events of a group or a quest: only those with actions (or just added) are shown, each with
+ * its chain; a select adds one of the others, which then leaves the select.
+ */
+function EventsSection<H extends string>({
+  ctx,
+  title,
+  hint,
+  hooks,
+  label,
+  value,
+  onChange,
+  footer,
+}: {
+  ctx: Ctx;
+  title: string;
+  hint: string;
+  hooks: readonly H[];
+  label: (hook: H) => string;
+  value: unknown;
+  onChange: (hook: H, next: unknown[] | undefined) => void;
+  footer?: ReactNode;
+}) {
+  const { t } = ctx;
+  const map = asMap(value);
+  // Added but still without actions: kept on screen, absent from the file until a step is added.
+  const [added, setAdded] = useState<H[]>([]);
+  const shown = hooks.filter((hook) => map[hook] != null || added.includes(hook));
+  const free = hooks.filter((hook) => !shown.includes(hook));
+  return (
+    <section className="aq-section">
+      <span className="aq-h">{title}</span>
+      <span className="aq-hint">{hint}</span>
+      {shown.map((hook) => (
+        <div key={hook} className="aq-event">
+          <div className="aq-head">
+            <span className="aq-event-name">{label(hook)}</span>
+            <IconButton
+              label={t("removeEvent")}
+              onClick={() => {
+                setAdded((list) => list.filter((h) => h !== hook));
+                onChange(hook, undefined);
+              }}
+            >
+              ×
+            </IconButton>
+          </div>
+          <ChainField ctx={ctx} value={map[hook]} onChange={(next) => onChange(hook, next)} />
+        </div>
+      ))}
+      {free.length > 0 && (
+        <select
+          className="select aq-event-add"
+          aria-label={t("addEvent")}
+          value=""
+          onChange={(e) => {
+            const hook = free.find((h) => h === e.target.value);
+            if (hook) setAdded((list) => [...list, hook]);
+          }}
+        >
+          <option value="">{t("addEvent")}</option>
+          {free.map((hook) => (
+            <option key={hook} value={hook}>
+              {label(hook)}
+            </option>
+          ))}
+        </select>
+      )}
+      {footer}
+    </section>
+  );
 }
 
 function HooksSection({ ctx, group }: { ctx: Ctx; group: QuestGroup }) {
   const { t, edit } = ctx;
-  const hooks = asMap(group.rest.actions);
   return (
-    <section className="aq-section">
-      <span className="aq-h">{t("hooks")}</span>
-      <span className="aq-hint">{t("hooksHint")}</span>
-      {HOOKS.map((hook) => {
-        const count = chainLength(hooks[hook]);
-        return (
-          <details key={hook} className="aq-fold">
-            <summary>
-              <span>{t(`hook.${hook}`)}</span>
-              {count > 0 && (
-                <span className="aq-badge" title={t("actionCount", { count })}>
-                  {count}
-                </span>
-              )}
-            </summary>
-            <ChainField
-              ctx={ctx}
-              value={hooks[hook]}
-              onChange={(next) =>
-                edit((g) => {
-                  const map = { ...asMap(g.rest.actions) };
-                  setOrDelete(map, hook, next);
-                  setOrDelete(g.rest, "actions", Object.keys(map).length ? map : undefined);
-                })
-              }
-            />
-          </details>
-        );
-      })}
-    </section>
+    <EventsSection
+      key={group.uid}
+      ctx={ctx}
+      title={t("hooks")}
+      hint={t("hooksHint")}
+      hooks={HOOKS}
+      label={(hook) => t(`hook.${hook}`)}
+      value={group.rest.actions}
+      onChange={(hook, next) =>
+        edit((g) => {
+          const map = { ...asMap(g.rest.actions) };
+          setOrDelete(map, hook, next);
+          setOrDelete(g.rest, "actions", Object.keys(map).length ? map : undefined);
+        })
+      }
+    />
   );
 }
 
@@ -812,24 +870,27 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
         </ol>
       </section>
 
-      <section className="aq-section">
-        <span className="aq-h">{t("rewards")}</span>
-        <span className="aq-hint">{t("rewardsHint")}</span>
-        <ChainField
-          ctx={ctx}
-          value={asMap(quest.rest.actions).complete}
-          onChange={(next) =>
-            editQuest((q) => {
-              const actions = { ...asMap(q.rest.actions) };
-              setOrDelete(actions, "complete", next);
-              setOrDelete(q.rest, "actions", Object.keys(actions).length > 0 ? actions : undefined);
-            })
-          }
-        />
-        {kept.length > 0 && (
-          <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
-        )}
-      </section>
+      <EventsSection
+        key={quest.uid}
+        ctx={ctx}
+        title={t("questEvents")}
+        hint={t("questEventsHint")}
+        hooks={QUEST_HOOKS}
+        label={(hook) => t(`questHook.${hook}`)}
+        value={quest.rest.actions}
+        onChange={(hook, next) =>
+          editQuest((q) => {
+            const actions = { ...asMap(q.rest.actions) };
+            setOrDelete(actions, hook, next);
+            setOrDelete(q.rest, "actions", Object.keys(actions).length > 0 ? actions : undefined);
+          })
+        }
+        footer={
+          kept.length > 0 && (
+            <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
+          )
+        }
+      />
 
       <section className="aq-section">
         <span className="aq-h">{t("preview")}</span>
