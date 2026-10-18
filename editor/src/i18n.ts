@@ -250,3 +250,12 @@ export const LABELS = { en: en.kindLabel, fr: fr.kindLabel };
 
 export const useT = createModuleI18n<Key>({ en, fr });
 export type T = ReturnType<typeof useT>;
+
+/** The same strings outside a component (the board's callbacks), in `lang`. */
+export function translator(lang: string): T {
+  const dict: Partial<Record<Key, string>> = lang === "fr" ? fr : en;
+  return (key, vars) => {
+    const raw = dict[key] ?? en[key] ?? key;
+    return vars ? raw.replace(/\{\{(\w+)\}\}/g, (all, name) => String(vars[name] ?? all)) : raw;
+  };
+}

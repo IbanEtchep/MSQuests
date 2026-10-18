@@ -311,20 +311,56 @@ describe("objectives", () => {
 });
 
 describe("the group's board node", () => {
-  it("lists one row per quest, titled, keyed by its uid", async () => {
-    const { questGroupKind } = await import("./questGroupKind");
+  const host = (texts: Record<string, string>) =>
     installEditorHost({
-      text: (_p: unknown, key: string) => (key === "t1" ? "Miner" : ""),
+      text: (_p: unknown, key: string) => texts[key] ?? "",
     } as unknown as EditorHost);
+  const quest = (uid: string, key: string, tier: string, stages: unknown[] = []) => ({
+    uid,
+    key,
+    tier,
+    title: { key: `${uid}.title` },
+    description: { key: `${uid}.desc` },
+    stages,
+  });
+
+  it("lists one row per quest, titled, keyed by its uid, the objectives in its tooltip", async () => {
+    const { questGroupKind } = await import("./questGroupKind");
+    host({ "U1.title": "<gold>Miner", "U1.desc": "Dig a little" });
     const doc = {
+      distribution: {},
       quests: [
-        { uid: "U1", key: "mine", tier: "easy", title: { key: "t1" } },
-        { uid: "U2", key: "fish", tier: "", title: { key: "t2" } },
+        quest("U1", "mine", "easy", [
+          {
+            title: { key: "s1" },
+            objectives: [{ key: "o1", type: "break_block", params: { amount: 64 } }],
+          },
+        ]),
+        quest("U2", "fish", ""),
       ],
     };
-    expect(questGroupKind.board?.items?.(doc, { project: {}, lang: "fr" })).toEqual([
-      { id: "U1", label: "Miner", detail: "easy" },
-      { id: "U2", label: "fish", detail: undefined },
+    const rows = questGroupKind.board?.items?.(doc, { project: {}, lang: "en" });
+    expect(rows?.map((r) => [r.id, r.label, r.detail, r.marker])).toEqual([
+      ["U1", "Miner", "easy", undefined],
+      ["U2", "fish", undefined, undefined],
     ]);
+    expect(rows?.[0]?.hover?.title).toBe("<gold>Miner");
+    expect(rows?.[0]?.hover?.text).toBe("Dig a little");
+    expect(rows?.[0]?.hover?.lines).toHaveLength(1);
+    expect(rows?.[0]?.hover?.lines?.[0]).toContain("0/64");
+  });
+
+  it("numbers the quests when the group hands them out in list order", async () => {
+    const { questGroupKind } = await import("./questGroupKind");
+    host({});
+    const doc = {
+      distribution: { strategy: "SEQUENTIAL" },
+      quests: [quest("U1", "a", ""), quest("U2", "b", "")],
+    };
+    const rows = questGroupKind.board?.items?.(doc, { project: {}, lang: "fr" });
+    expect(rows?.map((r) => r.marker)).toEqual(["1", "2"]);
+    expect(questGroupKind.board?.summary?.(doc, { project: {}, lang: "fr" })).toBe(
+      "2 quêtes · dans l'ordre de la liste",
+    );
   });
 });
