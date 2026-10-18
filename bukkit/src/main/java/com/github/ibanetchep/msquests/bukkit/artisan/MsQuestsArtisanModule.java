@@ -414,12 +414,15 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         for (QuestObjective objective : quest.getActiveObjectives()) {
             if (!(objective instanceof ContributableObjective contributable) || objective.isCompleted()) continue;
 
-            ContributableObjective.Contribution contribution = contributable.contribute(player);
-            if (contribution.amount() > 0) {
-                plugin.getQuestProgressService().progressObjectiveNow(objective, contribution.amount(), profile);
-            }
-            MessageBuilder message = MessageBuilder.translatable(contribution.messageKey());
-            contribution.placeholders().forEach(message::placeholder);
+            ContributableObjective.Contribution[] contribution = new ContributableObjective.Contribution[1];
+            boolean allowed = plugin.getQuestProgressService().contributeNow(objective, () -> {
+                contribution[0] = contributable.contribute(player);
+                return contribution[0].amount();
+            }, profile);
+            if (!allowed) continue; // refused by another plugin: nothing was taken, nothing to report
+
+            MessageBuilder message = MessageBuilder.translatable(contribution[0].messageKey());
+            contribution[0].placeholders().forEach(message::placeholder);
             player.sendMessage(message.toComponent());
         }
     }
