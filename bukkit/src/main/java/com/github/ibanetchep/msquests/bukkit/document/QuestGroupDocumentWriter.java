@@ -135,9 +135,14 @@ public final class QuestGroupDocumentWriter {
         }
         out.put("stages", stageList);
 
-        if (quest.rewards() != null && !quest.rewards().isEmpty()) {
-            out.put("actions", Map.of("complete", quest.rewards()));
+        Map<String, Object> actions = new LinkedHashMap<>();
+        if (quest.hooks() != null) {
+            putActions(actions, "start", quest.hooks().start());
+            putActions(actions, "objective_progress", quest.hooks().objectiveProgress());
+            putActions(actions, "objective_complete", quest.hooks().objectiveComplete());
         }
+        putActions(actions, "complete", quest.rewards());
+        putIfAny(out, "actions", actions);
         return out;
     }
 

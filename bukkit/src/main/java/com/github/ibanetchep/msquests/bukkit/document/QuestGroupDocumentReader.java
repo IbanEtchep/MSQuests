@@ -2,6 +2,7 @@ package com.github.ibanetchep.msquests.bukkit.document;
 
 import com.github.ibanetchep.msquests.core.dto.DistributionConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestConfigDTO;
+import com.github.ibanetchep.msquests.core.dto.QuestConfigHooksDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigActionsDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestGroupConfigDTO;
 import com.github.ibanetchep.msquests.core.dto.QuestObjectiveConfigDTO;
@@ -44,6 +45,10 @@ public final class QuestGroupDocumentReader {
     static final List<String> HOOKS = List.of(
             "actor_load", "distribution", "quest_start", "quest_complete",
             "objective_progress", "objective_complete", "period_complete");
+
+    /** A quest's {@code actions.<hook>}. */
+    static final List<String> QUEST_HOOKS = List.of(
+            "start", "objective_progress", "objective_complete", "complete");
 
     private QuestGroupDocumentReader() {
     }
@@ -198,6 +203,16 @@ public final class QuestGroupDocumentReader {
         // `rewards` is the former name of actions.complete, still read.
         String questActionsKey = actionsKey(quest);
         Map<String, Object> questActions = map(quest.get(questActionsKey), path + "." + questActionsKey);
+        for (String hook : questActions.keySet()) {
+            if (!QUEST_HOOKS.contains(hook)) {
+                throw new DocumentException(path + "." + questActionsKey + "." + hook,
+                        "unknown hook; expected one of " + QUEST_HOOKS);
+            }
+        }
+        QuestConfigHooksDTO hooks = new QuestConfigHooksDTO(
+                chain(questActions.get("start"), path + "." + questActionsKey + ".start"),
+                chain(questActions.get("objective_progress"), path + "." + questActionsKey + ".objective_progress"),
+                chain(questActions.get("objective_complete"), path + "." + questActionsKey + ".objective_complete"));
         List<Object> onComplete = questActions.get("complete") != null
                 ? chain(questActions.get("complete"), path + "." + questActionsKey + ".complete")
                 : chain(quest.get("rewards"), path + ".rewards");
@@ -212,7 +227,8 @@ public final class QuestGroupDocumentReader {
                     onComplete,
                     stages,
                     quest.get("requirements") != null ? conditions(quest.get("requirements"), path + ".requirements") : null,
-                    uid);
+                    uid,
+                    hooks);
         } catch (IllegalArgumentException e) {
             throw new DocumentException(path, e.getMessage());
         }
