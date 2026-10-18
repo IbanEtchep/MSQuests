@@ -9,7 +9,7 @@ import java.util.Locale;
 public enum ContentSource {
     /** {@code quests/*.yml} and the {@code msquests_*} tables, as always. */
     LEGACY,
-    /** {@code editor/quest_groups/*.yaml} ({@code quest_group} Documents) and the {@code artisan_quests_*} tables. */
+    /** {@code <project>/quest_groups/*.yaml} of every Artisan project ({@code quest_group} Documents) and the {@code artisan_quests_*} tables. */
     ARTISAN;
 
     public static ContentSource parse(String value) {

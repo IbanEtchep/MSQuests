@@ -11,7 +11,7 @@ Permission: **msquests.admin**
 ### Migration vers les Documents Artisan
 - /msquests migrate [--dry-run] — convertit `quests/*.yml` en Documents `quest_group` en mémoire et écrit
   seulement le rapport `migration/report-<date>.txt`
-- /msquests migrate --confirm — écrit aussi `editor/quest_groups/*.yaml` (jamais par-dessus un Document existant)
+- /msquests migrate --confirm — écrit aussi `plugins/Artisan/projects/quests/quest_groups/*.yaml` (jamais par-dessus un Document existant)
   et `migration/map.yaml`
 
 Ensuite `content_source: artisan` dans `config.yml` et redémarrage : la progression est copiée dans

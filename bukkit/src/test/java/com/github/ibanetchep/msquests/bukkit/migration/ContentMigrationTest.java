@@ -39,6 +39,11 @@ class ContentMigrationTest {
     @TempDir
     Path dataFolder;
 
+    /** Artisan's {@code projects/quests}, beside MSQuests' data folder on a server. */
+    private Path project() {
+        return dataFolder.resolve("artisan/projects/quests");
+    }
+
     private DbAccess db;
     private final UUID player = UUID.randomUUID();
     private final UUID stoneQuest = UUID.randomUUID();
@@ -63,7 +68,7 @@ class ContentMigrationTest {
     }
 
     private ContentMigration migration() {
-        return new ContentMigration(dataFolder, "fr_FR", ContentSource.LEGACY,
+        return new ContentMigration(dataFolder, project(), "fr_FR", ContentSource.LEGACY,
                 new LegacyDataCopier(db.getJdbi()), Logger.getAnonymousLogger());
     }
 
@@ -79,7 +84,7 @@ class ContentMigrationTest {
         String report = Files.readString(outcome.report());
         assertTrue(report.contains("Read back: same content as quests/daily.yml."), report);
         assertTrue(report.contains("msquests_quest: 1/1 copied"), report);
-        assertFalse(Files.exists(dataFolder.resolve("editor/quest_groups/daily.yaml")));
+        assertFalse(Files.exists(project().resolve("quest_groups/daily.yaml")));
         assertFalse(Files.exists(ContentMigration.mapFile(dataFolder)));
         assertFalse(new LegacyDataCopier(db.getJdbi()).isCopied());
     }
@@ -94,11 +99,11 @@ class ContentMigrationTest {
         MigrationMap map = MigrationMapFile.read(ContentMigration.mapFile(dataFolder));
         new LegacyDataCopier(db.getJdbi()).copy(map);
 
-        var documents = new QuestGroupDocumentRepository(dataFolder.resolve("editor")).loadAllGroups().join();
+        var documents = new QuestGroupDocumentRepository(project()).loadAllGroups().join();
         assertFalse(documents.hasFailures(), documents.failures().toString());
         QuestGroupConfigDTO daily = documents.groups().get("daily");
         assertEquals(legacyDaily.quests().size(), daily.quests().size());
-        assertTrue(Files.readString(dataFolder.resolve("editor/manifest.yaml")).contains("default_lang: fr"));
+        assertTrue(Files.readString(project().resolve("manifest.yaml")).contains("default_lang: fr"));
 
         QuestDTO stored = new ArtisanQuestSqlRepository(db).getAllByActor(player).join().get(stoneQuest);
         QuestConfigDTO config = daily.quests().stream().filter(q -> q.uid().equals(stored.questUid())).findFirst().orElseThrow();
@@ -112,11 +117,11 @@ class ContentMigrationTest {
                 .objectives().get("obj_1").progress());
 
         // A second confirmed run changes nothing and reports the copy as done.
-        String before = Files.readString(dataFolder.resolve("editor/quest_groups/daily.yaml"));
+        String before = Files.readString(project().resolve("quest_groups/daily.yaml"));
         ContentMigration.Outcome again = migration().run(true);
         assertEquals(0, again.documentsToWrite());
         assertTrue(again.database().alreadyCopied());
-        assertEquals(before, Files.readString(dataFolder.resolve("editor/quest_groups/daily.yaml")));
+        assertEquals(before, Files.readString(project().resolve("quest_groups/daily.yaml")));
         assertEquals(map, MigrationMapFile.read(ContentMigration.mapFile(dataFolder)));
     }
 }

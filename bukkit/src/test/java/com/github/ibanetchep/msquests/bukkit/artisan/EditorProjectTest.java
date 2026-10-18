@@ -15,7 +15,14 @@ class EditorProjectTest {
     Path dataFolder;
 
     @Test
-    void writesTheManifestOnFirstBoot() throws Exception {
+    void theProjectIsAnOrdinaryArtisanProject() {
+        File artisan = dataFolder.resolve("Artisan").toFile();
+
+        assertEquals(dataFolder.resolve("Artisan/projects/quests").toFile(), EditorProject.directory(artisan));
+    }
+
+    @Test
+    void writesTheManifestOfAnAbsentProject() throws Exception {
         File dir = EditorProject.directory(dataFolder.toFile());
 
         assertTrue(EditorProject.writeIfAbsent(dir, "fr_FR"));
@@ -23,7 +30,36 @@ class EditorProjectTest {
         assertEquals("schema: manifest/v1\ndefault_lang: fr\nlanguages: [fr]\n",
                 Files.readString(dir.toPath().resolve("manifest.yaml")));
         assertTrue(Files.isDirectory(dir.toPath().resolve("quest_groups")));
-        assertFalse(Files.exists(dataFolder.resolve("editor.tmp")));
+        assertFalse(Files.exists(dir.toPath().resolveSibling("quests.tmp")));
+    }
+
+    @Test
+    void theFormerModuleProjectMovesOnceIntoTheOrdinaryOne() throws Exception {
+        Path legacy = dataFolder.resolve("MSQuests/editor");
+        Files.createDirectories(legacy.resolve("quest_groups"));
+        Files.writeString(legacy.resolve("quest_groups/daily.yaml"), "schema: quest_group/v1\n");
+        File target = dataFolder.resolve("Artisan/projects/quests").toFile();
+
+        assertTrue(EditorProject.moveLegacy(dataFolder.resolve("MSQuests").toFile(), target));
+
+        assertTrue(Files.exists(target.toPath().resolve("quest_groups/daily.yaml")));
+        assertFalse(Files.exists(legacy));
+    }
+
+    @Test
+    void theFormerModuleProjectStaysWhenEmptyOrWhenTheTargetExists() throws Exception {
+        Path legacy = dataFolder.resolve("MSQuests/editor");
+        Files.createDirectories(legacy.resolve("quest_groups"));
+        Path target = dataFolder.resolve("Artisan/projects/quests");
+
+        assertFalse(EditorProject.moveLegacy(dataFolder.resolve("MSQuests").toFile(), target.toFile()),
+                "no quest group: nothing to carry");
+
+        Files.writeString(legacy.resolve("quest_groups/daily.yaml"), "schema: quest_group/v1\n");
+        Files.createDirectories(target);
+        assertFalse(EditorProject.moveLegacy(dataFolder.resolve("MSQuests").toFile(), target.toFile()),
+                "an existing project is the owner's");
+        assertTrue(Files.exists(legacy.resolve("quest_groups/daily.yaml")));
     }
 
     @Test

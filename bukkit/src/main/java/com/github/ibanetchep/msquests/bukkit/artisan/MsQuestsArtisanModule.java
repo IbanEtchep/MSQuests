@@ -29,6 +29,7 @@ import net.artisanmc.modules.api.datasource.PlayerRequiredException;
 import net.artisanmc.modules.api.datasource.Stability;
 import net.artisanmc.modules.api.document.DocumentKindDeclaration;
 import net.artisanmc.modules.api.editor.EditorBundleDeclaration;
+import net.artisanmc.modules.api.template.TemplateDeclaration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +47,8 @@ import java.util.logging.Level;
 /**
  * MSQuests inside Artisan:
  * <ul>
- *   <li>its own project, {@code plugins/MSQuests/editor/} ({@link EditorProject}), listed under the
- *       module in the editor;</li>
+ *   <li>an example template, {@code daily} ({@link #TEMPLATE}): quests any project can copy from
+ *       the editor, seeded once into the ordinary project {@code quests} ({@link EditorProject});</li>
  *   <li>the {@code quest_group} Document kind ({@code quest_groups/}, {@code quest_group/v1}): one
  *       Document per group, which the quests load from with {@code content_source: artisan}
  *       ({@code /msquests migrate} converts {@code quests/*.yml} into them);</li>
@@ -85,6 +86,12 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     static final String EDITOR_BUNDLE = "artisan-editor/ui.js";
     static final String EDITOR_SDK = "1.4.0";
 
+    /** The example quests: raise {@link #TEMPLATE_VERSION} whenever its files change. */
+    static final String TEMPLATE = "daily";
+    static final int TEMPLATE_VERSION = 1;
+    static final String TEMPLATE_ROOT = "artisan-templates/daily";
+    static final List<String> TEMPLATE_FILES = List.of("quest_groups/example_daily.yaml");
+
     private final BukkitQuestsPlugin plugin;
     private final ActorResolver actors;
     private @Nullable ArtisanAPI api;
@@ -108,10 +115,10 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     public void onEnable(ArtisanAPI api) {
         this.api = api;
 
-        // Declared before the project root: the reload the root triggers already reads quest_groups/.
         api.getDocumentKinds().register(new DocumentKindDeclaration(
                 QuestActions.GROUP_KIND, GROUP_DIR, List.of(GROUP_SCHEMA), null));
-        registerProject(api);
+        moveLegacyProject();
+        registerTemplate(api);
         registerEditorBundle(api);
 
         QuestActions actions = new QuestActions(plugin);
@@ -214,19 +221,38 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     }
 
     /**
-     * Registers {@code plugins/MSQuests/editor/} as the module's project, writing its manifest on
-     * first boot. A failed write leaves the project unregistered: the quests do not depend on it.
+     * {@code plugins/MSQuests/editor/}, the project MSQuests registered itself until quests lived
+     * in ordinary projects, becomes the project {@code quests} once, on the first start that finds
+     * quest groups in it. Before the template, so the seed then finds that project and leaves it.
      */
-    private void registerProject(ArtisanAPI api) {
-        File dir = EditorProject.directory(plugin.getDataFolder());
+    private void moveLegacyProject() {
+        File target = plugin.getArtisanIntegration().questsProject();
         try {
-            EditorProject.writeIfAbsent(dir, plugin.getGlobalConfig().language());
+            if (EditorProject.moveLegacy(plugin.getDataFolder(), target)) {
+                plugin.getLogger().info("plugins/MSQuests/" + EditorProject.LEGACY_DIR
+                        + "/ moved to " + target + ": it is now an ordinary Artisan project.");
+            }
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not create the editor project in " + dir, e);
-            return;
+            plugin.getLogger().log(Level.WARNING, "Could not move plugins/MSQuests/" + EditorProject.LEGACY_DIR
+                    + "/ to " + target + "; move it by hand, its quest groups are not loaded meanwhile", e);
         }
-        // Artisan reloads its projects on the next tick, after this onEnable returns.
-        api.getProjectRoots().register(EditorProject.PROJECT_ID, dir, getId());
+    }
+
+    /**
+     * The example quests, offered to every project in the editor and copied once into a new
+     * project {@code quests} on the first start. A failure leaves the quests running without it.
+     */
+    private void registerTemplate(ArtisanAPI api) {
+        boolean french = "fr".equals(EditorProject.defaultLang(plugin.getGlobalConfig().language()));
+        try {
+            api.getTemplates().register(TemplateDeclaration
+                    .fromResources(getClass().getClassLoader(), TEMPLATE_ROOT, TEMPLATE, TEMPLATE_VERSION, TEMPLATE_FILES)
+                    .title(french ? "Quêtes journalières" : "Daily quests")
+                    .seed(EditorProject.PROJECT_ID)
+                    .build());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            plugin.getLogger().log(Level.WARNING, "The example quests are not available", e);
+        }
     }
 
     /**
