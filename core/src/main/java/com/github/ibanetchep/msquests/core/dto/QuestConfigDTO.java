@@ -18,12 +18,20 @@ public record QuestConfigDTO(
         // Artisan conditions, keyed (see Conditions).
         @Nullable List<Object> requirements,
         // quest_group Documents only, see QuestGroupConfigDTO#uid.
-        @JsonIgnore String uid
+        @JsonIgnore String uid,
+        // quest_group Documents only: actions.start / objective_progress / objective_complete.
+        @JsonIgnore @Nullable QuestConfigHooksDTO hooks
 ) {
     public QuestConfigDTO(String key, String name, String description, Long duration, String tier,
                           List<Object> rewards,
                           List<QuestStageConfigDTO> stages, @Nullable List<Object> requirements) {
-        this(key, name, description, duration, tier, rewards, stages, requirements, null);
+        this(key, name, description, duration, tier, rewards, stages, requirements, null, null);
+    }
+
+    public QuestConfigDTO(String key, String name, String description, Long duration, String tier,
+                          List<Object> rewards, List<QuestStageConfigDTO> stages,
+                          @Nullable List<Object> requirements, String uid) {
+        this(key, name, description, duration, tier, rewards, stages, requirements, uid, null);
     }
 
     /**

@@ -98,6 +98,7 @@ public class QuestLifecycleService {
         dispatcher.dispatch(startedEvent);
 
         chains.run(quest.getQuestGroup().getQuestStartActions(), ChainContext.of(quest));
+        chains.run(questConfig.getStartActions(), ChainContext.of(quest));
 
         questRegistry.add(quest);
         persistenceService.saveQuest(quest);
@@ -114,6 +115,7 @@ public class QuestLifecycleService {
             dispatcher.dispatch(objectiveCompletedEvent);
 
             chains.run(quest.getQuestGroup().getObjectiveCompleteActions(), ChainContext.of(objective));
+            chains.run(quest.getQuestConfig().getObjectiveCompleteActions(), ChainContext.of(objective));
 
             if (quest.shouldComplete()) {
                 finalizeQuestCompletion(quest);
