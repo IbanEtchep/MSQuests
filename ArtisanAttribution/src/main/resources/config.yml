@@ -1,0 +1,63 @@
+# ArtisanAttribution: asks players how they found the server.
+#
+# Texts written { en: "...", fr: "..." } are shown in the player's language (Artisan's
+# per_player_language), else in Artisan's language, else the first one given. A plain string is
+# the same for every language.
+config_version: 1
+
+# The Artisan menu shown to players: project:menu. On the first start, ArtisanAttribution copies
+# its menu into a new Artisan project "attribution": restyle it in the editor, or point this at
+# a menu of your own. It lists the sources below through the data source attribution:sources;
+# a button answers with the action { attribution:choose: <source id> }.
+menu: "attribution:attribution"
+
+prompt:
+  # Open the menu when a player joins, until they answer (see repeat_until_answered).
+  on_join: true
+  # true: shown at every join until the player answers.
+  # false: shown at one join only; the player can still answer later with /attribution.
+  repeat_until_answered: true
+  # true: only players joining for the first time are asked. Players already on the server
+  # when ArtisanAttribution is installed are never asked on join.
+  new_players_only: false
+  # Ticks (20 = 1 second) between the join and the menu, so other join screens go first.
+  delay_ticks: 40
+  # Close the menu once the player has answered.
+  close_on_answer: true
+
+# Actions run for every answer, after the source's own actions (Artisan action chain, as in a
+# menu button). Bindings: {source} is the source id, {source_name} its name for the player.
+on_answer: []
+#  - run_command:
+#      command: "eco give {player} 100"
+#      as: console
+
+# The answers offered, in this order. The id (the key) is what is stored: a lowercase word
+# (a-z, 0-9, _). Renaming a key leaves the answers already given under the old one.
+#   name         shown on the button
+#   description  shown under it (optional)
+#   material     the button's item
+#   actions      run when a player picks it (optional, Artisan action chain)
+sources:
+  web_search:
+    name: { en: "Web search", fr: "Recherche web" }
+    description: { en: "Google, Bing, Qwant…", fr: "Google, Bing, Qwant…" }
+    material: COMPASS
+  friend:
+    name: { en: "A friend told me", fr: "Recommandation d'un ami" }
+    material: PLAYER_HEAD
+  discord:
+    name: Discord
+    material: LIGHT_BLUE_DYE
+  tiktok:
+    name: TikTok
+    material: MUSIC_DISC_CAT
+  youtube:
+    name: YouTube
+    material: RED_DYE
+  server_list:
+    name: { en: "A server list", fr: "Un site de classement de serveurs" }
+    material: BOOK
+  other:
+    name: { en: "Other", fr: "Autre" }
+    material: PAPER

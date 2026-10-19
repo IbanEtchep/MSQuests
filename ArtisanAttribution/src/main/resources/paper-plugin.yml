@@ -1,0 +1,26 @@
+name: ArtisanAttribution
+version: '${version}'
+main: com.github.ibanetchep.artisanattribution.AttributionPlugin
+api-version: '1.21'
+folia-supported: true
+description: Asks players how they found the server and records their source.
+authors:
+  - ibanetchep
+
+dependencies:
+  server:
+    Artisan:
+      load: BEFORE
+      required: true
+      join-classpath: true
+
+permissions:
+  artisanattribution.command:
+    description: Open the attribution menu with /attribution.
+    default: true
+  artisanattribution.admin:
+    description: See the statistics, reset a player's answer, open the menu for someone else, reload.
+    default: op
+  artisanattribution.bypass:
+    description: Never asked on join.
+    default: false

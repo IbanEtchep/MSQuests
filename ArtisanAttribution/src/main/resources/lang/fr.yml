@@ -1,0 +1,25 @@
+# Messages d'ArtisanAttribution (MiniMessage). Surchargez une clé dans plugins/ArtisanAttribution/lang/fr.yml.
+answer:
+  thanks: "<green>Merci ! Tu nous as connus par <white><source></white>."
+  already: "<gray>Tu nous as déjà dit comment tu as connu le serveur : <white><source></white>."
+  error: "<red>Ta réponse n'a pas pu être enregistrée, réessaie dans un instant."
+  unknown_source: "<red>Cette réponse n'est plus proposée."
+menu:
+  missing: "<red>Le menu d'attribution <white><menu></white> n'existe pas : vérifiez <white>menu</white> dans config.yml."
+command:
+  usage: "<gray>/attribution <white>[open <joueur>|stats|reset <joueur>|reload]"
+  players_only: "<red>Seul un joueur peut ouvrir ce menu. Utilisez <white>/attribution open <joueur></white>."
+  no_permission: "<red>Vous n'avez pas la permission."
+  player_not_found: "<red>Aucun joueur nommé <white><player></white> n'est venu sur ce serveur."
+  player_offline: "<red><white><player></white> n'est pas en ligne."
+  opened: "<gray>Menu d'attribution ouvert pour <white><player></white>."
+  reset: "<green>La réponse de <white><player></white> est effacée : la question lui sera reposée."
+  reset_none: "<gray><white><player></white> n'avait pas répondu."
+  reloaded: "<green>ArtisanAttribution rechargé : <white><sources></white> sources."
+  reload_failed: "<red>config.yml n'a pas été rechargé, les réglages précédents restent : <white><error>"
+  error: "<red>La base de données est injoignable, voir la console."
+stats:
+  header: "<gold>Comment les joueurs ont connu le serveur</gold> <gray>(<total> réponses)"
+  line: "<gray>- <white><source></white> : <yellow><count></yellow> <gray>(<percent> %)"
+  removed: "<gray>- <white><source></white> <dark_gray>(plus proposée)</dark_gray> : <yellow><count></yellow> <gray>(<percent> %)"
+  empty: "<gray>Aucun joueur n'a encore répondu."

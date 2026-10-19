@@ -1,0 +1,26 @@
+# ArtisanAttribution messages (MiniMessage). Override any key in plugins/ArtisanAttribution/lang/en.yml;
+# add a language with plugins/ArtisanAttribution/lang/<code>.yml.
+answer:
+  thanks: "<green>Thanks! You found us through <white><source></white>."
+  already: "<gray>You already told us how you found the server: <white><source></white>."
+  error: "<red>Your answer could not be saved, please try again in a moment."
+  unknown_source: "<red>This answer is not available anymore."
+menu:
+  missing: "<red>The attribution menu <white><menu></white> does not exist: check <white>menu</white> in config.yml."
+command:
+  usage: "<gray>/attribution <white>[open <player>|stats|reset <player>|reload]"
+  players_only: "<red>Only a player can open this menu. Use <white>/attribution open <player></white>."
+  no_permission: "<red>You do not have permission."
+  player_not_found: "<red>No player named <white><player></white> has joined this server."
+  player_offline: "<red><white><player></white> is not online."
+  opened: "<gray>Attribution menu opened for <white><player></white>."
+  reset: "<green>The answer of <white><player></white> is cleared: they will be asked again."
+  reset_none: "<gray><white><player></white> had not answered."
+  reloaded: "<green>ArtisanAttribution reloaded: <white><sources></white> sources."
+  reload_failed: "<red>config.yml was not reloaded, the previous settings stay: <white><error>"
+  error: "<red>The database could not be reached, see the console."
+stats:
+  header: "<gold>How players found the server</gold> <gray>(<total> answers)"
+  line: "<gray>- <white><source></white>: <yellow><count></yellow> <gray>(<percent>%)"
+  removed: "<gray>- <white><source></white> <dark_gray>(no longer offered)</dark_gray>: <yellow><count></yellow> <gray>(<percent>%)"
+  empty: "<gray>No player has answered yet."

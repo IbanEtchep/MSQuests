@@ -1,0 +1,26 @@
+schema: menu/v1
+id: attribution
+title:
+  - kind: plain
+    value:
+      en: "How did you find us?"
+      fr: "Comment nous as-tu connus ?"
+size: 36
+elements:
+  - id: filler
+    positions: "0-35"
+    material: GRAY_STAINED_GLASS_PANE
+    title: " "
+  - id: sources
+    positions: "10-16,19-25"
+    iterates: { source: "attribution:sources", alias: source }
+    material: "{source.material}"
+    title: "<yellow>{source.name}"
+    lore:
+      - "<gray>{source.description}"
+      - ""
+      - en: "<green>Click to choose"
+        fr: "<green>Clique pour choisir"
+    click:
+      left:
+        - attribution:choose: "{source.id}"
