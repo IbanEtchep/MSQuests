@@ -215,11 +215,16 @@ public class QuestLifecycleService {
             return QuestRotateResult.NO_ALTERNATIVE_AVAILABLE;
         }
 
-        // Delete old quest
+        // Delete old quest. The row goes away in the background: the quest is already out
+        // of memory, and a rotation is a click on the player's thread, so it never waits
+        // on the connection pool.
         actorGroup.removeQuest(quest);
         actor.removeQuest(quest);
         questRegistry.remove(quest);
-        persistenceService.deleteQuest(quest).join();
+        persistenceService.deleteQuest(quest).exceptionally(e -> {
+            logger.log(Level.WARNING, "Failed to delete rotated quest " + quest.getId(), e);
+            return null;
+        });
 
         // Start new quest
         for (QuestConfig candidate : candidates) {
