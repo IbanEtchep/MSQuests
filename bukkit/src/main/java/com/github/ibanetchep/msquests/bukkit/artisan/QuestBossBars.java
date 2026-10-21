@@ -1,10 +1,11 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.platform.BarOverlay;
+import com.github.ibanetchep.msquests.bukkit.platform.BossBars;
 import com.tcoded.folialib.wrapper.task.WrappedTask;
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -20,26 +21,28 @@ import java.util.concurrent.TimeUnit;
 final class QuestBossBars {
 
     private final BukkitQuestsPlugin plugin;
+    private final BossBars factory;
     private final Map<UUID, BossBar> bars = new ConcurrentHashMap<>();
     private final Map<UUID, WrappedTask> hideTasks = new ConcurrentHashMap<>();
 
-    QuestBossBars(BukkitQuestsPlugin plugin) {
+    QuestBossBars(BukkitQuestsPlugin plugin, BossBars factory) {
         this.plugin = plugin;
+        this.factory = factory;
     }
 
-    void show(Player player, Component text, float progress, BossBar.Color color, BossBar.Overlay overlay, int seconds) {
+    void show(Player player, String legacyTitle, float progress, BarColor color, BarOverlay overlay, int seconds) {
         UUID id = player.getUniqueId();
         BossBar bar = bars.get(id);
         if (bar != null) {
-            bar.name(text);
-            bar.progress(progress);
-            bar.color(color);
-            bar.overlay(overlay);
+            bar.setTitle(legacyTitle);
+            bar.setColor(color);
+            bar.setStyle(overlay.style());
         } else {
-            bar = BossBar.bossBar(text, progress, color, overlay);
+            bar = factory.create(legacyTitle, color, overlay.style());
             bars.put(id, bar);
-            player.showBossBar(bar);
+            bar.addPlayer(player);
         }
+        bar.setProgress(progress);
 
         WrappedTask previous = hideTasks.remove(id);
         if (previous != null) previous.cancel();
@@ -49,7 +52,6 @@ final class QuestBossBars {
     private void hide(UUID id) {
         hideTasks.remove(id);
         BossBar bar = bars.remove(id);
-        Player viewer = Bukkit.getPlayer(id);
-        if (bar != null && viewer != null) viewer.hideBossBar(bar);
+        if (bar != null) bar.removeAll();
     }
 }

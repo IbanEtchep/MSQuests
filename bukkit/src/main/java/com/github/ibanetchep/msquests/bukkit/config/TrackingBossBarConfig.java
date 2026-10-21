@@ -1,11 +1,12 @@
 package com.github.ibanetchep.msquests.bukkit.config;
 
-import net.kyori.adventure.bossbar.BossBar;
+import com.github.ibanetchep.msquests.bukkit.platform.BarOverlay;
+import org.bukkit.boss.BarColor;
 
 public record TrackingBossBarConfig(
         boolean enabled,
         String message,
-        BossBar.Color color,
-        BossBar.Overlay style,
+        BarColor color,
+        BarOverlay style,
         boolean showProgress
 ) {}

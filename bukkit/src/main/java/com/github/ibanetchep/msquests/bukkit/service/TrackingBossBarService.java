@@ -6,9 +6,8 @@ import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -51,17 +50,18 @@ public class TrackingBossBarService {
             return;
         }
 
-        Component text = resolveMessage(quest, objective);
+        String text = MessageBuilder.legacy(resolveMessage(quest, objective));
         float progress = computeProgress(objective);
 
         BossBar existing = bossBars.get(player.getUniqueId());
         if (existing != null) {
-            existing.name(text);
-            existing.progress(progress);
+            existing.setTitle(text);
+            existing.setProgress(progress);
         } else {
-            BossBar bossBar = BossBar.bossBar(text, progress, config.color(), config.style());
+            BossBar bossBar = Bukkit.createBossBar(text, config.color(), config.style().style());
+            bossBar.setProgress(progress);
             bossBars.put(player.getUniqueId(), bossBar);
-            player.showBossBar(bossBar);
+            bossBar.addPlayer(player);
         }
     }
 
@@ -72,7 +72,7 @@ public class TrackingBossBarService {
     public void hideBossBar(Player player) {
         BossBar bossBar = bossBars.remove(player.getUniqueId());
         if (bossBar != null) {
-            player.hideBossBar(bossBar);
+            bossBar.removeAll();
         }
     }
 
@@ -111,15 +111,15 @@ public class TrackingBossBarService {
         return Math.min(1.0f, Math.max(0.0f, progress));
     }
 
-    private Component resolveMessage(Quest quest, QuestObjective objective) {
+    private String resolveMessage(Quest quest, QuestObjective objective) {
         String message = config.message();
         if (objective != null) {
             return MessageBuilder.raw(message)
                     .applyPlaceholderResolver(objective)
-                    .toComponent();
+                    .toStringRaw();
         }
         return MessageBuilder.raw(message)
                 .applyPlaceholderResolver(quest)
-                .toComponent();
+                .toStringRaw();
     }
 }

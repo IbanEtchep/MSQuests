@@ -1,6 +1,6 @@
 # Architecture - MSQuests
 
-Ce document decrit l'architecture du projet MSQuests, un plugin Minecraft Paper 1.21+ de gestion de quetes.
+Ce document decrit l'architecture du projet MSQuests, un plugin Minecraft de gestion de quetes pour Paper, Folia et Spigot 1.21+ (Paper-only isole dans `bukkit/platform/`).
 
 ---
 
@@ -122,7 +122,7 @@ Package racine : `com.github.ibanetchep.msquests.bukkit`
 
 ## Integration Artisan
 
-**Obligatoire** (`required: true` dans `paper-plugin.yml`, API Artisan 2.6.0+). Au tout
+**Obligatoire** (`depend: [Artisan]` dans `plugin.yml`, API Artisan 2.10.0+). Au tout
 debut de `onEnable`, `ArtisanIntegration.resolve` charge `ArtisanAPI` depuis le
 `ServicesManager` ; absente ou trop ancienne, le plugin se desactive avec un message
 SEVERE, avant d'ouvrir la base. Une fois les services cables, `MsQuestsArtisanModule`
@@ -474,7 +474,7 @@ Toutes les actions supportent les placeholders dynamiques via `PlaceholderEngine
 | `core/src/main/resources/config.yml` | Config globale (BDD, langue, `content_source`) |
 | `bukkit/src/main/resources/quests/*.yml` | Definitions de groupes de quetes (Jackson YAML) |
 | `core/src/main/resources/lang/*.yml` | Fichiers de traduction |
-| `paper-plugin.yml` | Descripteur plugin Paper |
+| `plugin.yml` | Descripteur du plugin (Paper, Folia, Spigot) |
 
 Les configs de quetes sont chargees par `QuestConfigYamlRepository` avec Jackson (`SNAKE_CASE` naming strategy),
 ou par `QuestGroupDocumentRepository` avec `content_source: artisan`.

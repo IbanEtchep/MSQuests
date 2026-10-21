@@ -20,11 +20,12 @@ import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
 import com.github.ibanetchep.msquests.core.registry.PlayerProfileRegistry;
 import com.github.ibanetchep.msquests.core.service.PlayerProfileService;
 import com.tcoded.folialib.impl.PlatformScheduler;
-import net.kyori.adventure.bossbar.BossBar;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -60,6 +62,8 @@ class QuestActionsTest {
     private ActionRuntime runtime;
     private BukkitQuestsPlugin plugin;
     private Player player;
+    private final List<BossBar> createdBars = new ArrayList<>();
+    private final List<String> barTitles = new ArrayList<>();
 
     @TempDir
     Path langFolder;
@@ -82,7 +86,14 @@ class QuestActionsTest {
         when(plugin.getQuestLifecycleService()).thenReturn(lifecycle);
 
         actions = new HashMap<>();
-        for (ActionDeclaration declaration : new QuestActions(plugin).declarations()) {
+        for (ActionDeclaration declaration : new QuestActions(plugin, (title, color, style) -> {
+            barTitles.add(title);
+            BossBar bar = mock(BossBar.class);
+            when(bar.getColor()).thenReturn(color);
+            when(bar.getStyle()).thenReturn(style);
+            createdBars.add(bar);
+            return bar;
+        }).declarations()) {
             actions.put(declaration.getName(), declaration);
         }
 
@@ -235,7 +246,7 @@ class QuestActionsTest {
 
         verify(lifecycle).abandonQuest(quest);
         assertNull(profile.getTrackedQuestId());
-        verify(player).sendMessage(any(Component.class));
+        verify(player).sendMessage(anyString());
         assertTrue(warnings.isEmpty(), warnings::toString);
     }
 
@@ -265,12 +276,13 @@ class QuestActionsTest {
         declaration.getHandler().execute(objectiveHook,
                 declaration.bind(Map.of("text", "{row_key}", "color", "red")), runtime);
 
-        ArgumentCaptor<BossBar> bar = ArgumentCaptor.forClass(BossBar.class);
-        verify(player).showBossBar(bar.capture());
-        assertEquals(0.25f, bar.getValue().progress(), 1e-6);
-        assertEquals(BossBar.Color.RED, bar.getValue().color());
-        assertEquals(BossBar.Overlay.PROGRESS, bar.getValue().overlay());
-        assertEquals("mine_stone", PlainTextComponentSerializer.plainText().serialize(bar.getValue().name()));
+        assertEquals(1, createdBars.size());
+        BossBar bar = createdBars.getFirst();
+        verify(bar).addPlayer(player);
+        verify(bar).setProgress(0.25f);
+        assertEquals(BarColor.RED, bar.getColor());
+        assertEquals(BarStyle.SOLID, bar.getStyle());
+        assertEquals("mine_stone", barTitles.getFirst());
         verify(scheduler).runLater(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
     }
 
@@ -281,7 +293,7 @@ class QuestActionsTest {
         run("quests:boss_bar", Map.of("text", "x", "color", "teal"));
 
         assertEquals(1, warnings.size(), warnings::toString);
-        verify(player).showBossBar(argThat((BossBar b) -> b.color() == BossBar.Color.WHITE));
+        assertEquals(BarColor.WHITE, createdBars.getFirst().getColor());
     }
 
     private PlatformScheduler scheduler() {

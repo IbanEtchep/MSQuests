@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import net.artisanmc.modules.api.ArtisanAPI;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
@@ -9,21 +10,22 @@ import java.io.File;
 import java.util.logging.Level;
 
 /**
- * Artisan integration. Artisan is a required dependency ({@code paper-plugin.yml}): the plugin
+ * Artisan integration. Artisan is a required dependency ({@code depend} in {@code plugin.yml}): the plugin
  * resolves its API first thing in {@code onEnable} and refuses to start without a compatible one,
  * then registers {@link MsQuestsArtisanModule} once its services are wired.
  */
 public final class ArtisanIntegration {
 
     /**
-     * Lowest Artisan API this plugin compiles against: the example template
+     * Lowest Artisan API this plugin compiles against: text without Adventure
+     * ({@code TextApi}, 2.10.0, so it runs on Spigot), the example template
      * ({@code TemplateRegistry}, 2.6.0), its messages served by {@code TranslationsApi}
      * (2.5.0), item specs built and compared by
      * {@code ItemStackApi.matches} (2.4.0), {@code ConditionsApi} and the structured
      * {@code ModuleActionsApi.run} (2.2.0), {@code DocumentKindRegistry} (2.1.0) and
      * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).
      */
-    public static final String MIN_API_VERSION = "2.6.0";
+    public static final String MIN_API_VERSION = "2.10.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ArtisanAPI api;
@@ -51,6 +53,7 @@ public final class ArtisanIntegration {
                         + MIN_API_VERSION + "+ (same major). Update Artisan.");
                 return null;
             }
+            MessageBuilder.useText(api.getText());
             return new ArtisanIntegration(plugin, api);
         } catch (LinkageError e) {
             // An Artisan 1.x jar: the 2.x packages this plugin links against do not exist there.

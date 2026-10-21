@@ -1,6 +1,9 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.platform.BarOverlay;
+import com.github.ibanetchep.msquests.bukkit.platform.BossBars;
+import com.github.ibanetchep.msquests.bukkit.platform.Platform;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
 import com.github.ibanetchep.msquests.core.lang.TranslationKey;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
@@ -17,9 +20,7 @@ import net.artisanmc.modules.api.action.ActionHandler;
 import net.artisanmc.modules.api.action.ActionRuntime;
 import net.artisanmc.modules.api.model.ModelField;
 import net.artisanmc.modules.api.model.ModelFieldType;
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.boss.BarColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,9 +64,13 @@ final class QuestActions {
     private final QuestBossBars bossBars;
 
     QuestActions(BukkitQuestsPlugin plugin) {
+        this(plugin, BossBars.BUKKIT);
+    }
+
+    QuestActions(BukkitQuestsPlugin plugin, BossBars bars) {
         this.plugin = plugin;
         this.actors = new ActorResolver(plugin.getQuestActorRegistry());
-        this.bossBars = new QuestBossBars(plugin);
+        this.bossBars = new QuestBossBars(plugin, bars);
     }
 
     List<ActionDeclaration> declarations() {
@@ -86,9 +91,9 @@ final class QuestActions {
                 ), "text", this::actionBar),
                 new ActionDeclaration(BOSS_BAR, List.of(
                         new ModelField("text", ModelFieldType.ltext(), true),
-                        new ModelField("color", ModelFieldType.enumOf(names(BossBar.Color.values())))
+                        new ModelField("color", ModelFieldType.enumOf(names(BarColor.values())))
                                 .withDefault("white"),
-                        new ModelField("style", ModelFieldType.enumOf(names(BossBar.Overlay.values())))
+                        new ModelField("style", ModelFieldType.enumOf(names(BarOverlay.values())))
                                 .withDefault("progress"),
                         new ModelField("show_progress", ModelFieldType.bool())
                                 .withDefault(true)
@@ -126,7 +131,7 @@ final class QuestActions {
         PlayerProfile profile = plugin.getPlayerProfileRegistry().getPlayerProfile(player.getUniqueId());
         QuestStartResult result = plugin.getQuestLifecycleService().startQuest(
                 target.actor, target.config, target.group.getDistributionStrategy(), profile);
-        player.sendMessage(MessageBuilder.translatable(result).toComponent());
+        MessageBuilder.translatable(result).send(player);
         return ctx;
     }
 
@@ -149,8 +154,9 @@ final class QuestActions {
         }
 
         plugin.getQuestLifecycleService().abandonQuest(quest);
-        player.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_ABANDONED)
-                .applyPlaceholderResolver(quest).toComponent());
+        MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_ABANDONED)
+                .applyPlaceholderResolver(quest)
+                .send(player);
         return ctx;
     }
 
@@ -172,10 +178,10 @@ final class QuestActions {
             else plugin.getTrackingBossBarService().showBossBar(player);
         }
 
-        player.sendMessage(untrack
-                ? MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).toComponent()
-                : MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
-                        .applyPlaceholderResolver(quest).toComponent());
+        (untrack
+                ? MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED)
+                : MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED).applyPlaceholderResolver(quest))
+                .send(player);
         return ctx;
     }
 
@@ -185,7 +191,7 @@ final class QuestActions {
         if (quest == null || quest.getActor() == null) return ctx;
 
         QuestRotateResult result = plugin.getQuestLifecycleService().rotateQuest(quest.getActor(), quest);
-        ctx.getPlayer().sendMessage(MessageBuilder.translatable(result).toComponent());
+        MessageBuilder.translatable(result).send(ctx.getPlayer());
         return ctx;
     }
 
@@ -217,13 +223,14 @@ final class QuestActions {
     }
 
     private ActionContext actionBar(ActionContext ctx, Map<String, Object> args, ActionRuntime runtime) {
-        ctx.getPlayer().sendActionBar(text(ctx, args, runtime));
+        String text = text(ctx, args, runtime);
+        Platform.actionBar(ctx.getPlayer(), text, MessageBuilder.legacy(text));
         return ctx;
     }
 
     private ActionContext bossBar(ActionContext ctx, Map<String, Object> args, ActionRuntime runtime) {
-        BossBar.Color color = enumValue(BossBar.Color.class, args.get("color"), BossBar.Color.WHITE, runtime);
-        BossBar.Overlay style = enumValue(BossBar.Overlay.class, args.get("style"), BossBar.Overlay.PROGRESS, runtime);
+        BarColor color = enumValue(BarColor.class, args.get("color"), BarColor.WHITE, runtime);
+        BarOverlay style = enumValue(BarOverlay.class, args.get("style"), BarOverlay.PROGRESS, runtime);
         boolean showProgress = !"false".equalsIgnoreCase(String.valueOf(args.get("show_progress")).trim());
         Integer seconds = integer(args.get("duration"));
 
@@ -231,12 +238,12 @@ final class QuestActions {
         if (showProgress && ctx.getArgs().get("progress_ratio") instanceof Number ratio) {
             progress = (float) Math.clamp(ratio.doubleValue(), 0.0, 1.0);
         }
-        bossBars.show(ctx.getPlayer(), text(ctx, args, runtime), progress, color, style, seconds != null ? seconds : 5);
+        bossBars.show(ctx.getPlayer(), MessageBuilder.legacy(text(ctx, args, runtime)), progress, color, style, seconds != null ? seconds : 5);
         return ctx;
     }
 
-    private static Component text(ActionContext ctx, Map<String, Object> args, ActionRuntime runtime) {
-        return MiniMessage.miniMessage().deserialize(runtime.text(ctx, args.get("text")));
+    private static String text(ActionContext ctx, Map<String, Object> args, ActionRuntime runtime) {
+        return runtime.text(ctx, args.get("text"));
     }
 
     private static <E extends Enum<E>> E enumValue(Class<E> type, @Nullable Object value, E fallback, ActionRuntime runtime) {

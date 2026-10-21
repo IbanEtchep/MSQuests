@@ -43,7 +43,7 @@ public class BlockBreakObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "material", material != null ? "<lang:" + material.translationKey() + ">" : "",
+                "material", material != null ? "<lang:" + material.getTranslationKey() + ">" : "",
                 "amount", String.valueOf(amount)
         );
     }

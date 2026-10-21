@@ -409,10 +409,10 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
             else plugin.getTrackingBossBarService().showBossBar(player);
         }
 
-        player.sendMessage(untrack
-                ? MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).toComponent()
-                : MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
-                        .applyPlaceholderResolver(quest).toComponent());
+        (untrack
+                ? MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED)
+                : MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED).applyPlaceholderResolver(quest))
+                .send(player);
     }
 
     private void rotate(Player player, List<String> argv) {
@@ -424,7 +424,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         if (actor == null) return;
 
         QuestRotateResult result = plugin.getQuestLifecycleService().rotateQuest(actor, quest);
-        player.sendMessage(MessageBuilder.translatable(result).toComponent());
+        MessageBuilder.translatable(result).send(player);
     }
 
     /**
@@ -449,7 +449,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
             MessageBuilder message = MessageBuilder.translatable(contribution[0].messageKey());
             contribution[0].placeholders().forEach(message::placeholder);
-            player.sendMessage(message.toComponent());
+            message.send(player);
         }
     }
 
