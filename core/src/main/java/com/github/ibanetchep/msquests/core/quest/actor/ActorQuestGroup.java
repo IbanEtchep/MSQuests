@@ -79,7 +79,8 @@ public class ActorQuestGroup {
     public boolean hasStartedInCurrentPeriod(String questKey) {
         List<Quest> list = questsByKey.get(questKey);
         if (list == null || list.isEmpty()) return false;
-        return list.stream().anyMatch(this::isLiveAttempt);
+        QuestGroupConfig.Period period = groupConfig.getCurrentPeriod();
+        return list.stream().anyMatch(quest -> isLiveAttempt(quest, period));
     }
 
     /**
@@ -94,20 +95,21 @@ public class ActorQuestGroup {
     public @Nullable Quest getCurrentAttempt(String questKey) {
         Quest active = getActiveQuestByKey(questKey);
         if (active != null) return active;
+        QuestGroupConfig.Period period = groupConfig.getCurrentPeriod();
         return getAllQuestsForKey(questKey).stream()
-                .filter(this::isLiveAttempt)
+                .filter(quest -> isLiveAttempt(quest, period))
                 .reduce((first, second) -> second)
                 .orElse(null);
     }
 
     /** Not expired, and created inside the group's current period. */
     private boolean isLiveAttempt(Quest quest) {
+        return isLiveAttempt(quest, groupConfig.getCurrentPeriod());
+    }
+
+    private static boolean isLiveAttempt(Quest quest, QuestGroupConfig.Period period) {
         if (quest.getStatus() == QuestStatus.EXPIRED) return false;
-        Instant periodStart = groupConfig.getPeriodStart();
-        Instant periodEnd = groupConfig.getPeriodEnd();
-        Instant createdAt = quest.getCreatedAt().toInstant();
-        return (periodStart == null || !createdAt.isBefore(periodStart))
-                && (periodEnd == null || createdAt.isBefore(periodEnd));
+        return period.contains(quest.getCreatedAt().toInstant());
     }
 
     public boolean hasActive(String questKey) {

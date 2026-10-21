@@ -42,16 +42,18 @@ public class QuestAdminCommand {
         plugin.getQuestProgressService().flushPendingProgress()
                 .thenCompose(v -> plugin.getQuestConfigService().reloadQuestGroups())
                 .thenCompose(v -> plugin.getQuestActorService().reloadActors())
-                .thenRun(() -> {
+                // The futures complete on the database threads: back to the main thread before
+                // publishing the data reload event (Artisan menus re-read on it) and answering.
+                .thenRun(() -> plugin.runSync(() -> {
                     // Tell Artisan menus their rows are stale (no-op without Artisan).
                     plugin.getArtisanIntegration().signalDataReload();
                     sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_RELOAD).toComponent());
-                })
+                }))
                 .exceptionally(e -> {
                     // The previous configs stay active: a refused reload changes nothing.
-                    sender.sendMessage(MiniMessage.miniMessage().deserialize(
-                            "<red>Quest reload refused, the previous configs are still active. Check console for details.</red>"));
                     plugin.getLogger().log(Level.SEVERE, "Failed during quest reload", e);
+                    plugin.runSync(() -> sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                            "<red>Quest reload refused, the previous configs are still active. Check console for details.</red>")));
                     return null;
                 });
     }

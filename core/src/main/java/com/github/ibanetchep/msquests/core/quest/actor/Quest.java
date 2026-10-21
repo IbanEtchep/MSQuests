@@ -5,7 +5,6 @@ import com.github.ibanetchep.msquests.core.lang.Translator;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
-import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -159,12 +158,9 @@ public class Quest implements PlaceholderProvider {
             return true;
         }
 
-        String resetCron = group.getResetCron();
-        if (resetCron != null) {
-            Instant expiration = CronUtils.getNextExecution(resetCron, createdAtInstant);
-            if (expiration != null) {
-                return now.isAfter(expiration);
-            }
+        Instant expiration = group.getNextResetAfter(createdAtInstant);
+        if (expiration != null) {
+            return now.isAfter(expiration);
         }
 
         return false;
