@@ -6,7 +6,8 @@ import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.config.PlaceholdersConfig;
 import com.github.ibanetchep.msquests.bukkit.config.TrackingBossBarConfig;
 import dev.dejvokep.boostedyaml.YamlDocument;
-import net.kyori.adventure.bossbar.BossBar;
+import com.github.ibanetchep.msquests.bukkit.platform.BarOverlay;
+import org.bukkit.boss.BarColor;
 import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
 import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.common.ScalarStyle;
 import dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine.v2.nodes.Tag;
@@ -75,8 +76,8 @@ public class GlobalConfigLoaderService {
 
         boolean bossBarEnabled = config.getBoolean("tracking.bossbar.enabled", false);
         String bossBarMessage = config.getString("tracking.bossbar.message", "%objective_name% - %objective_progress%");
-        BossBar.Color bossBarColor = BossBar.Color.valueOf(config.getString("tracking.bossbar.color", "WHITE").toUpperCase());
-        BossBar.Overlay bossBarStyle = BossBar.Overlay.valueOf(config.getString("tracking.bossbar.style", "PROGRESS").toUpperCase());
+        BarColor bossBarColor = BarColor.valueOf(config.getString("tracking.bossbar.color", "WHITE").toUpperCase());
+        BarOverlay bossBarStyle = BarOverlay.valueOf(config.getString("tracking.bossbar.style", "PROGRESS").toUpperCase());
         boolean bossBarShowProgress = config.getBoolean("tracking.bossbar.show_progress", true);
 
         TrackingBossBarConfig trackingBossBarConfig = new TrackingBossBarConfig(

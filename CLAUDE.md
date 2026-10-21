@@ -16,7 +16,7 @@ The shadow JAR is automatically copied to `docker/plugins/` on build.
 
 ## Project Structure
 
-This is a Gradle multi-module project targeting Paper 1.21+ (Minecraft plugin):
+This is a Gradle multi-module project targeting Paper, Folia and Spigot 1.21+ (Minecraft plugin; Adventure and other Paper-only calls stay in `bukkit/platform/PaperOnly`, messages go through Artisan's `TextApi`):
 
 - **`core/`** — Platform-agnostic quest logic: domain model, services, registries, factories, DTOs, mappers, event dispatching abstraction
 - **`bukkit/`** — Paper/Bukkit integration: plugin entry point, commands, listeners, Bukkit-specific objective handlers, actions, PlaceholderAPI

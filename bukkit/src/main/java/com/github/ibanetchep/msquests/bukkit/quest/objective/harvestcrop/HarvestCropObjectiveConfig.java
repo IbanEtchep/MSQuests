@@ -44,7 +44,7 @@ public class HarvestCropObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "crop", "<lang:" + crop.translationKey() + ">",
+                "crop", "<lang:" + crop.getTranslationKey() + ">",
                 "amount", String.valueOf(amount)
         );
     }

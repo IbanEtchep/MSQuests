@@ -4,10 +4,8 @@ import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.text.placeholder.PlaceholderEngine;
 import com.github.ibanetchep.msquests.core.lang.PlaceholderProvider;
 import com.github.ibanetchep.msquests.core.lang.Translatable;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.artisanmc.modules.api.text.TextApi;
+import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -18,9 +16,12 @@ import java.util.function.Function;
 
 /**
  * A builder class for creating and formatting messages with placeholders and lists.
- * Supports multiple output formats including MiniMessage components, legacy strings, and plain text.
+ * Messages are MiniMessage; Artisan's text API parses and sends them, so no Adventure type is
+ * touched here and the plugin runs on Spigot as well as Paper.
  */
 public class MessageBuilder {
+
+    private static volatile TextApi text = TextApi.NOOP;
 
     private final String message;
     private final List<PlaceholderProvider> placeholderProviders = new ArrayList<>();
@@ -33,6 +34,21 @@ public class MessageBuilder {
      */
     private MessageBuilder(String message) {
         this.message = message;
+    }
+
+    /** Called at enable with {@code api.getText()}. */
+    public static void useText(TextApi api) {
+        text = api;
+    }
+
+    /** Parses {@code miniMessage} and sends it to {@code to}. */
+    public static void send(CommandSender to, String miniMessage) {
+        text.send(to, miniMessage);
+    }
+
+    /** {@code miniMessage} as a {@code §}-coded string, for Bukkit's String methods. */
+    public static String legacy(String miniMessage) {
+        return text.legacy(miniMessage);
     }
 
     /**
@@ -119,13 +135,9 @@ public class MessageBuilder {
         return result;
     }
 
-    /**
-     * Renders the message as a MiniMessage Component.
-     *
-     * @return The message as an Adventure Component
-     */
-    public Component toComponent() {
-        return MiniMessage.miniMessage().deserialize(toStringRaw());
+    /** Sends the rendered message to {@code to}. */
+    public void send(CommandSender to) {
+        text.send(to, toStringRaw());
     }
 
     /**
@@ -134,7 +146,7 @@ public class MessageBuilder {
      * @return The message in legacy format with § color codes
      */
     public String toLegacyString() {
-        return LegacyComponentSerializer.legacySection().serialize(toComponent());
+        return text.legacy(toStringRaw());
     }
 
     /**
@@ -143,6 +155,6 @@ public class MessageBuilder {
      * @return The message as plain text with all formatting removed
      */
     public String toPlainText() {
-        return PlainTextComponentSerializer.plainText().serialize(toComponent());
+        return text.plain(toStringRaw());
     }
 }

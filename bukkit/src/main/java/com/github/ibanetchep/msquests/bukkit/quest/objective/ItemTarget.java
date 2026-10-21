@@ -78,7 +78,7 @@ public final class ItemTarget {
         if (spec == null) return "";
         if (spec.get("title") instanceof String title && !title.isBlank()) return title;
         Material material = vanillaMaterial();
-        if (material != null) return "<lang:" + material.translationKey() + ">";
+        if (material != null) return "<lang:" + material.getTranslationKey() + ">";
         Object ref = spec.get("material");
         return ref == null ? "" : ref.toString();
     }

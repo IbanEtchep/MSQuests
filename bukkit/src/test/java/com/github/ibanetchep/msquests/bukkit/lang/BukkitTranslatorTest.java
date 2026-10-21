@@ -107,6 +107,12 @@ class BukkitTranslatorTest {
                 @Override public Component get(String lang, String key, Map<String, ?> placeholders) {
                     return Component.text(raw(lang, key));
                 }
+                @Override public void send(CommandSender viewer, String key, Map<String, ?> placeholders) {
+                    viewer.sendMessage(raw(getDefaultLang(), key));
+                }
+                @Override public String legacy(String lang, String key, Map<String, ?> placeholders) {
+                    return raw(lang, key);
+                }
                 @Override public void reload() {}
             };
             bundles.put(declaration.getNamespace(), bundle);

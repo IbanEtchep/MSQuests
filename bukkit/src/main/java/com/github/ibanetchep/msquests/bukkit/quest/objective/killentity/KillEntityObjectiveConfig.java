@@ -50,7 +50,7 @@ public class KillEntityObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "entity_type", "<lang:" + entityType.translationKey() + ">",
+                "entity_type", "<lang:" + entityType.getTranslationKey() + ">",
                 "amount", String.valueOf(amount)
         );
     }

@@ -37,10 +37,9 @@ public class QuestCommand {
             plugin.getTrackingBossBarService().showBossBar(sender);
         }
 
-        sender.sendMessage(
-                MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
-                        .applyPlaceholderResolver(quest).toComponent()
-        );
+        MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
+                .applyPlaceholderResolver(quest)
+                .send(sender);
     }
 
     @Subcommand("rotate")
@@ -51,7 +50,7 @@ public class QuestCommand {
         if (actor == null) return;
 
         QuestRotateResult result = plugin.getQuestLifecycleService().rotateQuest(actor, quest);
-        sender.sendMessage(MessageBuilder.translatable(result).toComponent());
+        MessageBuilder.translatable(result).send(sender);
     }
 
     @Subcommand("untrack")
@@ -68,7 +67,7 @@ public class QuestCommand {
         playerProfile.setTrackedQuestId(null);
         plugin.getPlayerProfileService().saveProfile(playerProfile);
 
-        sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).toComponent());
+        MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).send(sender);
     }
 
     @Subcommand("toggletrack")
@@ -83,17 +82,16 @@ public class QuestCommand {
             }
             playerProfile.setTrackedQuestId(null);
             plugin.getPlayerProfileService().saveProfile(playerProfile);
-            sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).toComponent());
+            MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_UNTRACKED).send(sender);
         } else {
             playerProfile.setTrackedQuestId(quest.getId());
             plugin.getPlayerProfileService().saveProfile(playerProfile);
             if (plugin.getTrackingBossBarService().isEnabled()) {
                 plugin.getTrackingBossBarService().showBossBar(sender);
             }
-            sender.sendMessage(
-                    MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
-                            .applyPlaceholderResolver(quest).toComponent()
-            );
+            MessageBuilder.translatable(TranslationKey.QUEST_COMMAND_TRACKED)
+                            .applyPlaceholderResolver(quest)
+                            .send(sender);
         }
     }
 

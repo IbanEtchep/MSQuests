@@ -41,7 +41,7 @@ public class BreedAnimalObjectiveConfig extends QuestObjectiveConfig {
     @Override
     public Map<String, String> getPlaceholders(Translator translator) {
         return Map.of(
-                "entity_type", entityType != null ? "<lang:" + entityType.translationKey() + ">" : "",
+                "entity_type", entityType != null ? "<lang:" + entityType.getTranslationKey() + ">" : "",
                 "amount", String.valueOf(amount)
         );
     }
