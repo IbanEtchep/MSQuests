@@ -45,7 +45,7 @@ export const questGroupKind: DocumentKindContribution = {
   serialize: (doc, project) => serializeQuestGroup(doc as QuestGroup, project),
   ltextSites: (doc) => questGroupTextSites(doc as QuestGroup),
   board: {
-    size: { width: 240, height: 48 },
+    size: { width: 300, height: 48 },
     accent: QUEST_ACCENT,
     // The group's quests, one selectable row each: the Properties panel opens the one clicked.
     items: (doc, { project, lang }) => questBoardItems(doc as QuestGroup, project, lang),

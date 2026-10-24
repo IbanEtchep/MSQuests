@@ -31,7 +31,8 @@ export function isOrdered(group: QuestGroup): boolean {
 
 /**
  * The group's quests on its board node: one row each, numbered when they are handed out in
- * order, with the quest's description and objectives in the row's tooltip.
+ * order, its first objective under its title, with the quest's description and objectives in
+ * the row's tooltip.
  */
 export function questBoardItems(group: QuestGroup, project: unknown, lang: string): BoardItem[] {
   const t = translator(lang);
@@ -42,6 +43,7 @@ export function questBoardItems(group: QuestGroup, project: unknown, lang: strin
       id: quest.uid,
       label: plainText(title) || quest.key,
       detail: quest.tier || undefined,
+      caption: objectiveCaption(t, quest),
       marker: ordered ? String(i + 1) : undefined,
       hover: {
         title: title || quest.key,
@@ -50,6 +52,15 @@ export function questBoardItems(group: QuestGroup, project: unknown, lang: strin
       },
     };
   });
+}
+
+/** The row's second line: the quest's first objective, `+2` when it has two more. */
+export function objectiveCaption(t: T, quest: Quest): string | undefined {
+  const objectives = quest.stages.flatMap((stage) => stage.objectives);
+  const first = objectives[0];
+  if (!first) return undefined;
+  const more = objectives.length - 1;
+  return more > 0 ? `${objectiveLine(t, first)} +${String(more)}` : objectiveLine(t, first);
 }
 
 function objectiveLines(t: T, quest: Quest, project: unknown, lang: string): string[] {
