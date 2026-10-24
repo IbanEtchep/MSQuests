@@ -350,6 +350,33 @@ describe("the group's board node", () => {
     expect(rows?.[0]?.hover?.lines?.[0]).toContain("0/64");
   });
 
+  it("shows a quest's first objective under its title, with how many follow", async () => {
+    const { questGroupKind } = await import("./questGroupKind");
+    host({});
+    const objective = (key: string, amount: number) => ({
+      key,
+      type: "break_block",
+      params: { amount },
+    });
+    const doc = {
+      distribution: {},
+      quests: [
+        quest("U1", "one", "", [{ title: { key: "s1" }, objectives: [objective("o1", 64)] }]),
+        quest("U2", "three", "", [
+          { title: { key: "s1" }, objectives: [objective("o1", 8), objective("o2", 2)] },
+          { title: { key: "s2" }, objectives: [objective("o3", 1)] },
+        ]),
+        quest("U3", "none", ""),
+      ],
+    };
+    const captions = questGroupKind.board
+      ?.items?.(doc, { project: {}, lang: "en" })
+      .map((r) => r.caption);
+    expect(captions?.[0]).toMatch(/0\/64$/);
+    expect(captions?.[1]).toMatch(/0\/8 \+2$/);
+    expect(captions?.[2]).toBeUndefined();
+  });
+
   it("numbers the quests when the group hands them out in list order", async () => {
     const { questGroupKind } = await import("./questGroupKind");
     host({});
