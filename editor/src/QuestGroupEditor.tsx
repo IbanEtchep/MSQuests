@@ -6,6 +6,7 @@ import {
   type ItemComparisonWire,
   MaterialInput,
   MiniMessageInput,
+  SortableList,
   type TextWrite,
   injectModuleStyles,
   newTextKey,
@@ -16,7 +17,7 @@ import {
   useProject,
   useUiLang,
 } from "@artisan/editor-sdk";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactElement, type ReactNode, useEffect, useState } from "react";
 import { describeCron, isCronShape, nextCronRun } from "./cron";
 import { type T, useT } from "./i18n";
 import {
@@ -237,36 +238,17 @@ function IconButton({
   );
 }
 
-function Reorder({
-  t,
-  index,
-  count,
-  onMove,
-  onRemove,
-}: {
-  t: T;
-  index: number;
-  count: number;
-  onMove: (to: number) => void;
-  onRemove: () => void;
-}) {
-  return (
-    <>
-      <IconButton label={t("moveUp")} disabled={index === 0} onClick={() => onMove(index - 1)}>
-        ↑
-      </IconButton>
-      <IconButton
-        label={t("moveDown")}
-        disabled={index === count - 1}
-        onClick={() => onMove(index + 1)}
-      >
-        ↓
-      </IconButton>
-      <IconButton label={t("remove")} onClick={onRemove}>
-        ×
-      </IconButton>
-    </>
-  );
+/**
+ * Row ids for a SortableList: a row's own key, suffixed by its index only when an earlier
+ * row already holds that key (a hand-written file may repeat one).
+ */
+function rowIds(keys: string[]): string[] {
+  const seen = new Set<string>();
+  return keys.map((key, i) => {
+    const id = seen.has(key) ? `${key}#${i}` : key;
+    seen.add(key);
+    return id;
+  });
 }
 
 // ------------------------------------------------------------------ group
@@ -553,9 +535,17 @@ function GroupView({
           </Button>
         </div>
         {group.quests.length === 0 && <span className="aq-hint">{t("noQuests")}</span>}
-        <div className="aq-list">
-          {group.quests.map((q, i) => (
-            <div key={q.uid} className="aq-item">
+        <SortableList
+          ids={group.quests.map((q) => q.uid)}
+          onMove={(from, to) => edit((g) => move(g.quests, from, to))}
+          className="aq-list"
+          itemClassName="aq-item"
+        >
+          {(i, handle) => {
+            const q = group.quests[i]!;
+            return (
+            <>
+              {handle}
               <button
                 type="button"
                 className="aq-item-main"
@@ -576,20 +566,20 @@ function GroupView({
                   {q.duration ? ` · ${q.duration}` : ""}
                 </span>
               </button>
-              <Reorder
-                t={t}
-                index={i}
-                count={group.quests.length}
-                onMove={(to) => edit((g) => move(g.quests, i, to))}
-                onRemove={() =>
+              <IconButton
+                label={t("remove")}
+                onClick={() =>
                   edit((g) => {
                     g.quests.splice(i, 1);
                   })
                 }
-              />
-            </div>
-          ))}
-        </div>
+              >
+                ×
+              </IconButton>
+            </>
+            );
+          }}
+        </SortableList>
         {kept.length > 0 && (
           <span className="aq-hint">{t("kept", { fields: kept.join(", ") })}</span>
         )}
@@ -857,18 +847,22 @@ function QuestView({ ctx, group, index }: { ctx: Ctx; group: QuestGroup; index: 
             + {t("addStage")}
           </Button>
         </div>
-        <ol className="aq-stages">
-          {quest.stages.map((stage, si) => (
+        <SortableList
+          ids={rowIds(quest.stages.map((s) => s.key))}
+          onMove={(from, to) => editQuest((q) => move(q.stages, from, to))}
+          className="aq-stages"
+        >
+          {(si, handle) => (
             <StageCard
-              key={`${stage.key}-${si}`}
               ctx={ctx}
               quest={quest}
-              stage={stage}
+              stage={quest.stages[si]!}
               si={si}
+              handle={handle}
               editQuest={editQuest}
             />
-          ))}
-        </ol>
+          )}
+        </SortableList>
       </section>
 
       <EventsSection
@@ -906,12 +900,14 @@ function StageCard({
   quest,
   stage,
   si,
+  handle,
   editQuest,
 }: {
   ctx: Ctx;
   quest: Quest;
   stage: Stage;
   si: number;
+  handle: ReactElement;
   editQuest: (recipe: (q: Quest) => void, texts?: TextWrite[]) => void;
 }) {
   const { t } = ctx;
@@ -923,8 +919,9 @@ function StageCard({
   const allKeys = quest.stages.flatMap((s) => s.objectives.map((o) => o.key));
 
   return (
-    <li className="aq-stage">
+    <div className="aq-stage">
       <div className="aq-stage-head">
+        {handle}
         <span className="aq-stage-n">{si + 1}</span>
         <div className="aq-stage-title">
           <MiniMessageInput
@@ -936,17 +933,16 @@ function StageCard({
             }
           />
         </div>
-        <Reorder
-          t={t}
-          index={si}
-          count={quest.stages.length}
-          onMove={(to) => editQuest((q) => move(q.stages, si, to))}
-          onRemove={() =>
+        <IconButton
+          label={t("remove")}
+          onClick={() =>
             editQuest((q) => {
               q.stages.splice(si, 1);
             })
           }
-        />
+        >
+          ×
+        </IconButton>
       </div>
       {stage.objectives.length > 1 && (
         <div className="aq-seg" role="radiogroup" aria-label={t("flow")}>
@@ -969,10 +965,15 @@ function StageCard({
         </div>
       )}
       {stage.objectives.length === 0 && <span className="aq-hint">{t("noObjectives")}</span>}
-      <ul className="aq-objectives">
-        {stage.objectives.map((objective, oi) => (
+      <SortableList
+        ids={rowIds(stage.objectives.map((o) => o.key))}
+        onMove={(from, to) => editStage((s) => move(s.objectives, from, to))}
+        className="aq-objectives"
+      >
+        {(oi, handle) => {
+          const objective = stage.objectives[oi]!;
+          return (
           <ObjectiveRow
-            key={`${objective.key}-${oi}`}
             t={t}
             projectId={ctx.projectId}
             n={flow === "sequential" ? `${si + 1}.${oi + 1}` : "•"}
@@ -980,9 +981,7 @@ function StageCard({
             open={openKey === objective.key}
             onToggle={() => setOpenKey(openKey === objective.key ? null : objective.key)}
             keyTaken={allKeys.filter((k) => k === objective.key).length > 1}
-            index={oi}
-            count={stage.objectives.length}
-            onMove={(to) => editStage((s) => move(s.objectives, oi, to))}
+            handle={handle}
             onChange={(recipe) => editStage((s) => recipe(s.objectives[oi]!))}
             onRename={(key) => {
               if (openKey === objective.key) setOpenKey(key);
@@ -993,8 +992,9 @@ function StageCard({
               })
             }
           />
-        ))}
-      </ul>
+          );
+        }}
+      </SortableList>
       <Button
         size="sm"
         variant="ghost"
@@ -1014,7 +1014,7 @@ function StageCard({
       >
         + {t("addObjective")}
       </Button>
-    </li>
+    </div>
   );
 }
 
@@ -1030,9 +1030,7 @@ function ObjectiveRow({
   open,
   onToggle,
   keyTaken,
-  index,
-  count,
-  onMove,
+  handle,
   onChange,
   onRename,
   onRemove,
@@ -1044,9 +1042,7 @@ function ObjectiveRow({
   open: boolean;
   onToggle: () => void;
   keyTaken: boolean;
-  index: number;
-  count: number;
-  onMove: (to: number) => void;
+  handle: ReactElement;
   onChange: (recipe: (o: Objective) => void) => void;
   onRename: (key: string) => void;
   onRemove: () => void;
@@ -1080,8 +1076,9 @@ function ObjectiveRow({
   );
 
   return (
-    <li className={`aq-obj${open ? " is-open" : ""}${problem ? " has-problem" : ""}`}>
+    <div className={`aq-obj${open ? " is-open" : ""}${problem ? " has-problem" : ""}`}>
       <div className="aq-obj-line">
+        {handle}
         <button type="button" className="aq-obj-main" onClick={onToggle} aria-expanded={open}>
           <span className="aq-obj-n">{n}</span>
           <span className="aq-obj-icon" aria-hidden>
@@ -1105,7 +1102,9 @@ function ObjectiveRow({
             />
           )}
         </button>
-        <Reorder t={t} index={index} count={count} onMove={onMove} onRemove={onRemove} />
+        <IconButton label={t("remove")} onClick={onRemove}>
+          ×
+        </IconButton>
       </div>
       {open && (
         <div className="aq-obj-form">
@@ -1171,7 +1170,7 @@ function ObjectiveRow({
           </details>
         </div>
       )}
-    </li>
+    </div>
   );
 }
 

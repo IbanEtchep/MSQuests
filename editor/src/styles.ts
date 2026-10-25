@@ -19,7 +19,7 @@ export const QUESTS_CSS = `
 .aq-warn { color: var(--warning); font-size: 11.5px; }
 .aq-check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .aq-list { display: flex; flex-direction: column; gap: 6px; }
-.aq-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.aq-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 2px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
 .aq-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer; background: none; border: 0; color: inherit; text-align: left; padding: 0; font: inherit; }
 .aq-item-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .aq-item-sub { color: var(--text-faint); font-size: 11px; font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -62,7 +62,7 @@ export const QUESTS_CSS = `
 .aq-obj { border-radius: var(--r-sm); background: var(--surface-inset); border: 1px solid transparent; }
 .aq-obj.is-open { border-color: var(--border); }
 .aq-obj.has-problem:not(.is-open) { border-color: var(--warning); }
-.aq-obj-line { display: flex; align-items: center; gap: 2px; padding-right: 4px; }
+.aq-obj-line { display: flex; align-items: center; gap: 2px; padding: 0 4px 0 2px; }
 .aq-obj-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 8px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .aq-obj-main:hover .aq-obj-text { color: var(--text); }
 .aq-obj-n { flex: none; min-width: 22px; color: var(--text-faint); font-family: var(--font-mono); font-size: 11px; }
