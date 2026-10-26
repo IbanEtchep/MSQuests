@@ -188,9 +188,9 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
         );
 
         CompletableFuture<Void> saveFuture = h2Repository.save(newQuest);
-        saveFuture.get(); // attend que l'opération soit terminée
+        saveFuture.get(); // wait for the operation to finish
 
-        // Vérifie que la quête est bien enregistrée
+        // Check that the quest is saved
         QuestDTO loaded = h2Repository.getAllByActor(actorId1).get().get(newQuestId);
         assertNotNull(loaded);
         assertEquals("new_quest", loaded.questKey());
@@ -199,10 +199,10 @@ public class QuestSqlRepositoryTest extends AbstractDatabaseTest {
 
     @Test
     void testUpdateExistingQuestH2() throws ExecutionException, InterruptedException {
-        // Récupère une quête existante
+        // Fetch an existing quest
         QuestDTO existing = h2Repository.getAllByActor(actorId1).get().get(questId1);
 
-        // Change le status
+        // Change the status
         QuestDTO updated = new QuestDTO(
                 existing.id(),
                 existing.questKey(),

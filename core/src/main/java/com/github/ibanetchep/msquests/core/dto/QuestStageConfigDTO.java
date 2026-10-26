@@ -11,7 +11,7 @@ public record QuestStageConfigDTO(
         List<QuestObjectiveConfigDTO> objectives
 ) {
     /**
-     * Compact constructor avec validation
+     * Compact constructor with validation
      */
     public QuestStageConfigDTO {
         if (key == null || key.isBlank()) {

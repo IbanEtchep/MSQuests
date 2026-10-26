@@ -1,12 +1,12 @@
-# Design : Systeme de conditions generique + Bossbar de tracking
+# Design: Generic conditions system + tracking bossbar
 
-## Contexte
+## Context
 
-Le plugin a un systeme de conditions sur les objectifs (`QuestObjectiveCondition`, `WorldCondition`, `BiomeCondition`) qui est specifique et limite. On veut un systeme de conditions **generique** inspire de zMenu, reutilisable partout (actions, objectifs, quetes), avec `placeholder` et `permission` comme types. En parallele, on ajoute une bossbar permanente pour la quete trackee, configurable dans la config globale.
+The plugin has a conditions system on objectives (`QuestObjectiveCondition`, `WorldCondition`, `BiomeCondition`) that is specific and limited. We want a **generic** conditions system inspired by zMenu, reusable everywhere (actions, objectives, quests), with `placeholder` and `permission` as types. In parallel, we add a permanent bossbar for the tracked quest, configurable in the global config.
 
-## 1. Systeme de conditions
+## 1. Conditions system
 
-### Interface core
+### Core interface
 
 ```java
 public interface Condition {
@@ -14,9 +14,9 @@ public interface Condition {
 }
 ```
 
-Remplace `QuestObjectiveCondition` (meme signature).
+Replaces `QuestObjectiveCondition` (same signature).
 
-### Types de conditions
+### Condition types
 
 **`PlaceholderCondition`** :
 ```yaml
@@ -27,8 +27,8 @@ conditions:
     value: "world_nether"
 ```
 
-Operateurs supportes :
-- Numeriques : `EQUAL_TO`, `SUPERIOR`, `SUPERIOR_OR_EQUAL`, `LOWER`, `LOWER_OR_EQUAL`
+Supported operators:
+- Numeric: `EQUAL_TO`, `SUPERIOR`, `SUPERIOR_OR_EQUAL`, `LOWER`, `LOWER_OR_EQUAL`
 - Strings : `EQUALS_STRING`, `EQUALS_IGNORECASE_STRING`, `CONTAINS_STRING`, `DIFFERENT_STRING`
 
 **`PermissionCondition`** :
@@ -38,23 +38,23 @@ conditions:
     permission: "quest.vip"
 ```
 
-### Ou les conditions s'appliquent
+### Where conditions apply
 
-Meme format YAML `conditions: [...]` utilisable a 3 endroits :
+The same YAML format `conditions: [...]` can be used in 3 places:
 
-- **Actions** — skip l'action si la condition echoue
-- **Objectifs** — remplace le systeme actuel (conditions de progression)
-- **Quetes** — conditions de demarrage (nouveau, dans la config de la quete)
+- **Actions** — skip the action if the condition fails
+- **Objectives** — replaces the current system (progress conditions)
+- **Quests** — start conditions (new, in the quest config)
 
-Toutes les conditions d'une liste doivent passer (logique AND).
+All the conditions in a list must pass (AND logic).
 
 ### Factory
 
-`ConditionFactory` remplace `QuestObjectiveConditionFactory`. Meme pattern register/build avec les types `placeholder` et `permission`.
+`ConditionFactory` replaces `QuestObjectiveConditionFactory`. Same register/build pattern with the `placeholder` and `permission` types.
 
-## 2. Bossbar de tracking
+## 2. Tracking bossbar
 
-### Config globale (`config.yml`)
+### Global config (`config.yml`)
 
 ```yaml
 tracking:
@@ -68,20 +68,20 @@ tracking:
 
 ### Service `TrackingBossBarService`
 
-Gere un `Map<UUID, BossBar>` (joueur -> bossbar).
+Manages a `Map<UUID, BossBar>` (player -> bossbar).
 
-Cycle de vie :
-- **Track** -> cree et affiche la bossbar
-- **Progression** de la quete trackee -> met a jour texte + progress
-- **Completion objectif** -> met a jour vers le prochain objectif actif
-- **Completion quete / Untrack / Deconnexion** -> retire la bossbar
-- **Connexion** -> restaure si quete trackee existe
+Lifecycle:
+- **Track** -> creates and shows the bossbar
+- **Progress** of the tracked quest -> updates text + progress
+- **Objective completion** -> updates to the next active objective
+- **Quest completion / Untrack / Disconnect** -> removes the bossbar
+- **Join** -> restores if a tracked quest exists
 
-Le message est resolu avec les placeholders du premier objectif actif de la quete trackee.
+The message is resolved with the placeholders of the first active objective of the tracked quest.
 
-## 3. Eviter le doublon de bossbars
+## 3. Avoiding duplicate bossbars
 
-L'action `boss_bar` existante sur `objective_progress` peut etre conditionnee pour ne s'afficher que si la quete n'est PAS trackee :
+The existing `boss_bar` action on `objective_progress` can be made conditional so it only shows if the quest is NOT tracked:
 
 ```yaml
 objective_progress:
@@ -95,37 +95,37 @@ objective_progress:
       message: '%objective_name% - %objective_progress%'
 ```
 
-Pas de type `tracked` dedie — on passe par les placeholders existants.
+No dedicated `tracked` type — we go through the existing placeholders.
 
-## 4. Suppressions
+## 4. Removals
 
-- `QuestObjectiveCondition` -> remplace par `Condition`
-- `BukkitObjectiveCondition` -> supprime
-- `WorldCondition`, `BiomeCondition` -> supprimes (remplaces par `PlaceholderCondition`)
-- `QuestObjectiveConditionFactory` -> remplace par `ConditionFactory`
-- `QuestObjectiveConditionConfigDTO` -> remplace par `ConditionConfigDTO`
+- `QuestObjectiveCondition` -> replaced by `Condition`
+- `BukkitObjectiveCondition` -> removed
+- `WorldCondition`, `BiomeCondition` -> removed (replaced by `PlaceholderCondition`)
+- `QuestObjectiveConditionFactory` -> replaced by `ConditionFactory`
+- `QuestObjectiveConditionConfigDTO` -> replaced by `ConditionConfigDTO`
 
-## 5. Fichiers impactes
+## 5. Impacted files
 
 ### Core
-- `core/.../quest/condition/Condition.java` — nouvelle interface
-- `core/.../factory/ConditionFactory.java` — nouvelle factory (remplace `QuestObjectiveConditionFactory`)
-- `core/.../dto/ConditionConfigDTO.java` — nouveau DTO (remplace `QuestObjectiveConditionConfigDTO`)
-- `core/.../quest/config/QuestObjectiveConfig.java` — changer type conditions
-- `core/.../quest/config/QuestConfig.java` — ajouter conditions de demarrage
-- `core/.../quest/config/action/QuestAction.java` — ajouter conditions
-- `core/.../service/QuestProgressService.java` — evaluer conditions des actions
-- `core/.../service/QuestDistributionService.java` — evaluer conditions de demarrage
+- `core/.../quest/condition/Condition.java` — new interface
+- `core/.../factory/ConditionFactory.java` — new factory (replaces `QuestObjectiveConditionFactory`)
+- `core/.../dto/ConditionConfigDTO.java` — new DTO (replaces `QuestObjectiveConditionConfigDTO`)
+- `core/.../quest/config/QuestObjectiveConfig.java` — change conditions type
+- `core/.../quest/config/QuestConfig.java` — add start conditions
+- `core/.../quest/config/action/QuestAction.java` — add conditions
+- `core/.../service/QuestProgressService.java` — evaluate action conditions
+- `core/.../service/QuestDistributionService.java` — evaluate start conditions
 
 ### Bukkit
-- `bukkit/.../condition/PlaceholderCondition.java` — nouveau
-- `bukkit/.../condition/PermissionCondition.java` — nouveau
-- `bukkit/.../service/TrackingBossBarService.java` — nouveau
+- `bukkit/.../condition/PlaceholderCondition.java` — new
+- `bukkit/.../condition/PermissionCondition.java` — new
+- `bukkit/.../service/TrackingBossBarService.java` — new
 - `bukkit/.../BukkitQuestsPlugin.java` — wiring
-- `bukkit/.../command/QuestCommand.java` — notifier TrackingBossBarService sur track/untrack
-- `bukkit/.../listener/PlayerJoinListener.java` — restaurer bossbar
+- `bukkit/.../command/QuestCommand.java` — notify TrackingBossBarService on track/untrack
+- `bukkit/.../listener/PlayerJoinListener.java` — restore bossbar
 
-### Suppressions
+### Removals
 - `core/.../quest/condition/QuestObjectiveCondition.java`
 - `core/.../factory/QuestObjectiveConditionFactory.java`
 - `core/.../dto/QuestObjectiveConditionConfigDTO.java`
@@ -133,7 +133,7 @@ Pas de type `tracked` dedie — on passe par les placeholders existants.
 - `bukkit/.../quest/condition/impl/WorldCondition.java`
 - `bukkit/.../quest/condition/impl/BiomeCondition.java`
 
-## 6. Config d'exemple complete
+## 6. Full example config
 
 ```yaml
 # config.yml
@@ -145,7 +145,7 @@ tracking:
     style: PROGRESS
     show_progress: true
 
-# daily.yml (groupe)
+# daily.yml (group)
 actions:
   objective_progress:
     - type: boss_bar
@@ -157,7 +157,7 @@ actions:
       params:
         message: '%objective_name% - %objective_progress%'
 
-# quete avec conditions
+# quest with conditions
 quests:
   nether_mining:
     conditions:
@@ -179,9 +179,9 @@ quests:
 
 ## 7. Verification
 
-- `./gradlew build` — compilation + tests passent
-- Tests unitaires pour `PlaceholderCondition` (operateurs numeriques et string)
-- Tests unitaires pour `PermissionCondition`
-- Test integration : bossbar apparait au track, se met a jour a la progression, disparait au untrack
-- Test integration : action boss_bar temporaire skippee quand quete trackee (via condition placeholder)
+- `./gradlew build` — compilation + tests pass
+- Unit tests for `PlaceholderCondition` (numeric and string operators)
+- Unit tests for `PermissionCondition`
+- Integration test: bossbar appears on track, updates on progress, disappears on untrack
+- Integration test: temporary boss_bar action skipped when quest is tracked (via placeholder condition)
 ```

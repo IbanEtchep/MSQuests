@@ -7,18 +7,18 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Annotation pour définir un champ de configuration d’un objectif.
+ * Annotation to define a configuration field of an objective.
  */
 @Retention(RUNTIME)
 @Target(FIELD)
 public @interface ConfigField {
     /**
-     * Nom de la clé dans la configuration.
+     * Name of the key in the configuration.
      */
     String name();
 
     /**
-     * Si vrai, ce champ est obligatoire.
+     * If true, this field is required.
      */
     boolean required() default false;
 }

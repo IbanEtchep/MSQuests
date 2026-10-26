@@ -72,7 +72,7 @@ actions:
 quests:
 
   # ========================================
-  # MINAGE - BLOCS COMMUNS
+  # MINING - COMMON BLOCKS
   # ========================================
 
   # --- Stone ---
@@ -434,7 +434,7 @@ quests:
             amount: 256
 
   # ========================================
-  # MINAGE - MINERAIS COMMUNS
+  # MINING - COMMON ORES
   # ========================================
 
   # --- Coal ---
@@ -796,7 +796,7 @@ quests:
             amount: 128
 
   # ========================================
-  # MINAGE - MINERAIS RARES
+  # MINING - RARE ORES
   # ========================================
 
   # --- Gold ---
@@ -1024,7 +1024,7 @@ quests:
             amount: 8
 
   # ========================================
-  # MOBS - COMMUNS
+  # MOBS - COMMON
   # ========================================
 
   - key: kill_zombie_15
@@ -1204,7 +1204,7 @@ quests:
             amount: 15
 
   # ========================================
-  # MOBS - RARES / DANGEREUX
+  # MOBS - RARE / DANGEROUS
   # ========================================
 
   - key: kill_enderman_10
@@ -1428,7 +1428,7 @@ quests:
             amount: 20
 
   # ========================================
-  # PECHE
+  # FISHING
   # ========================================
 
   - key: fish_10
@@ -1537,7 +1537,7 @@ quests:
             amount: 64
 
   # ========================================
-  # ELEVAGE (BREEDING)
+  # BREEDING
   # ========================================
 
   - key: breed_cow_5
@@ -1673,7 +1673,7 @@ quests:
             amount: 20
 
   # ========================================
-  # FARMING (RECOLTES)
+  # FARMING (CROPS)
   # ========================================
 
   - key: harvest_wheat_32
@@ -1875,7 +1875,7 @@ quests:
             amount: 64
 
   # ========================================
-  # WOODCUTTING (BUCHES)
+  # WOODCUTTING (LOGS)
   # ========================================
 
   - key: chop_oak_64

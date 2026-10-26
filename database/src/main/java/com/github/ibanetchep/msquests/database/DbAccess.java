@@ -62,7 +62,7 @@ public class DbAccess {
 
 				LOGGER.info("Initializing MySQL database connection to {}", credentials.toURI());
 			}
-			default -> throw new IllegalArgumentException("Base de données non supportée: " + dbType);
+			default -> throw new IllegalArgumentException("Unsupported database: " + dbType);
 		}
 
 		this.dataSource = new HikariDataSource(config);

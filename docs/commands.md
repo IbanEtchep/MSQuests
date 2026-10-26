@@ -1,30 +1,30 @@
-# Commandes des quetes
+# Quest commands
 
 ## Permissions:
-Toutes les commandes msquests sont reservées aux admins.
+All msquests commands are reserved for admins.
 Permission: **msquests.admin**
 
-### Commandes globales
+### Global commands
 - /msquests reload
-- /msquests stats — groupes, quêtes et progression chargés (à comparer avant et après une migration)
+- /msquests stats — loaded groups, quests and progress (to compare before and after a migration)
 
-### Migration vers les Documents Artisan
-- /msquests migrate [--dry-run] — convertit `quests/*.yml` en Documents `quest_group` en mémoire et écrit
-  seulement le rapport `migration/report-<date>.txt`
-- /msquests migrate --confirm — écrit aussi `plugins/Artisan/projects/quests/quest_groups/*.yaml` (jamais par-dessus un Document existant)
-  et `migration/map.yaml`
+### Migration to Artisan Documents
+- /msquests migrate [--dry-run] — converts `quests/*.yml` into `quest_group` Documents in memory and writes
+  only the report `migration/report-<date>.txt`
+- /msquests migrate --confirm — also writes `plugins/Artisan/projects/quests/quest_groups/*.yaml` (never over an existing Document)
+  and `migration/map.yaml`
 
-Ensuite `content_source: artisan` dans `config.yml` et redémarrage : la progression est copiée dans
-`artisan_quests_*` à ce démarrage. Voir `ARCHITECTURE.md`, *Source du contenu*.
+Then set `content_source: artisan` in `config.yml` and restart: progress is copied into
+`artisan_quests_*` at that startup. See `ARCHITECTURE.md`, *Content source*.
 
 ### Quest item management
-Ces commandes permettent de définir facilement des items qui peuvent être ensuite utilisés dans des quêtes afin d'éviter
-de les écrire manuellement dans la config.
+These commands make it easy to define items that can then be used in quests, so they do not have to
+be written manually in the config.
 - /msquests item set <key>
 - /msquests item get <key>
 
 ### Player quest management
-Commandes qui permettent de gérer les acteurs et leurs quetes.
+Commands to manage actors and their quests.
 - /msquests actor <actortype> <actorId> list <group_key>
 - /msquests actor <actortype> <actorId> start <group_key> <quest_key>
 - /msquests actor <actortype> <actorId> complete <group_key> <quest_key>

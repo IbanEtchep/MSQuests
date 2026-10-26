@@ -3,7 +3,7 @@
 ## Objectif
 Permettre au plugin de fonctionner entre plusieurs serveurs.
 
-## Résultat reflexion:
+## Outcome of the analysis:
 AtomicRedisQuestExecutor :
  - redis lock
  - load from db

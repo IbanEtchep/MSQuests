@@ -31,7 +31,7 @@ public class QuestConfigYamlRepositoryTest {
         questsDir = tempDir.resolve("quests");
         Files.createDirectories(questsDir);
 
-        // Copier le fichier depuis les ressources
+        // Copy the file from the resources
         Path resourceFile = Path.of("src/test/resources/quests/group_1.yml");
         testFilePath = questsDir.resolve("group_1.yml");
         Files.copy(resourceFile, testFilePath, StandardCopyOption.REPLACE_EXISTING);

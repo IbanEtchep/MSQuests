@@ -1,8 +1,8 @@
-# Guide d'equilibrage des quetes journalieres
+# Daily quest balancing guide
 
-## Vue d'ensemble
+## Overview
 
-| Tier | Quetes/jour | XP/quete | XP total | $/quete | $ total | Temps cible |
+| Tier | Quests/day | XP/quest | Total XP | $/quest | Total $ | Target time |
 |------|------------|---------|---------|--------|--------|------------|
 | Easy | 3 | 150 | 450 | 500 | 1500 | 5-10 min |
 | Medium | 2 | 500 | 1000 | 1000 | 2000 | 10-20 min |
@@ -11,15 +11,15 @@
 | Bonus all complete | | | 1000 | | 5000 | |
 | **Grand total** | | | **3950** | | **10000** | |
 
-## Comparaison XP quetes vs actions
+## Quest XP vs action XP
 
-Un joueur qui farm 2-3h par actions passives gagne ~1000-1500 XP (avec nerf).
-Un joueur qui fait toutes ses dailies en ~1h-1h30 gagne ~3950 XP.
-**Ratio : les quetes sont ~3-4x plus efficaces que le farm passif.**
+A player who farms for 2-3h through passive actions earns ~1000-1500 XP (with the nerf).
+A player who does all their dailies in ~1h-1h30 earns ~3950 XP.
+**Ratio: quests are ~3-4x more efficient than passive farming.**
 
-## Distribution du pool
+## Pool distribution
 
-| Tier | Pool | Ratio pool/distribue |
+| Tier | Pool | Pool/distributed ratio |
 |------|------|---------------------|
 | Easy | ~40 | 13:1 |
 | Medium | ~30 | 15:1 |
@@ -28,100 +28,100 @@ Un joueur qui fait toutes ses dailies en ~1h-1h30 gagne ~3950 XP.
 
 ---
 
-## Guidelines par categorie
+## Guidelines by category
 
-### Minage - Blocs communs
+### Mining - Common blocks
 Stone, cobblestone, dirt, sand, gravel, netherrack, granite, diorite, andesite, deepslate, clay
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 64-128 | ~5 min avec pioche efficacite |
-| Medium | 256-512 | ~15 min, necessite un bon spot |
-| Hard | **Non utilise** | Les blocs communs ne sont pas un defi |
+| Easy | 64-128 | ~5 min with an efficiency pickaxe |
+| Medium | 256-512 | ~15 min, needs a good spot |
+| Hard | **Not used** | Common blocks are not a challenge |
 
-### Minage - Minerais communs
+### Mining - Common ores
 Coal, copper, iron, redstone, lapis, nether quartz
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 16-32 | Trouvable en minant normalement |
-| Medium | 32-64 | Necessite un strip-mine dedie |
-| Hard | 64-128 | Long meme avec fortune |
+| Easy | 16-32 | Found by mining normally |
+| Medium | 32-64 | Needs a dedicated strip-mine |
+| Hard | 64-128 | Long even with fortune |
 
-### Minage - Minerais rares
+### Mining - Rare ores
 Gold, diamond, emerald, ancient debris
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | **Non utilise** | Trop aleatoire pour une quete facile |
-| Medium | gold 16-32, diamond 4-8 | Demande du strip-mine cible |
-| Hard | diamond 16-32, emerald 8-16, ancient debris 4-8 | Vrai investissement de temps |
+| Easy | **Not used** | Too random for an easy quest |
+| Medium | gold 16-32, diamond 4-8 | Requires targeted strip-mining |
+| Hard | diamond 16-32, emerald 8-16, ancient debris 4-8 | A real time investment |
 
-### Mobs - Communs
+### Mobs - Common
 Zombie, skeleton, spider, creeper, drowned
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 10-20 | Une nuit de combat suffit |
-| Medium | 30-50 | Necessite de chercher des spawns |
-| Hard | **Non utilise** | Les mobs communs ne sont pas un defi |
+| Easy | 10-20 | One night of combat is enough |
+| Medium | 30-50 | Needs hunting for spawns |
+| Hard | **Not used** | Common mobs are not a challenge |
 
-### Mobs - Rares/Dangereux
+### Mobs - Rare/Dangerous
 Blaze, enderman, wither skeleton, guardian, witch, phantom
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | **Non utilise** | Trop dangereux/rare pour easy |
-| Medium | 10-15 | Necessite d'aller au bon endroit |
-| Hard | 20-40 | Vrai expedition (nether fortress, end, etc.) |
+| Easy | **Not used** | Too dangerous/rare for easy |
+| Medium | 10-15 | Needs going to the right place |
+| Hard | 20-40 | A real expedition (nether fortress, end, etc.) |
 
-### Peche
+### Fishing
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 10-16 | 5-10 min de peche tranquille |
-| Medium | 24-32 | 15-20 min de peche |
-| Hard | 48-64 | Session de peche dediee |
+| Easy | 10-16 | 5-10 min of relaxed fishing |
+| Medium | 24-32 | 15-20 min of fishing |
+| Hard | 48-64 | A dedicated fishing session |
 
-### Elevage (Breeding)
+### Breeding
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 5-10 | Quelques animaux a la ferme |
-| Medium | 15-20 | Necessite un elevage organise |
-| Hard | **Non utilise** | Le breeding est repetitif, pas difficile |
+| Easy | 5-10 | A few animals on the farm |
+| Medium | 15-20 | Needs an organized breeding setup |
+| Hard | **Not used** | Breeding is repetitive, not hard |
 
-### Farming (Recoltes)
+### Farming (Crops)
 Wheat, carrots, potatoes, beetroot, nether wart, melon, pumpkin
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 32-64 | Petite ferme |
-| Medium | 64-128 | Grande ferme, plusieurs crops |
-| Hard | **Non utilise** | Le farming est repetitif, pas vraiment hard |
+| Easy | 32-64 | Small farm |
+| Medium | 64-128 | Large farm, several crops |
+| Hard | **Not used** | Farming is repetitive, not really hard |
 
-### Woodcutting (Buches)
+### Woodcutting (Logs)
 Oak, birch, spruce, dark oak, jungle, acacia, mangrove, cherry, crimson/warped stem
 
-| Tier | Quantite | Justification |
+| Tier | Amount | Rationale |
 |------|----------|---------------|
-| Easy | 64-128 | Foret a cote de la base |
-| Medium | 128-256 | Session de bucheronnage |
-| Hard | 128-256 | Bois rares (nether, mangrove, cherry) |
+| Easy | 64-128 | Forest next to the base |
+| Medium | 128-256 | Woodcutting session |
+| Hard | 128-256 | Rare woods (nether, mangrove, cherry) |
 
 ---
 
-## Principes de design
+## Design principles
 
-1. **Easy = completable sans preparation** : le joueur peut le faire en jouant normalement
-2. **Medium = necessite une activite dediee** : le joueur doit se concentrer sur la tache
-3. **Hard = necessite une expedition** : le joueur doit se preparer et se deplacer
-4. **Pas de blocs communs en hard** : miner 1024 stone n'est pas "hard", c'est juste long
-5. **Les ressources rares sont reservees aux tiers superieurs** : pas de diamond en easy
-6. **Le temps cible est roi** : ajuster les quantites pour que le temps corresponde au tier
-7. **La protection anti-place-break est active** : les joueurs ne peuvent pas tricher en posant/cassant
+1. **Easy = completable without preparation**: the player can do it while playing normally
+2. **Medium = requires a dedicated activity**: the player must focus on the task
+3. **Hard = requires an expedition**: the player must prepare and travel
+4. **No common blocks in hard**: mining 1024 stone is not "hard", it is just long
+5. **Rare resources are reserved for higher tiers**: no diamond in easy
+6. **Target time is king**: adjust amounts so that the time matches the tier
+7. **Anti place-break protection is active**: players cannot cheat by placing/breaking
 
-## Bonus toutes quetes completees
+## All-quests-completed bonus
 
-Configure via le hook `all_period_quests_complete` dans les actions du groupe.
-Valeur recommandee : 1000 XP (soit ~34% de bonus par rapport aux quetes seules).
+Configured via the `all_period_quests_complete` hook in the group's actions.
+Recommended value: 1000 XP (~34% bonus compared to the quests alone).

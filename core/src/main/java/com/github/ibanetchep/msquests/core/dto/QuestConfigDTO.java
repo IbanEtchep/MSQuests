@@ -35,7 +35,7 @@ public record QuestConfigDTO(
     }
 
     /**
-     * Compact constructor avec validation
+     * Compact constructor with validation
      */
     public QuestConfigDTO {
         if (key == null || key.isBlank()) {
@@ -48,7 +48,7 @@ public record QuestConfigDTO(
     }
 
     /**
-     * Valide l'unicité des clés dans une liste
+     * Validates key uniqueness in a list
      */
     private static void validateUniqueKeys(String key, List<QuestStageConfigDTO> items, String itemType) {
         Set<String> keys = new HashSet<>();
@@ -69,7 +69,7 @@ public record QuestConfigDTO(
     }
 
     /**
-     * Helper pour accéder à un stage par clé
+     * Helper to access a stage by key
      */
     public QuestStageConfigDTO getStage(String key) {
         return stages == null ? null : stages.stream()
@@ -79,7 +79,7 @@ public record QuestConfigDTO(
     }
 
     /**
-     * Helper pour obtenir une Map (pour accès rapide)
+     * Helper to get a Map (for fast access)
      */
     public Map<String, QuestStageConfigDTO> stagesAsMap() {
         return stages == null ? Map.of() : stages.stream()
