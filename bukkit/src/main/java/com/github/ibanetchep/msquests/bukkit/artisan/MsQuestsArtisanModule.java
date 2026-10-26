@@ -35,7 +35,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -48,7 +47,7 @@ import java.util.logging.Level;
  * MSQuests inside Artisan:
  * <ul>
  *   <li>an example template, {@code daily} ({@link #TEMPLATE}): quests any project can copy from
- *       the editor, seeded once into the ordinary project {@code quests} ({@link EditorProject});</li>
+ *       the editor, seeded once into the module's folder {@code quests} ({@link EditorProject});</li>
  *   <li>the {@code quest_group} Document kind ({@code quest_groups/}, {@code quest_group/v1}): one
  *       Document per group, which the quests load from with {@code content_source: artisan}
  *       ({@code /msquests migrate} converts {@code quests/*.yml} into them);</li>
@@ -117,7 +116,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
         api.getDocumentKinds().register(new DocumentKindDeclaration(
                 QuestActions.GROUP_KIND, GROUP_DIR, List.of(GROUP_SCHEMA), null));
-        moveLegacyProject();
+        registerFolder(api);
         registerTemplate(api);
         registerEditorBundle(api);
 
@@ -221,21 +220,15 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
     }
 
     /**
-     * {@code plugins/MSQuests/editor/}, the project MSQuests registered itself until quests lived
-     * in ordinary projects, becomes the project {@code quests} once, on the first start that finds
-     * quest groups in it. Before the template, so the seed then finds that project and leaves it.
+     * {@code plugins/Artisan/modules/quests/}, the module's own folder: the editor lists it under
+     * the installed module, not among the admin's own. Before the template, which seeds it. The
+     * ordinary project {@code quests} of earlier versions is that folder already; a former
+     * {@code plugins/MSQuests/editor/} holding quest groups moves there once.
      */
-    private void moveLegacyProject() {
-        File target = plugin.getArtisanIntegration().questsProject();
-        try {
-            if (EditorProject.moveLegacy(plugin.getDataFolder(), target)) {
-                plugin.getLogger().info("plugins/MSQuests/" + EditorProject.LEGACY_DIR
-                        + "/ moved to " + target + ": it is now an ordinary Artisan project.");
-            }
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not move plugins/MSQuests/" + EditorProject.LEGACY_DIR
-                    + "/ to " + target + "; move it by hand, its quest groups are not loaded meanwhile", e);
-        }
+    private void registerFolder(ArtisanAPI api) {
+        ArtisanIntegration integration = plugin.getArtisanIntegration();
+        File legacy = EditorProject.legacyToMove(plugin.getDataFolder(), integration.questsProject());
+        integration.useQuestsFolder(api.getProjectRoots().moduleFolder(EditorProject.PROJECT_ID, getId(), legacy));
     }
 
     /**

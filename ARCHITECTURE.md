@@ -131,12 +131,17 @@ est enregistre et declare :
 - **un modele d'exemple** `daily` (Artisan 2.6.0, `api.getTemplates()`, fichiers dans
   `bukkit/src/main/resources/artisan-templates/daily/`) : un groupe `example_daily` de trois
   quetes journalieres, que l'editeur propose de copier dans n'importe quel projet (**+ → Depuis
-  un module…**). Au premier demarrage, Artisan le copie une seule fois dans un nouveau projet
-  ordinaire `quests` (`plugins/Artisan/projects/quests/`, `EditorProject`) ; supprime, il ne
-  revient pas. Monter `TEMPLATE_VERSION` a chaque changement de ces fichiers : l'editeur propose
-  alors la mise a jour aux copies non modifiees. L'ancien projet du module,
-  `plugins/MSQuests/editor/`, est deplace une fois vers `plugins/Artisan/projects/quests/` s'il
-  contient des groupes et que ce projet n'existe pas encore ;
+  un module…**). Au premier demarrage, Artisan le copie une seule fois dans le dossier du module
+  `quests` (`plugins/Artisan/modules/quests/`, `EditorProject`) ; supprime, il ne revient pas.
+  Monter `TEMPLATE_VERSION` a chaque changement de ces fichiers : l'editeur propose alors la
+  mise a jour aux copies non modifiees ;
+- **le dossier du module** `quests` (Artisan 2.8.0, `api.getProjectRoots().moduleFolder`) :
+  l'editeur le range sous le module installe Quetes, et non parmi les modules de l'admin. Il
+  porte le nom de l'ancien projet ordinaire `quests`, qui devient donc le dossier du module tel
+  quel, sans deplacement. L'ancien projet du module, `plugins/MSQuests/editor/`, y est deplace
+  une fois s'il contient des groupes et que le dossier n'existe pas encore. Un dossier deja la
+  change de cle (`addon:quests` au lieu de son `.artisan/project-id`) : ses Versions et
+  brouillons d'avant ne lui sont plus rattaches ;
 - **le kind de Document `quest_group`** (dossier `quest_groups/`, schema `quest_group/v1`) :
   un Document par groupe, nomme d'apres la cle du groupe, dans **n'importe quel projet**
   Artisan (`ArtisanProjectFiles` sur `api.getProject()`), pas seulement celui du module. Les
@@ -503,8 +508,8 @@ Passage d'un serveur (aucune etape ne touche `quests/*.yml` ni `msquests_*`) :
 1. `/msquests migrate` (dry run) : convertit en memoire, relit chaque Document produit et le
    compare au groupe d'origine, compte ce que la copie en base fera, et ecrit
    `migration/report-<date>.txt`. Rien d'autre n'est ecrit.
-2. `/msquests migrate --confirm` : ecrit les Documents absents dans le projet Artisan
-   ordinaire `quests` (`plugins/Artisan/projects/quests/`, cree s'il manque ; jamais par-dessus
+2. `/msquests migrate --confirm` : ecrit les Documents absents dans le dossier du module
+   `quests` (`plugins/Artisan/modules/quests/`, cree s'il manque ; jamais par-dessus
    un Document existant), recharge les projets d'Artisan, et ecrit `migration/map.yaml` (`(groupe, cle) -> uid`, `objectif -> stage`). Relance,
    il garde les memes `uid`.
 3. `content_source: artisan` puis redemarrage : avant tout chargement, `LegacyDataCopier`

@@ -39,9 +39,9 @@ class ContentMigrationTest {
     @TempDir
     Path dataFolder;
 
-    /** Artisan's {@code projects/quests}, beside MSQuests' data folder on a server. */
+    /** Artisan's {@code modules/quests}, beside MSQuests' data folder on a server. */
     private Path project() {
-        return dataFolder.resolve("artisan/projects/quests");
+        return dataFolder.resolve("artisan/modules/quests");
     }
 
     private DbAccess db;

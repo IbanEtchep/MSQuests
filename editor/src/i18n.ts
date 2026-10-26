@@ -2,6 +2,7 @@ import { createModuleI18n } from "@artisan/editor-sdk";
 
 const en = {
   kindLabel: "Quest groups",
+  collection: "Quests",
   group: "Group",
   title: "Title",
   description: "Description",
@@ -38,6 +39,7 @@ const en = {
   noTier: "No tier",
   quests: "Quests",
   questCount: "{{count}} quests",
+  questCountOne: "1 quest",
   addQuest: "New quest",
   newQuestTitle: "New quest",
   open: "Edit",
@@ -123,6 +125,7 @@ type Key = keyof typeof en;
 
 const fr: Record<Key, string> = {
   kindLabel: "Groupes de quêtes",
+  collection: "Quêtes",
   group: "Groupe",
   title: "Titre",
   description: "Description",
@@ -159,6 +162,7 @@ const fr: Record<Key, string> = {
   noTier: "Aucun tier",
   quests: "Quêtes",
   questCount: "{{count}} quêtes",
+  questCountOne: "1 quête",
   addQuest: "Nouvelle quête",
   newQuestTitle: "Nouvelle quête",
   open: "Modifier",
@@ -243,6 +247,7 @@ const fr: Record<Key, string> = {
 };
 
 export const LABELS = { en: en.kindLabel, fr: fr.kindLabel };
+export const COLLECTION_LABELS = { en: en.collection, fr: fr.collection };
 
 export const useT = createModuleI18n<Key>({ en, fr });
 export type T = ReturnType<typeof useT>;

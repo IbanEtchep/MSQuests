@@ -17,6 +17,8 @@ import { fieldText, newTextKey } from "@artisan/editor-sdk";
 
 export const KIND = "quest_group";
 export const DIR = "quest_groups";
+/** The module's folder (`plugins/Artisan/modules/quests/`, `EditorProject` on the server). */
+export const QUESTS_FOLDER = "quests";
 export const SCHEMA = "quest_group/v1";
 
 export type Raw = Record<string, unknown>;
