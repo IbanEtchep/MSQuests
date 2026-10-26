@@ -1,11 +1,13 @@
 import type { DocumentKindContribution } from "@artisan/editor-sdk";
 import { textValue } from "@artisan/editor-sdk";
 import { QuestGroupEditor } from "./QuestGroupEditor";
-import { LABELS } from "./i18n";
+import { COLLECTION_LABELS, LABELS } from "./i18n";
+import { QuestIcon } from "./icon";
 import { QUEST_ACCENT, questBoardItems, questBoardSummary } from "./questBoard";
 import {
   DIR,
   KIND,
+  QUESTS_FOLDER,
   type QuestGroup,
   SCHEMA,
   newUid,
@@ -19,9 +21,14 @@ export const questGroupKind: DocumentKindContribution = {
   kind: KIND,
   dir: DIR,
   schemaVersion: SCHEMA,
+  // Created in the module's folder only (SDK 1.8); a group already elsewhere still loads.
+  projects: [QUESTS_FOLDER],
+  // Data with no links: one "Quests" entry and page instead of a node per group (SDK 1.9).
+  collection: { labels: COLLECTION_LABELS },
   // A group's id is its key on the server (`quest_group_key`): typed by hand, no prefix.
   label: LABELS.en,
   labels: LABELS,
+  icon: QuestIcon,
   component: QuestGroupEditor,
   title: (doc, { project, lang }) => textValue(project, (doc as QuestGroup).title.key, lang),
   create: ({ id, projectId }) =>

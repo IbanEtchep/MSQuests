@@ -30,6 +30,7 @@ public final class ArtisanIntegration {
     private final BukkitQuestsPlugin plugin;
     private final ArtisanAPI api;
     private @Nullable MsQuestsArtisanModule module;
+    private @Nullable File questsFolder;
 
     private ArtisanIntegration(BukkitQuestsPlugin plugin, ArtisanAPI api) {
         this.plugin = plugin;
@@ -75,11 +76,16 @@ public final class ArtisanIntegration {
         return api;
     }
 
-    /** The project {@code quests} in Artisan's projects folder ({@link EditorProject}). */
+    /** The module's folder {@code quests} ({@link EditorProject}), as Artisan registered it. */
     public File questsProject() {
+        if (questsFolder != null) return questsFolder;
         Plugin artisan = plugin.getServer().getPluginManager().getPlugin("Artisan");
         File artisanData = artisan != null ? artisan.getDataFolder() : new File(plugin.getDataFolder().getParentFile(), "Artisan");
         return EditorProject.directory(artisanData);
+    }
+
+    void useQuestsFolder(File folder) {
+        this.questsFolder = folder;
     }
 
     /** Tells Artisan menus to re-fetch the quest data sources. */

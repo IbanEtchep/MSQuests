@@ -1,5 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -8,10 +10,12 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 /**
- * The project {@code quests}, an ordinary Artisan project ({@code plugins/Artisan/projects/quests/}):
- * the example template seeds it once ({@link MsQuestsArtisanModule#TEMPLATE}) and
- * {@code /msquests migrate} writes the converted {@code quests/*.yml} there. It belongs to the
- * server's owner like any other project, and quest groups load from every project anyway.
+ * The folder {@code quests}, the module's own ({@code plugins/Artisan/modules/quests/}, registered
+ * with {@code ProjectRootRegistry.moduleFolder}): the editor lists it under the installed module
+ * Quests, the example template seeds it once ({@link MsQuestsArtisanModule#TEMPLATE}) and
+ * {@code /msquests migrate} writes the converted {@code quests/*.yml} there. Its name is the one
+ * the ordinary project had before, so an existing folder becomes the module's as it is. Quest
+ * groups still load from every folder.
  */
 public final class EditorProject {
 
@@ -22,24 +26,25 @@ public final class EditorProject {
     private EditorProject() {
     }
 
-    /** {@code <Artisan's data folder>/projects/quests}, where Artisan reads its projects. */
+    /**
+     * {@code <Artisan's data folder>/modules/quests}, where {@code moduleFolder} puts it: the path
+     * used until the module registered its folder, and to decide whether one already exists.
+     */
     public static File directory(File artisanDataFolder) {
-        return new File(new File(artisanDataFolder, "projects"), PROJECT_ID);
+        return new File(new File(artisanDataFolder, "modules"), PROJECT_ID);
     }
 
     /**
-     * Moves {@code plugins/MSQuests/editor/}, the project MSQuests registered itself before, into
-     * {@code target} when it holds quest groups and {@code target} does not exist; returns true
-     * then. Leaves both alone otherwise: an empty one carries nothing, and an existing target is
-     * the owner's.
+     * {@code plugins/MSQuests/editor/}, the project MSQuests registered itself before, when it
+     * holds quest groups and {@code target} does not exist: {@code moduleFolder} moves it there.
+     * Null otherwise: an empty one carries nothing, and an existing target already holds the
+     * quests (handing both to {@code moduleFolder} would keep the old one as the module's folder).
      */
-    public static boolean moveLegacy(File dataFolder, File target) throws IOException {
-        Path legacy = new File(dataFolder, LEGACY_DIR).toPath();
-        String[] groups = legacy.resolve("quest_groups").toFile().list();
-        if (groups == null || groups.length == 0 || target.exists()) return false;
-        Files.createDirectories(target.toPath().getParent());
-        Files.move(legacy, target.toPath());
-        return true;
+    public static @Nullable File legacyToMove(File dataFolder, File target) {
+        File legacy = new File(dataFolder, LEGACY_DIR);
+        String[] groups = new File(legacy, "quest_groups").list();
+        if (groups == null || groups.length == 0 || target.exists()) return null;
+        return legacy;
     }
 
     /**
