@@ -1,36 +1,36 @@
-# Fonctionnement éditeur web
+# How the web editor works
 
-## Flux:
-- [Serveur] l'utilisateur tape la commande /quest editor
-- [Serveur] envoi une requête POST à l'API web avec la config du serveur
-- [API] sauvegarde la config, lui associe un token, et répond avec le token
-- [Serveur] ouvre un navigateur avec l'URL de l'éditeur web et le token
-- [Client web] récupère la config avec le token via l'API, et l'affiche dans l'éditeur
-- [Client web] l'utilisateur modifie la config, et l'envoi à l'API
-- [Serveur] tape la commande /quest applyedits <token> pour appliquer les modifications
+## Flow:
+- [Server] the user types the command /quest editor
+- [Server] sends a POST request to the web API with the server config
+- [API] saves the config, associates a token with it, and replies with the token
+- [Server] opens a browser with the web editor URL and the token
+- [Web client] fetches the config with the token via the API, and displays it in the editor
+- [Web client] the user edits the config, and sends it to the API
+- [Server] runs the command /quest applyedits <token> to apply the changes
 
 ## API
-Symfony API REST
+Symfony REST API
 
 ## Client:
 - Nuxt
 
-### Fonctionnement client web:
+### How the web client works:
 
-- L'utilisateur entre une clé API OpenAI
-- L'interface: Une partie gère l'affichage, l'autre est une conversation avec une api
-qui modifie les quetes en fonction de la conversation.
+- The user enters an OpenAI API key
+- The interface: one part handles the display, the other is a conversation with an API
+that edits the quests based on the conversation.
 
-Flux:
-- La configuration est chargée sur le client depuis l'API
-- L'utilisateur entre une clé API OpenAI -> localstorage
-- L'utilisateur entre un prompt, et l'IA renvoi une réponse structurée.
-Une ou plusieurs templates de réponse structurée peuvent être envoyées par l'API.
-Réponse de type:
-- Feedback (simple message, par exemple pour demander des précisions)
-- Action (PUT, PATCH, DELETE), d'un objet JSON (Quête, Pool, Catégorie...)
+Flow:
+- The configuration is loaded on the client from the API
+- The user enters an OpenAI API key -> localstorage
+- The user enters a prompt, and the AI returns a structured response.
+One or more structured response templates can be sent by the API.
+Response type:
+- Feedback (simple message, for example to ask for clarification)
+- Action (PUT, PATCH, DELETE), on a JSON object (Quest, Pool, Category...)
 
-Une modal d'ouvre avec la réponse. 
-Si c'est une action, l'utilisateur peut la valider ou non. Il a aussi la possibilité de modifier la réponse.
+A modal opens with the response. 
+If it is an action, the user can accept it or not. They can also edit the response.
 
-Côté serveur, une snapshot de la config est sauvegardée à chaque modification pour pouvoir revenir en arrière.
+On the server side, a snapshot of the config is saved on every change so it can be rolled back.

@@ -161,7 +161,7 @@ public class BukkitTranslator implements Translator {
 
         yamlDocument.update();
 
-        // Ajout des clés manquantes
+        // Add missing keys
         for (TranslationKey translationKey : TranslationKey.values()) {
             String key = translationKey.getTranslationKey();
             if (!yamlDocument.contains(key)) {

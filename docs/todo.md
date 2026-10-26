@@ -2,20 +2,20 @@
 
 ## ZMenu support :
 
-Zmenu support, créer les boutons pour paginer les quetes d'un pool, quetes en cours...
+Zmenu support, create the buttons to paginate the quests of a pool, ongoing quests...
 
 Quest tracker:
-- Permet de choisir quelle quête suivre
-- Placeholders objectif :
+- Lets the player choose which quest to track
+- Objective placeholders:
    - %msquests_tracked_quest_name%
    - %msquests_tracked_quest_description%
-   - %msquests_tracked_quest_objective_{index}% - affiche l'objectif à la position {index}
-   - %msquests_tracked_quest_objective_unfinished% - affiche le premier objectif non accompli
+   - %msquests_tracked_quest_objective_{index}% - shows the objective at position {index}
+   - %msquests_tracked_quest_objective_unfinished% - shows the first unfinished objective
 
-Commandes:
+Commands:
 
 ### /msquests actor <actor type> <actor> handle_group <group> 
-Peut être attribuée à un NPC. Cette commande permet d'attribuer des quetes d'un groupe à un acteur.
-- Si aucune quete n'est en cours, la quete suivante du groupe est jouée (Si possible : ex cooldown), donc dialogue d'intro -> début de la quete
-- Si une quete est en cours, vérif d'accomplissement (exemple ramener des items). Si objectif non accompli, rappel des objectifs.
-- Si la quete est accomplie, récompense et message de fin.
+Can be assigned to an NPC. This command assigns the quests of a group to an actor.
+- If no quest is in progress, the next quest of the group is played (if possible: e.g. cooldown), so intro dialogue -> start of the quest
+- If a quest is in progress, check for completion (e.g. bringing items). If an objective is not done, remind the objectives.
+- If the quest is done, reward and end message.

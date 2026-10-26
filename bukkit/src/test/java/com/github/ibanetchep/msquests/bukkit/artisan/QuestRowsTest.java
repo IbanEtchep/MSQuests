@@ -189,7 +189,7 @@ class QuestRowsTest {
 
 
 
-    // ------------------------------------------------------- catalog: le tree
+    // ------------------------------------------------------- catalog: the tree
 
     @Test
     @SuppressWarnings("unchecked")

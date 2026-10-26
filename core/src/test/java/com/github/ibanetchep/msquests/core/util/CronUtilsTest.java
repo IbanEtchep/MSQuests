@@ -161,7 +161,7 @@ class CronUtilsTest {
     @Test
     void testGetPreviousExecutionWithSpecificDate() {
         String cronExpression = "0 0 * * *";
-        ZonedDateTime specificDate = ZonedDateTime.of(2023, 1, 1, 10, 0, 0, 0, ZoneId.systemDefault()); // 1er janvier 2023 à 10h
+        ZonedDateTime specificDate = ZonedDateTime.of(2023, 1, 1, 10, 0, 0, 0, ZoneId.systemDefault()); // January 1st, 2023 at 10:00
         Instant from = specificDate.toInstant();
         Instant previousExecution = CronUtils.getPreviousExecution(cronExpression, from);
 
