@@ -1,76 +1,76 @@
-import { createModuleI18n as Ie, fieldText as Me, newTextKey as $, textValue as A, injectModuleStyles as De, useProject as He, useContentLang as Pe, Button as K, selectDocumentItem as Ke, SortableList as ne, updateDocument as Ge, useUiLang as Qe, MiniMessageInput as ve, ActionChainEditor as Ue, ItemInput as ze, MaterialInput as Be, SDK_VERSION as Fe } from "@artisan/editor-sdk";
-import { jsxs as h, jsx as s, Fragment as z } from "react/jsx-runtime";
-import { useState as ie, useEffect as Ve } from "react";
+import { createModuleI18n as Ie, fieldText as Me, newTextKey as $, textValue as E, injectModuleStyles as De, useProject as Pe, useContentLang as He, Button as K, selectDocumentItem as Ke, SortableList as ie, updateDocument as Ge, useUiLang as Qe, MiniMessageInput as ve, ActionChainEditor as Ue, ItemInput as ze, MaterialInput as Fe, SDK_VERSION as Be } from "@artisan/editor-sdk";
+import { jsxs as h, jsx as s, Fragment as U } from "react/jsx-runtime";
+import { useState as ae, useEffect as Ve } from "react";
 const We = {
   en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   fr: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
 }, Ze = /^\d+$/;
-function J(e, t, i) {
+function X(e, t, i) {
   const n = String(i).padStart(2, "0");
   return e === "fr" ? i === 0 ? `${t} h` : `${t} h ${n}` : `${String(t).padStart(2, "0")}:${n}`;
 }
-function E(e, t, i) {
+function T(e, t, i) {
   return Ze.test(e) && Number(e) >= t && Number(e) <= i;
 }
-function ce(e) {
+function de(e) {
   return e.trim().split(/\s+/).length === 5;
 }
 function Ye(e, t) {
   const i = t === "fr", n = e.trim().split(/\s+/);
   if (n.length !== 5) return null;
-  const [a, r, o, m, d] = n;
-  if (m !== "*") return null;
+  const [a, r, l, u, d] = n;
+  if (u !== "*") return null;
   const c = /^\*\/(\d+)$/;
-  if (o === "*" && d === "*") {
-    if (E(a, 0, 59) && E(r, 0, 23))
-      return i ? `tous les jours à ${J(t, +r, +a)}` : `every day at ${J(t, +r, +a)}`;
-    const u = c.exec(r);
-    if (E(a, 0, 59) && u)
-      return i ? `toutes les ${u[1]} h, à la minute ${a}` : `every ${u[1]} hours, at minute ${a}`;
-    if (E(a, 0, 59) && r === "*")
+  if (l === "*" && d === "*") {
+    if (T(a, 0, 59) && T(r, 0, 23))
+      return i ? `tous les jours à ${X(t, +r, +a)}` : `every day at ${X(t, +r, +a)}`;
+    const p = c.exec(r);
+    if (T(a, 0, 59) && p)
+      return i ? `toutes les ${p[1]} h, à la minute ${a}` : `every ${p[1]} hours, at minute ${a}`;
+    if (T(a, 0, 59) && r === "*")
       return i ? `toutes les heures, à la minute ${a}` : `every hour, at minute ${a}`;
     const v = c.exec(a);
     return v && r === "*" ? i ? `toutes les ${v[1]} minutes` : `every ${v[1]} minutes` : null;
   }
-  if (!E(a, 0, 59) || !E(r, 0, 23)) return null;
-  const l = J(t, +r, +a);
-  if (o === "*" && E(d, 0, 7)) {
-    const u = We[i ? "fr" : "en"][Number(d) % 7];
-    return i ? `chaque ${u} à ${l}` : `every ${u} at ${l}`;
+  if (!T(a, 0, 59) || !T(r, 0, 23)) return null;
+  const o = X(t, +r, +a);
+  if (l === "*" && T(d, 0, 7)) {
+    const p = We[i ? "fr" : "en"][Number(d) % 7];
+    return i ? `chaque ${p} à ${o}` : `every ${p} at ${o}`;
   }
-  return d === "*" && E(o, 1, 31) ? i ? `le ${o === "1" ? "1er" : o} de chaque mois à ${l}` : `on day ${o} of each month at ${l}` : null;
+  return d === "*" && T(l, 1, 31) ? i ? `le ${l === "1" ? "1er" : l} de chaque mois à ${o}` : `on day ${l} of each month at ${o}` : null;
 }
 function D(e, t, i) {
   const n = /* @__PURE__ */ new Set();
   for (const a of e.split(",")) {
     const r = /^(\*|(\d+)(?:-(\d+))?)(?:\/(\d+))?$/.exec(a);
     if (!r) return null;
-    const o = r[4] ? Number(r[4]) : 1, m = r[1] === "*" ? t : Number(r[2]), d = r[1] === "*" ? i : r[3] ? Number(r[3]) : r[4] ? i : m;
-    if (o < 1 || m < t || d > i || m > d) return null;
-    for (let c = m; c <= d; c += o) n.add(c);
+    const l = r[4] ? Number(r[4]) : 1, u = r[1] === "*" ? t : Number(r[2]), d = r[1] === "*" ? i : r[3] ? Number(r[3]) : r[4] ? i : u;
+    if (l < 1 || u < t || d > i || u > d) return null;
+    for (let c = u; c <= d; c += l) n.add(c);
   }
   return n;
 }
 function Xe(e, t) {
   const i = e.trim().split(/\s+/);
   if (i.length !== 5) return null;
-  const n = D(i[0], 0, 59), a = D(i[1], 0, 23), r = D(i[2], 1, 31), o = D(i[3], 1, 12), m = D(i[4], 0, 7);
-  if (!n || !a || !r || !o || !m) return null;
-  m.has(7) && m.add(0);
-  const d = i[2] === "*", c = i[4] === "*", l = (f) => d && c ? !0 : d ? m.has(f.getDay()) : c ? r.has(f.getDate()) : r.has(f.getDate()) || m.has(f.getDay()), u = new Date(t.getTime());
-  u.setSeconds(0, 0), u.setMinutes(u.getMinutes() + 1);
+  const n = D(i[0], 0, 59), a = D(i[1], 0, 23), r = D(i[2], 1, 31), l = D(i[3], 1, 12), u = D(i[4], 0, 7);
+  if (!n || !a || !r || !l || !u) return null;
+  u.has(7) && u.add(0);
+  const d = i[2] === "*", c = i[4] === "*", o = (y) => d && c ? !0 : d ? u.has(y.getDay()) : c ? r.has(y.getDate()) : r.has(y.getDate()) || u.has(y.getDay()), p = new Date(t.getTime());
+  p.setSeconds(0, 0), p.setMinutes(p.getMinutes() + 1);
   const v = t.getTime() + 366 * 24 * 3600 * 1e3;
-  for (; u.getTime() <= v; ) {
-    if (!o.has(u.getMonth() + 1) || !l(u)) {
-      u.setDate(u.getDate() + 1), u.setHours(0, 0, 0, 0);
+  for (; p.getTime() <= v; ) {
+    if (!l.has(p.getMonth() + 1) || !o(p)) {
+      p.setDate(p.getDate() + 1), p.setHours(0, 0, 0, 0);
       continue;
     }
-    if (!a.has(u.getHours())) {
-      u.setHours(u.getHours() + 1, 0, 0, 0);
+    if (!a.has(p.getHours())) {
+      p.setHours(p.getHours() + 1, 0, 0, 0);
       continue;
     }
-    if (n.has(u.getMinutes())) return u;
-    u.setMinutes(u.getMinutes() + 1);
+    if (n.has(p.getMinutes())) return p;
+    p.setMinutes(p.getMinutes() + 1);
   }
   return null;
 }
@@ -304,26 +304,26 @@ const G = {
   "param.value": "Valeur",
   any: "n'importe lequel",
   anyItem: "Vide : n’importe quel item compte."
-}, de = { en: G.kindLabel, fr: Z.kindLabel }, Je = { en: G.collection, fr: Z.collection }, et = Ie({ en: G, fr: Z });
+}, ue = { en: G.kindLabel, fr: Z.kindLabel }, Je = { en: G.collection, fr: Z.collection }, et = Ie({ en: G, fr: Z });
 function qe(e) {
   const t = e === "fr" ? Z : G;
   return (i, n) => {
     const a = t[i] ?? G[i] ?? i;
-    return n ? a.replace(/\{\{(\w+)\}\}/g, (r, o) => String(n[o] ?? r)) : a;
+    return n ? a.replace(/\{\{(\w+)\}\}/g, (r, l) => String(n[l] ?? r)) : a;
   };
 }
-const ae = "quest_group", ke = "quest_groups", tt = "quests", re = "quest_group/v1", te = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const re = "quest_group", ke = "quest_groups", tt = "quests", se = "quest_group/v1", ee = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 function V(e = Date.now()) {
   let t = "", i = e;
   for (let r = 0; r < 10; r++)
-    t = te[i % 32] + t, i = Math.floor(i / 32);
+    t = ee[i % 32] + t, i = Math.floor(i / 32);
   const n = new Uint8Array(16);
   crypto.getRandomValues(n);
   let a = "";
-  for (let r = 0; r < 16; r++) a += te[n[r] % 32];
+  for (let r = 0; r < 16; r++) a += ee[n[r] % 32];
   return t + a;
 }
-function B(e, t) {
+function z(e, t) {
   const i = new Set(t);
   if (!i.has(e)) return e;
   for (let n = 2; ; n++) if (!i.has(`${e}_${n}`)) return `${e}_${n}`;
@@ -332,7 +332,7 @@ function nt(e, t) {
   const i = new Set(t), n = new Uint8Array(4);
   for (; ; ) {
     crypto.getRandomValues(n);
-    const a = Array.from(n, (o) => te[o % 32].toLowerCase()).join(""), r = `${Y(e)}_${a}`;
+    const a = Array.from(n, (l) => ee[l % 32].toLowerCase()).join(""), r = `${Y(e)}_${a}`;
     if (!i.has(r)) return r;
   }
 }
@@ -345,13 +345,13 @@ function Y(e) {
 function j(e) {
   return e && typeof e == "object" && !Array.isArray(e) ? { ...e } : {};
 }
-function ee(e) {
+function J(e) {
   return Array.isArray(e) ? e : [];
 }
 function N(e) {
   return typeof e == "string" || typeof e == "number" || typeof e == "boolean" ? String(e) : "";
 }
-function H(e, ...t) {
+function P(e, ...t) {
   const i = { ...e };
   for (const n of t) delete i[n];
   return i;
@@ -360,50 +360,50 @@ function it(e, t) {
   const i = {}, n = [];
   function a(d) {
     if (d && typeof d == "object" && !Array.isArray(d)) {
-      const u = $(), v = {};
-      for (const [f, g] of Object.entries(d)) v[f] = N(g);
-      return i[u] = v, { key: u };
+      const p = $(), v = {};
+      for (const [y, g] of Object.entries(d)) v[y] = N(g);
+      return i[p] = v, { key: p };
     }
     const c = typeof d == "string" ? /^\{i18n:(.+)\}$/.exec(d) : null;
     if (c) {
-      const u = t.translations?.[c[1]];
-      return u && (i[c[1]] = { ...u }), { key: c[1] };
+      const p = t.translations?.[c[1]];
+      return p && (i[c[1]] = { ...p }), { key: c[1] };
     }
-    const l = $();
-    return i[l] = d == null || d === "" ? {} : { [t.lang]: N(d) }, { key: l };
+    const o = $();
+    return i[o] = d == null || d === "" ? {} : { [t.lang]: N(d) }, { key: o };
   }
   const r = Object.entries(j(e.tiers)).map(([d, c]) => {
-    const l = j(c);
-    return { key: d, title: a(l.title), rest: H(l, "title") };
-  }), o = ee(e.quests).map((d, c) => {
-    const l = j(d), u = ee(l.stages).map((v, f) => {
+    const o = j(c);
+    return { key: d, title: a(o.title), rest: P(o, "title") };
+  }), l = J(e.quests).map((d, c) => {
+    const o = j(d), p = J(o.stages).map((v, y) => {
       const g = j(v), q = N(g.flow).toLowerCase();
       return {
-        key: N(g.key) || `stage_${f + 1}`,
+        key: N(g.key) || `stage_${y + 1}`,
         title: a(g.title),
         flow: q === "parallel" || q === "sequential" ? q : "",
-        objectives: ee(g.objectives).map((p, b) => {
-          const y = j(p);
+        objectives: J(g.objectives).map((m, b) => {
+          const f = j(m);
           return {
-            key: N(y.key) || `objective_${b + 1}`,
-            type: N(y.type),
-            params: H(y, "key", "type")
+            key: N(f.key) || `objective_${b + 1}`,
+            type: N(f.type),
+            params: P(f, "key", "type")
           };
         }),
-        rest: H(g, "key", "title", "flow", "objectives")
+        rest: P(g, "key", "title", "flow", "objectives")
       };
     });
     return {
-      key: N(l.key) || `quest_${c + 1}`,
-      uid: N(l.uid) || V(),
-      tier: N(l.tier),
-      title: a(l.title),
-      description: a(l.description),
-      duration: N(l.duration),
-      stages: u,
-      rest: at(l)
+      key: N(o.key) || `quest_${c + 1}`,
+      uid: N(o.uid) || V(),
+      tier: N(o.tier),
+      title: a(o.title),
+      description: a(o.description),
+      duration: N(o.duration),
+      stages: p,
+      rest: at(o)
     };
-  }), m = {
+  }), u = {
     id: N(e.id),
     projectId: t.projectId,
     uid: N(e.uid) || V(),
@@ -415,8 +415,8 @@ function it(e, t) {
     rotation: j(e.rotation),
     distribution: j(e.distribution),
     tiers: r,
-    quests: o,
-    rest: _e(H(
+    quests: l,
+    rest: _e(P(
       j(e),
       "id",
       "schema",
@@ -432,14 +432,14 @@ function it(e, t) {
       "quests"
     ))
   };
-  return e.schema !== void 0 && e.schema !== re && n.push(`schema: ${String(e.schema)}`), { doc: m, i18nKeys: i, unsupported: n };
+  return e.schema !== void 0 && e.schema !== se && n.push(`schema: ${String(e.schema)}`), { doc: u, i18nKeys: i, unsupported: n };
 }
 function _e(e) {
   return e.on !== void 0 && (e.actions == null && (e.actions = e.on), delete e.on), e;
 }
 function at(e) {
   const t = _e(
-    H(e, "key", "uid", "tier", "title", "description", "duration", "stages", "reward_display")
+    P(e, "key", "uid", "tier", "title", "description", "duration", "stages", "reward_display")
   );
   if (t.rewards !== void 0) {
     const i = j(t.actions);
@@ -450,7 +450,7 @@ function at(e) {
 function rt(e) {
   return typeof e == "string" ? e === "" : Object.values(e).every((t) => t === "");
 }
-function T(e) {
+function S(e) {
   const t = {};
   for (const [i, n] of Object.entries(e))
     n == null || n === "" || Array.isArray(n) && n.length === 0 || typeof n == "object" && !Array.isArray(n) && Object.keys(n).length === 0 || (t[i] = n);
@@ -474,12 +474,12 @@ const st = [
 ];
 function ot(e, t) {
   const i = (c) => Me(t, c.key), n = (c) => {
-    const l = i(c);
-    return rt(l) ? void 0 : l;
+    const o = i(c);
+    return rt(o) ? void 0 : o;
   }, a = {};
   for (const c of e.tiers) a[c.key] = { ...c.rest, title: i(c.title) };
   const r = e.quests.map(
-    (c) => T({
+    (c) => S({
       key: c.key,
       uid: c.uid,
       tier: c.tier,
@@ -488,33 +488,33 @@ function ot(e, t) {
       duration: c.duration,
       ...c.rest,
       stages: c.stages.map(
-        (l) => T({
-          key: l.key,
-          title: n(l.title),
-          flow: l.flow,
-          ...l.rest,
-          objectives: l.objectives.map((u) => ({ key: u.key, type: u.type, ...u.params }))
+        (o) => S({
+          key: o.key,
+          title: n(o.title),
+          flow: o.flow,
+          ...o.rest,
+          objectives: o.objectives.map((p) => ({ key: p.key, type: p.type, ...p.params }))
         })
       )
     })
-  ), o = {
+  ), l = {
     ...e.rest,
     id: e.id,
-    schema: re,
+    schema: se,
     uid: e.uid,
     title: i(e.title),
     description: n(e.description),
     actor_type: e.actorType,
-    reset: T(e.reset),
-    limits: T(e.limits),
-    rotation: T(e.rotation),
-    distribution: T(e.distribution),
+    reset: S(e.reset),
+    limits: S(e.limits),
+    rotation: S(e.rotation),
+    distribution: S(e.distribution),
     tiers: a,
     quests: r
-  }, m = {};
-  for (const c of st) c in o && (m[c] = o[c]);
-  for (const c of Object.keys(o)) c in m || (m[c] = o[c]);
-  const d = T(m);
+  }, u = {};
+  for (const c of st) c in l && (u[c] = l[c]);
+  for (const c of Object.keys(l)) c in u || (u[c] = l[c]);
+  const d = S(u);
   return d.quests = r, d;
 }
 function* lt(e) {
@@ -536,41 +536,41 @@ function* lt(e) {
   for (let n = 0; n < e.quests.length; n++) {
     const a = e.quests[n], r = i.has(a.uid) ? `${a.uid}_${n}` : a.uid;
     i.add(a.uid);
-    const o = `${t}.quests.${r}`;
+    const l = `${t}.quests.${r}`;
     yield {
       lText: a.title,
-      key: `${o}.title`,
+      key: `${l}.title`,
       path: `quests[${n}].title`,
       kind: "quest.title"
     }, yield {
       lText: a.description,
-      key: `${o}.description`,
+      key: `${l}.description`,
       path: `quests[${n}].description`,
       kind: "quest.description"
     };
-    const m = /* @__PURE__ */ new Set();
+    const u = /* @__PURE__ */ new Set();
     for (let d = 0; d < a.stages.length; d++) {
-      const c = a.stages[d], l = m.has(c.key) ? `${c.key}_${d}` : c.key;
-      m.add(c.key), yield {
+      const c = a.stages[d], o = u.has(c.key) ? `${c.key}_${d}` : c.key;
+      u.add(c.key), yield {
         lText: c.title,
-        key: `${o}.stages.${l}.title`,
+        key: `${l}.stages.${o}.title`,
         path: `quests[${n}].stages[${d}].title`,
         kind: "quest.stage"
       };
     }
   }
 }
-function ue(e) {
+function pe(e) {
   return !!e && typeof e == "object" && !Array.isArray(e) && "type" in e;
 }
 function ct(e) {
   const t = Array.isArray(e) ? e : e == null ? [] : [e];
   return {
-    chain: t.filter((i) => !ue(i)),
-    legacy: t.filter(ue)
+    chain: t.filter((i) => !pe(i)),
+    legacy: t.filter(pe)
   };
 }
-function pe(e, t) {
+function me(e, t) {
   const i = [...e, ...t];
   return i.length ? i : void 0;
 }
@@ -638,10 +638,10 @@ function we(e) {
     i.kind === "int" && (t[i.name] = 1);
   return t;
 }
-function se(e) {
+function oe(e) {
   return e.amount ?? e.distance;
 }
-function oe(e, t) {
+function le(e, t) {
   const i = e[t.name];
   if (i && typeof i == "object" && !Array.isArray(i)) return i;
   const n = t.legacy ? e[t.legacy] : void 0;
@@ -658,14 +658,14 @@ function Ne(e) {
   const i = e.material ?? e.item;
   return typeof i == "string" ? i : "";
 }
-function Ae(e, t) {
+function Ee(e, t) {
   const i = L(e);
-  return i ? i.params.filter((n) => n.kind !== "int").map((n) => n.kind === "item" ? Ne(oe(t, n)) : t[n.name]).filter((n) => typeof n == "string" && n !== "").join(" = ") : Object.keys(t).map((n) => t[n]).filter((n) => typeof n == "string" && n !== "").join(" = ");
+  return i ? i.params.filter((n) => n.kind !== "int").map((n) => n.kind === "item" ? Ne(le(t, n)) : t[n.name]).filter((n) => typeof n == "string" && n !== "").join(" = ") : Object.keys(t).map((n) => t[n]).filter((n) => typeof n == "string" && n !== "").join(" = ");
 }
 function ht(e, t) {
   return (L(e)?.params ?? []).filter((i) => i.required && (t[i.name] === void 0 || t[i.name] === "")).map((i) => i.name);
 }
-const yt = [
+const ft = [
   "ALLAY",
   "ARMADILLO",
   "AXOLOTL",
@@ -749,13 +749,13 @@ const yt = [
   "ZOMBIE_HORSE",
   "ZOMBIE_VILLAGER",
   "ZOMBIFIED_PIGLIN"
-], ft = "#f59e0b";
-function Ee(e, t) {
+], yt = "#f59e0b";
+function Ae(e, t) {
   return L(t) ? e(`objective.${t}`) : t;
 }
 function W(e, t) {
-  const i = Ae(t.type, t.params), n = se(t.params);
-  return `${Ee(e, t.type)}${i ? ` · ${i}` : ""}${n !== void 0 ? ` · 0/${String(n)}` : ""}`;
+  const i = Ee(t.type, t.params), n = oe(t.params);
+  return `${Ae(e, t.type)}${i ? ` · ${i}` : ""}${n !== void 0 ? ` · 0/${String(n)}` : ""}`;
 }
 function Te(e) {
   return e.replace(/<[^<>]*>/g, "").trim();
@@ -766,17 +766,17 @@ function gt(e) {
 }
 function bt(e, t, i) {
   const n = qe(i), a = gt(e);
-  return e.quests.map((r, o) => {
-    const m = A(t, r.title.key, i);
+  return e.quests.map((r, l) => {
+    const u = E(t, r.title.key, i);
     return {
       id: r.uid,
-      label: Te(m) || r.key,
+      label: Te(u) || r.key,
       detail: r.tier || void 0,
       caption: vt(n, r),
-      marker: a ? String(o + 1) : void 0,
+      marker: a ? String(l + 1) : void 0,
       hover: {
-        title: m || r.key,
-        text: A(t, r.description.key, i) || void 0,
+        title: u || r.key,
+        text: E(t, r.description.key, i) || void 0,
         lines: qt(n, r, t, i)
       }
     };
@@ -791,9 +791,9 @@ function vt(e, t) {
 function qt(e, t, i, n) {
   const a = t.stages.length > 1;
   return t.stages.flatMap(
-    (r, o) => r.objectives.map((m) => {
-      const d = W(e, m);
-      return a ? `<gray>${Te(A(i, r.title.key, n)) || e("stage", { n: o + 1 })} ·</gray> ${d}` : d;
+    (r, l) => r.objectives.map((u) => {
+      const d = W(e, u);
+      return a ? `<gray>${Te(E(i, r.title.key, n)) || e("stage", { n: l + 1 })} ·</gray> ${d}` : d;
     })
   );
 }
@@ -894,25 +894,25 @@ function Nt(e, t) {
     return i.toLocaleString();
   }
 }
-function At({ projectId: e, documentId: t, document: i, item: n }) {
+function Et({ projectId: e, documentId: t, document: i, item: n }) {
   De("msquests", xt);
-  const a = i, r = He(e), o = Pe(), m = et(), [d, c] = ie(n ?? null);
+  const a = i, r = Pe(e), l = He(), u = et(), [d, c] = ae(n ?? null);
   Ve(() => {
     c(n ?? null);
   }, [n]);
-  const l = (g) => {
+  const o = (g) => {
     c(g), Ke({ documentId: t, item: g });
-  }, v = { projectId: e, project: r, lang: o, t: m, edit: (g, q) => {
-    const p = structuredClone(a);
-    g(p), Ge({ projectId: e, kind: ae, id: t, doc: p, texts: q });
-  } }, f = d ? a.quests.findIndex((g) => g.uid === d) : -1;
-  return f >= 0 ? /* @__PURE__ */ h("div", { className: "aq", children: [
-    /* @__PURE__ */ h(K, { variant: "ghost", size: "sm", className: "aq-back", onClick: () => l(null), children: [
+  }, v = { projectId: e, project: r, lang: l, t: u, edit: (g, q) => {
+    const m = structuredClone(a);
+    g(m), Ge({ projectId: e, kind: re, id: t, doc: m, texts: q });
+  } }, y = d ? a.quests.findIndex((g) => g.uid === d) : -1;
+  return y >= 0 ? /* @__PURE__ */ h("div", { className: "aq", children: [
+    /* @__PURE__ */ h(K, { variant: "ghost", size: "sm", className: "aq-back", onClick: () => o(null), children: [
       "← ",
-      m("back")
+      u("back")
     ] }),
-    /* @__PURE__ */ s(Rt, { ctx: v, group: a, index: f })
-  ] }) : /* @__PURE__ */ s("div", { className: "aq", children: /* @__PURE__ */ s(Tt, { ctx: v, group: a, onOpen: l }) });
+    /* @__PURE__ */ s(Rt, { ctx: v, group: a, index: y })
+  ] }) : /* @__PURE__ */ s("div", { className: "aq", children: /* @__PURE__ */ s(Tt, { ctx: v, group: a, onOpen: o }) });
 }
 function w({
   label: e,
@@ -928,17 +928,17 @@ function w({
     ] })
   );
 }
-function P({
+function H({
   ctx: e,
   label: t,
   node: i,
   multiline: n
 }) {
-  const a = A(e.project, i.key, e.lang), r = (o) => e.edit(() => {
-  }, [{ key: i.key, lang: e.lang, value: o }]);
+  const a = E(e.project, i.key, e.lang), r = (l) => e.edit(() => {
+  }, [{ key: i.key, lang: e.lang, value: l }]);
   return /* @__PURE__ */ s(w, { label: `${t} · ${e.lang}`, children: /* @__PURE__ */ s(ve, { value: a, onChange: r, multiline: n, "aria-label": t }) });
 }
-function Et(e) {
+function At(e) {
   return typeof e == "number" ? String(e) : typeof e == "string" ? e : "";
 }
 function R({
@@ -954,7 +954,7 @@ function R({
       type: "number",
       min: 0,
       step: 1,
-      value: Et(t),
+      value: At(t),
       placeholder: n,
       onChange: (a) => {
         const r = a.target.value.trim();
@@ -966,7 +966,7 @@ function R({
 function _(e, t, i) {
   i === void 0 || i === "" ? delete e[t] : e[t] = i;
 }
-function le(e, t, i) {
+function ce(e, t, i) {
   if (i < 0 || i >= e.length) return;
   const [n] = e.splice(t, 1);
   e.splice(i, 0, n);
@@ -990,7 +990,7 @@ function O({
     }
   );
 }
-function Ce(e) {
+function Se(e) {
   const t = /* @__PURE__ */ new Set();
   return e.map((i, n) => {
     const a = t.has(i) ? `${i}#${n}` : i;
@@ -1002,39 +1002,39 @@ function Tt({
   group: t,
   onOpen: i
 }) {
-  const { t: n, edit: a, project: r, lang: o } = e, m = Qe(), d = typeof t.reset.cron == "string" ? t.reset.cron : "", c = d ? Ye(d, m) : null, l = typeof t.reset.timezone == "string" ? t.reset.timezone : "", u = d && ce(d) ? Nt(d, m) : null, v = Array.isArray(t.distribution.triggers) ? t.distribution.triggers : [], f = t.distribution.tiers ?? {}, g = Object.keys(t.rest).filter((p) => p !== "actions"), q = () => {
-    const p = $(), b = V();
+  const { t: n, edit: a, project: r, lang: l } = e, u = Qe(), d = typeof t.reset.cron == "string" ? t.reset.cron : "", c = d ? Ye(d, u) : null, o = typeof t.reset.timezone == "string" ? t.reset.timezone : "", p = d && de(d) ? Nt(d, u) : null, v = Array.isArray(t.distribution.triggers) ? t.distribution.triggers : [], y = t.distribution.tiers ?? {}, g = Object.keys(t.rest).filter((m) => m !== "actions"), q = () => {
+    const m = $(), b = V();
     a(
-      (y) => {
-        y.quests.push({
-          key: B(
+      (f) => {
+        f.quests.push({
+          key: z(
             "quest",
-            y.quests.map((k) => k.key)
+            f.quests.map((k) => k.key)
           ),
           uid: b,
           tier: "",
-          title: { key: p },
+          title: { key: m },
           description: { key: $() },
           duration: "",
           stages: [Re(1)],
           rest: {}
         });
       },
-      [{ key: p, lang: o, value: n("newQuestTitle") }]
+      [{ key: m, lang: l, value: n("newQuestTitle") }]
     ), i(b);
   };
-  return /* @__PURE__ */ h(z, { children: [
+  return /* @__PURE__ */ h(U, { children: [
     /* @__PURE__ */ h("section", { className: "aq-section", children: [
       /* @__PURE__ */ s("span", { className: "aq-h", children: n("group") }),
-      /* @__PURE__ */ s(P, { ctx: e, label: n("title"), node: t.title }),
-      /* @__PURE__ */ s(P, { ctx: e, label: n("description"), node: t.description, multiline: !0 }),
+      /* @__PURE__ */ s(H, { ctx: e, label: n("title"), node: t.title }),
+      /* @__PURE__ */ s(H, { ctx: e, label: n("description"), node: t.description, multiline: !0 }),
       /* @__PURE__ */ s(w, { label: n("actorType"), children: /* @__PURE__ */ h(
         "select",
         {
           className: "select",
           value: t.actorType,
-          onChange: (p) => a((b) => {
-            b.actorType = p.target.value;
+          onChange: (m) => a((b) => {
+            b.actorType = m.target.value;
           }),
           children: [
             /* @__PURE__ */ s("option", { value: "player", children: n("actor.player") }),
@@ -1050,9 +1050,9 @@ function Tt({
         w,
         {
           label: n("cron"),
-          hint: d ? ce(d) ? /* @__PURE__ */ h("span", { className: "aq-ok", children: [
+          hint: d ? de(d) ? /* @__PURE__ */ h("span", { className: "aq-ok", children: [
             c ?? n("cronRaw"),
-            l && l !== wt ? `, ${l}` : u ? ` · ${n("nextRun", { when: u })}` : ""
+            o && o !== wt ? `, ${o}` : p ? ` · ${n("nextRun", { when: p })}` : ""
           ] }) : /* @__PURE__ */ s("span", { className: "aq-err", children: n("cronInvalid") }) : /* @__PURE__ */ s("span", { className: "aq-hint", children: n("noReset") }),
           children: /* @__PURE__ */ s(
             "input",
@@ -1060,7 +1060,7 @@ function Tt({
               className: "input",
               value: d,
               placeholder: "0 4 * * *",
-              onChange: (p) => a((b) => _(b.reset, "cron", p.target.value))
+              onChange: (m) => a((b) => _(b.reset, "cron", m.target.value))
             }
           )
         }
@@ -1074,10 +1074,10 @@ function Tt({
           {
             className: "select",
             value: typeof t.distribution.strategy == "string" ? t.distribution.strategy.toLowerCase() : "",
-            onChange: (p) => a((b) => _(b.distribution, "strategy", p.target.value)),
+            onChange: (m) => a((b) => _(b.distribution, "strategy", m.target.value)),
             children: [
               /* @__PURE__ */ s("option", { value: "", children: "—" }),
-              ["none", "sequential", "random"].map((p) => /* @__PURE__ */ s("option", { value: p, children: n(`strategy.${p}`) }, p))
+              ["none", "sequential", "random"].map((m) => /* @__PURE__ */ s("option", { value: m, children: n(`strategy.${m}`) }, m))
             ]
           }
         ) }),
@@ -1086,42 +1086,42 @@ function Tt({
           {
             label: n("amount"),
             value: t.distribution.amount,
-            onChange: (p) => a((b) => _(b.distribution, "amount", p))
+            onChange: (m) => a((b) => _(b.distribution, "amount", m))
           }
         )
       ] }),
       /* @__PURE__ */ s("span", { className: "field-label", children: n("triggers") }),
-      jt.map((p) => /* @__PURE__ */ h("label", { className: "aq-check", children: [
+      jt.map((m) => /* @__PURE__ */ h("label", { className: "aq-check", children: [
         /* @__PURE__ */ s(
           "input",
           {
             type: "checkbox",
-            checked: v.includes(p),
-            onChange: (b) => a((y) => {
-              const k = Array.isArray(y.distribution.triggers) ? y.distribution.triggers : [], x = b.target.checked ? [...k, p] : k.filter((I) => I !== p);
-              _(y.distribution, "triggers", x.length ? x : void 0);
+            checked: v.includes(m),
+            onChange: (b) => a((f) => {
+              const k = Array.isArray(f.distribution.triggers) ? f.distribution.triggers : [], x = b.target.checked ? [...k, m] : k.filter((I) => I !== m);
+              _(f.distribution, "triggers", x.length ? x : void 0);
             })
           }
         ),
-        n(`trigger.${p}`)
-      ] }, p)),
-      t.tiers.length > 0 && /* @__PURE__ */ h(z, { children: [
+        n(`trigger.${m}`)
+      ] }, m)),
+      t.tiers.length > 0 && /* @__PURE__ */ h(U, { children: [
         /* @__PURE__ */ s("span", { className: "field-label", children: n("perTier") }),
-        /* @__PURE__ */ s("div", { className: "aq-row", children: t.tiers.map((p) => /* @__PURE__ */ s(
+        /* @__PURE__ */ s("div", { className: "aq-row", children: t.tiers.map((m) => /* @__PURE__ */ s(
           R,
           {
-            label: A(r, p.title.key, o) || p.key,
-            value: f[p.key],
-            onChange: (b) => a((y) => {
-              const k = { ...y.distribution.tiers ?? {} };
-              _(k, p.key, b), _(
-                y.distribution,
+            label: E(r, m.title.key, l) || m.key,
+            value: y[m.key],
+            onChange: (b) => a((f) => {
+              const k = { ...f.distribution.tiers ?? {} };
+              _(k, m.key, b), _(
+                f.distribution,
                 "tiers",
                 Object.keys(k).length ? k : void 0
               );
             })
           },
-          p.key
+          m.key
         )) })
       ] })
     ] }),
@@ -1133,7 +1133,7 @@ function Tt({
           {
             label: n("maxActive"),
             value: t.limits.max_active,
-            onChange: (p) => a((b) => _(b.limits, "max_active", p))
+            onChange: (m) => a((b) => _(b.limits, "max_active", m))
           }
         ),
         /* @__PURE__ */ s(
@@ -1142,7 +1142,7 @@ function Tt({
             label: n("questsPerPeriod"),
             placeholder: n("noLimit"),
             value: t.limits.max_per_period,
-            onChange: (p) => a((b) => _(b.limits, "max_per_period", p))
+            onChange: (m) => a((b) => _(b.limits, "max_per_period", m))
           }
         )
       ] }),
@@ -1154,7 +1154,7 @@ function Tt({
             {
               type: "checkbox",
               checked: t.rotation.enabled === !0,
-              onChange: (p) => a((b) => _(b.rotation, "enabled", p.target.checked ? !0 : void 0))
+              onChange: (m) => a((b) => _(b.rotation, "enabled", m.target.checked ? !0 : void 0))
             }
           ),
           n("rotationEnabled")
@@ -1165,7 +1165,7 @@ function Tt({
             label: n("rotationsPerPeriod"),
             placeholder: n("noLimit"),
             value: t.rotation.max_per_period,
-            onChange: (p) => a((b) => _(b.rotation, "max_per_period", p))
+            onChange: (m) => a((b) => _(b.rotation, "max_per_period", m))
           }
         ) : null
       ] })
@@ -1178,11 +1178,11 @@ function Tt({
           {
             size: "sm",
             variant: "ghost",
-            onClick: () => a((p) => {
-              p.tiers.push({
-                key: B(
+            onClick: () => a((m) => {
+              m.tiers.push({
+                key: z(
                   "tier",
-                  p.tiers.map((b) => b.key)
+                  m.tiers.map((b) => b.key)
                 ),
                 title: { key: $() },
                 rest: {}
@@ -1195,39 +1195,39 @@ function Tt({
           }
         )
       ] }),
-      t.tiers.map((p, b) => /* @__PURE__ */ h("div", { className: "aq-row", children: [
+      t.tiers.map((m, b) => /* @__PURE__ */ h("div", { className: "aq-row", children: [
         /* @__PURE__ */ s(w, { label: n("tierKey"), children: /* @__PURE__ */ s(
           "input",
           {
             className: "input",
-            defaultValue: p.key,
-            onBlur: (y) => {
-              const k = Y(y.target.value);
-              k !== p.key && a((x) => {
-                const I = B(
+            defaultValue: m.key,
+            onBlur: (f) => {
+              const k = Y(f.target.value);
+              k !== m.key && a((x) => {
+                const I = z(
                   k,
-                  x.tiers.map((U) => U.key)
+                  x.tiers.map((Q) => Q.key)
                 );
                 x.tiers[b].key = I;
-                for (const U of x.quests) U.tier === p.key && (U.tier = I);
+                for (const Q of x.quests) Q.tier === m.key && (Q.tier = I);
                 const M = x.distribution.tiers;
-                M && p.key in M && (M[I] = M[p.key], delete M[p.key]);
+                M && m.key in M && (M[I] = M[m.key], delete M[m.key]);
               });
             }
           }
         ) }),
-        /* @__PURE__ */ s(P, { ctx: e, label: n("title"), node: p.title }),
+        /* @__PURE__ */ s(H, { ctx: e, label: n("title"), node: m.title }),
         /* @__PURE__ */ s(
           O,
           {
             label: n("remove"),
-            onClick: () => a((y) => {
-              y.tiers.splice(b, 1);
+            onClick: () => a((f) => {
+              f.tiers.splice(b, 1);
             }),
             children: "×"
           }
         )
-      ] }, p.key))
+      ] }, m.key))
     ] }),
     /* @__PURE__ */ h("section", { className: "aq-section", children: [
       /* @__PURE__ */ h("div", { className: "aq-head", children: [
@@ -1243,34 +1243,34 @@ function Tt({
       ] }),
       t.quests.length === 0 && /* @__PURE__ */ s("span", { className: "aq-hint", children: n("noQuests") }),
       /* @__PURE__ */ s(
-        ne,
+        ie,
         {
-          ids: t.quests.map((p) => p.uid),
-          onMove: (p, b) => a((y) => le(y.quests, p, b)),
+          ids: t.quests.map((m) => m.uid),
+          onMove: (m, b) => a((f) => ce(f.quests, m, b)),
           className: "aq-list",
           itemClassName: "aq-item",
-          children: (p, b) => {
-            const y = t.quests[p];
-            return /* @__PURE__ */ h(z, { children: [
+          children: (m, b) => {
+            const f = t.quests[m];
+            return /* @__PURE__ */ h(U, { children: [
               b,
               /* @__PURE__ */ h(
                 "button",
                 {
                   type: "button",
                   className: "aq-item-main",
-                  onClick: () => i(y.uid),
+                  onClick: () => i(f.uid),
                   title: n("open"),
                   children: [
-                    /* @__PURE__ */ s("span", { className: "aq-item-title", children: A(r, y.title.key, o) || y.key }),
+                    /* @__PURE__ */ s("span", { className: "aq-item-title", children: E(r, f.title.key, l) || f.key }),
                     /* @__PURE__ */ h("span", { className: "aq-item-sub", children: [
                       n("questSummary", {
-                        stages: y.stages.length,
-                        objectives: y.stages.reduce((k, x) => k + x.objectives.length, 0)
+                        stages: f.stages.length,
+                        objectives: f.stages.reduce((k, x) => k + x.objectives.length, 0)
                       }),
                       " · ",
-                      y.key,
-                      y.tier ? ` · ${y.tier}` : "",
-                      y.duration ? ` · ${y.duration}` : ""
+                      f.key,
+                      f.tier ? ` · ${f.tier}` : "",
+                      f.duration ? ` · ${f.duration}` : ""
                     ] })
                   ]
                 }
@@ -1280,7 +1280,7 @@ function Tt({
                 {
                   label: n("remove"),
                   onClick: () => a((k) => {
-                    k.quests.splice(p, 1);
+                    k.quests.splice(m, 1);
                   }),
                   children: "×"
                 }
@@ -1291,10 +1291,10 @@ function Tt({
       ),
       g.length > 0 && /* @__PURE__ */ s("span", { className: "aq-hint", children: n("kept", { fields: g.join(", ") }) })
     ] }),
-    /* @__PURE__ */ s(St, { ctx: e, group: t })
+    /* @__PURE__ */ s(Ct, { ctx: e, group: t })
   ] });
 }
-function Ct({
+function St({
   ctx: e,
   value: t,
   onChange: i
@@ -1306,12 +1306,12 @@ function Ct({
       {
         projectId: e.projectId,
         value: n,
-        onChange: (r) => i(pe(r, a))
+        onChange: (r) => i(me(r, a))
       }
     ),
     a.length > 0 && /* @__PURE__ */ h("div", { className: "aq-legacy", children: [
       /* @__PURE__ */ s("span", { className: "aq-hint", children: e.t("legacySteps") }),
-      a.map((r, o) => (
+      a.map((r, l) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: a step has no identity
         /* @__PURE__ */ h("div", { className: "aq-legacy-row", children: [
           /* @__PURE__ */ s("code", { children: dt(r) }),
@@ -1319,26 +1319,26 @@ function Ct({
             O,
             {
               label: e.t("remove"),
-              onClick: () => i(pe(n, a.filter((m, d) => d !== o))),
+              onClick: () => i(me(n, a.filter((u, d) => d !== l))),
               children: "×"
             }
           )
-        ] }, o)
+        ] }, l)
       ))
     ] })
   ] });
 }
-function Se({
+function Ce({
   ctx: e,
   title: t,
   hint: i,
   hooks: n,
   label: a,
   value: r,
-  onChange: o,
-  footer: m
+  onChange: l,
+  footer: u
 }) {
-  const { t: d } = e, c = j(r), [l, u] = ie([]), v = n.filter((g) => c[g] != null || l.includes(g)), f = n.filter((g) => !v.includes(g));
+  const { t: d } = e, c = j(r), [o, p] = ae([]), v = n.filter((g) => c[g] != null || o.includes(g)), y = n.filter((g) => !v.includes(g));
   return /* @__PURE__ */ h("section", { className: "aq-section", children: [
     /* @__PURE__ */ s("span", { className: "aq-h", children: t }),
     /* @__PURE__ */ s("span", { className: "aq-hint", children: i }),
@@ -1350,37 +1350,37 @@ function Se({
           {
             label: d("removeEvent"),
             onClick: () => {
-              u((q) => q.filter((p) => p !== g)), o(g, void 0);
+              p((q) => q.filter((m) => m !== g)), l(g, void 0);
             },
             children: "×"
           }
         )
       ] }),
-      /* @__PURE__ */ s(Ct, { ctx: e, value: c[g], onChange: (q) => o(g, q) })
+      /* @__PURE__ */ s(St, { ctx: e, value: c[g], onChange: (q) => l(g, q) })
     ] }, g)),
-    f.length > 0 && /* @__PURE__ */ h(
+    y.length > 0 && /* @__PURE__ */ h(
       "select",
       {
         className: "select aq-event-add",
         "aria-label": d("addEvent"),
         value: "",
         onChange: (g) => {
-          const q = f.find((p) => p === g.target.value);
-          q && u((p) => [...p, q]);
+          const q = y.find((m) => m === g.target.value);
+          q && p((m) => [...m, q]);
         },
         children: [
           /* @__PURE__ */ s("option", { value: "", children: d("addEvent") }),
-          f.map((g) => /* @__PURE__ */ s("option", { value: g, children: a(g) }, g))
+          y.map((g) => /* @__PURE__ */ s("option", { value: g, children: a(g) }, g))
         ]
       }
     ),
-    m
+    u
   ] });
 }
-function St({ ctx: e, group: t }) {
+function Ct({ ctx: e, group: t }) {
   const { t: i, edit: n } = e;
   return /* @__PURE__ */ s(
-    Se,
+    Ce,
     {
       ctx: e,
       title: i("hooks"),
@@ -1388,9 +1388,9 @@ function St({ ctx: e, group: t }) {
       hooks: ut,
       label: (a) => i(`hook.${a}`),
       value: t.rest.actions,
-      onChange: (a, r) => n((o) => {
-        const m = { ...j(o.rest.actions) };
-        _(m, a, r), _(o.rest, "actions", Object.keys(m).length ? m : void 0);
+      onChange: (a, r) => n((l) => {
+        const u = { ...j(l.rest.actions) };
+        _(u, a, r), _(l.rest, "actions", Object.keys(u).length ? u : void 0);
       })
     },
     t.uid
@@ -1406,25 +1406,25 @@ function Re(e) {
   };
 }
 function Rt({ ctx: e, group: t, index: i }) {
-  const { t: n, edit: a } = e, r = t.quests[i], o = (l, u) => a((v) => l(v.quests[i]), u), m = t.quests.some((l, u) => u !== i && l.key === r.key), d = r.duration !== "" && !_t.test(r.duration.replace(/\s/g, "").toLowerCase()), c = Object.keys(r.rest).filter((l) => l !== "actions");
-  return /* @__PURE__ */ h(z, { children: [
+  const { t: n, edit: a } = e, r = t.quests[i], l = (o, p) => a((v) => o(v.quests[i]), p), u = t.quests.some((o, p) => p !== i && o.key === r.key), d = r.duration !== "" && !_t.test(r.duration.replace(/\s/g, "").toLowerCase()), c = Object.keys(r.rest).filter((o) => o !== "actions");
+  return /* @__PURE__ */ h(U, { children: [
     /* @__PURE__ */ h("section", { className: "aq-section", children: [
       /* @__PURE__ */ s("span", { className: "aq-h", children: n("general") }),
-      /* @__PURE__ */ s(P, { ctx: e, label: n("title"), node: r.title }),
-      /* @__PURE__ */ s(P, { ctx: e, label: n("description"), node: r.description, multiline: !0 }),
+      /* @__PURE__ */ s(H, { ctx: e, label: n("title"), node: r.title }),
+      /* @__PURE__ */ s(H, { ctx: e, label: n("description"), node: r.description, multiline: !0 }),
       /* @__PURE__ */ h("div", { className: "aq-row aq-top", children: [
         /* @__PURE__ */ s(w, { label: n("tier"), children: /* @__PURE__ */ h(
           "select",
           {
             className: "select",
             value: r.tier,
-            onChange: (l) => o((u) => {
-              u.tier = l.target.value;
+            onChange: (o) => l((p) => {
+              p.tier = o.target.value;
             }),
             children: [
               /* @__PURE__ */ s("option", { value: "", children: n("noTier") }),
-              t.tiers.map((l) => /* @__PURE__ */ s("option", { value: l.key, children: A(e.project, l.title.key, e.lang) || l.key }, l.key)),
-              r.tier && !t.tiers.some((l) => l.key === r.tier) && /* @__PURE__ */ s("option", { value: r.tier, children: r.tier })
+              t.tiers.map((o) => /* @__PURE__ */ s("option", { value: o.key, children: E(e.project, o.title.key, e.lang) || o.key }, o.key)),
+              r.tier && !t.tiers.some((o) => o.key === r.tier) && /* @__PURE__ */ s("option", { value: r.tier, children: r.tier })
             ]
           }
         ) }),
@@ -1439,33 +1439,33 @@ function Rt({ ctx: e, group: t, index: i }) {
                 className: "input",
                 value: r.duration,
                 placeholder: "24h",
-                onChange: (l) => o((u) => {
-                  u.duration = l.target.value.trim();
+                onChange: (o) => l((p) => {
+                  p.duration = o.target.value.trim();
                 })
               }
             )
           }
         )
       ] }),
-      /* @__PURE__ */ h("details", { className: "aq-fold", open: m || void 0, children: [
+      /* @__PURE__ */ h("details", { className: "aq-fold", open: u || void 0, children: [
         /* @__PURE__ */ s("summary", { children: n("more") }),
         /* @__PURE__ */ s(
           w,
           {
             label: n("key"),
-            hint: /* @__PURE__ */ s("span", { className: m ? "aq-err" : "aq-hint", children: n(m ? "keyTaken" : "questKeyHint") }),
+            hint: /* @__PURE__ */ s("span", { className: u ? "aq-err" : "aq-hint", children: n(u ? "keyTaken" : "questKeyHint") }),
             children: /* @__PURE__ */ s(
               "input",
               {
                 className: "input aq-mono",
                 value: r.key,
-                onChange: (l) => o((u) => {
-                  u.key = xe(l.target.value);
+                onChange: (o) => l((p) => {
+                  p.key = xe(o.target.value);
                 }),
                 onBlur: () => {
-                  const l = Y(r.key);
-                  l !== r.key && o((u) => {
-                    u.key = l;
+                  const o = Y(r.key);
+                  o !== r.key && l((p) => {
+                    p.key = o;
                   });
                 }
               }
@@ -1486,12 +1486,12 @@ function Rt({ ctx: e, group: t, index: i }) {
           {
             size: "sm",
             variant: "ghost",
-            onClick: () => o((l) => {
-              const u = B(
-                `stage_${l.stages.length + 1}`,
-                l.stages.map((v) => v.key)
+            onClick: () => l((o) => {
+              const p = z(
+                `stage_${o.stages.length + 1}`,
+                o.stages.map((v) => v.key)
               );
-              l.stages.push({ ...Re(l.stages.length + 1), key: u });
+              o.stages.push({ ...Re(o.stages.length + 1), key: p });
             }),
             children: [
               "+ ",
@@ -1501,37 +1501,37 @@ function Rt({ ctx: e, group: t, index: i }) {
         )
       ] }),
       /* @__PURE__ */ s(
-        ne,
+        ie,
         {
-          ids: Ce(r.stages.map((l) => l.key)),
-          onMove: (l, u) => o((v) => le(v.stages, l, u)),
+          ids: Se(r.stages.map((o) => o.key)),
+          onMove: (o, p) => l((v) => ce(v.stages, o, p)),
           className: "aq-stages",
-          children: (l, u) => /* @__PURE__ */ s(
+          children: (o, p) => /* @__PURE__ */ s(
             $t,
             {
               ctx: e,
               quest: r,
-              stage: r.stages[l],
-              si: l,
-              handle: u,
-              editQuest: o
+              stage: r.stages[o],
+              si: o,
+              handle: p,
+              editQuest: l
             }
           )
         }
       )
     ] }),
     /* @__PURE__ */ s(
-      Se,
+      Ce,
       {
         ctx: e,
         title: n("questEvents"),
         hint: n("questEventsHint"),
         hooks: pt,
-        label: (l) => n(`questHook.${l}`),
+        label: (o) => n(`questHook.${o}`),
         value: r.rest.actions,
-        onChange: (l, u) => o((v) => {
-          const f = { ...j(v.rest.actions) };
-          _(f, l, u), _(v.rest, "actions", Object.keys(f).length > 0 ? f : void 0);
+        onChange: (o, p) => l((v) => {
+          const y = { ...j(v.rest.actions) };
+          _(y, o, p), _(v.rest, "actions", Object.keys(y).length > 0 ? y : void 0);
         }),
         footer: c.length > 0 && /* @__PURE__ */ s("span", { className: "aq-hint", children: n("kept", { fields: c.join(", ") }) })
       },
@@ -1551,7 +1551,7 @@ function $t({
   handle: a,
   editQuest: r
 }) {
-  const { t: o } = e, [m, d] = ie(null), c = (f) => r((g) => f(g.stages[n])), l = A(e.project, i.title.key, e.lang), u = i.flow || "parallel", v = t.stages.flatMap((f) => f.objectives.map((g) => g.key));
+  const { t: l } = e, [u, d] = ae(null), c = (y) => r((g) => y(g.stages[n])), o = E(e.project, i.title.key, e.lang), p = i.flow || "parallel", v = t.stages.flatMap((y) => y.objectives.map((g) => g.key));
   return /* @__PURE__ */ h("div", { className: "aq-stage", children: [
     /* @__PURE__ */ h("div", { className: "aq-stage-head", children: [
       a,
@@ -1559,64 +1559,64 @@ function $t({
       /* @__PURE__ */ s("div", { className: "aq-stage-title", children: /* @__PURE__ */ s(
         ve,
         {
-          value: l,
-          placeholder: o("stageTitle"),
-          "aria-label": o("stage", { n: n + 1 }),
-          onChange: (f) => e.edit(() => {
-          }, [{ key: i.title.key, lang: e.lang, value: f }])
+          value: o,
+          placeholder: l("stageTitle"),
+          "aria-label": l("stage", { n: n + 1 }),
+          onChange: (y) => e.edit(() => {
+          }, [{ key: i.title.key, lang: e.lang, value: y }])
         }
       ) }),
       /* @__PURE__ */ s(
         O,
         {
-          label: o("remove"),
-          onClick: () => r((f) => {
-            f.stages.splice(n, 1);
+          label: l("remove"),
+          onClick: () => r((y) => {
+            y.stages.splice(n, 1);
           }),
           children: "×"
         }
       )
     ] }),
-    i.objectives.length > 1 && /* @__PURE__ */ s("div", { className: "aq-seg", role: "radiogroup", "aria-label": o("flow"), children: ["parallel", "sequential"].map((f) => /* @__PURE__ */ s(
+    i.objectives.length > 1 && /* @__PURE__ */ s("div", { className: "aq-seg", role: "radiogroup", "aria-label": l("flow"), children: ["parallel", "sequential"].map((y) => /* @__PURE__ */ s(
       "button",
       {
         type: "button",
         role: "radio",
-        "aria-checked": u === f,
-        className: `chip${u === f ? " is-active" : ""}`,
+        "aria-checked": p === y,
+        className: `chip${p === y ? " is-active" : ""}`,
         onClick: () => c((g) => {
-          g.flow = f;
+          g.flow = y;
         }),
-        children: o(`flow.${f}`)
+        children: l(`flow.${y}`)
       },
-      f
+      y
     )) }),
-    i.objectives.length === 0 && /* @__PURE__ */ s("span", { className: "aq-hint", children: o("noObjectives") }),
+    i.objectives.length === 0 && /* @__PURE__ */ s("span", { className: "aq-hint", children: l("noObjectives") }),
     /* @__PURE__ */ s(
-      ne,
+      ie,
       {
-        ids: Ce(i.objectives.map((f) => f.key)),
-        onMove: (f, g) => c((q) => le(q.objectives, f, g)),
+        ids: Se(i.objectives.map((y) => y.key)),
+        onMove: (y, g) => c((q) => ce(q.objectives, y, g)),
         className: "aq-objectives",
-        children: (f, g) => {
-          const q = i.objectives[f];
+        children: (y, g) => {
+          const q = i.objectives[y];
           return /* @__PURE__ */ s(
             Ot,
             {
-              t: o,
+              t: l,
               projectId: e.projectId,
-              n: u === "sequential" ? `${n + 1}.${f + 1}` : "•",
+              n: p === "sequential" ? `${n + 1}.${y + 1}` : "•",
               objective: q,
-              open: m === q.key,
-              onToggle: () => d(m === q.key ? null : q.key),
-              keyTaken: v.filter((p) => p === q.key).length > 1,
+              open: u === q.key,
+              onToggle: () => d(u === q.key ? null : q.key),
+              keyTaken: v.filter((m) => m === q.key).length > 1,
               handle: g,
-              onChange: (p) => c((b) => p(b.objectives[f])),
-              onRename: (p) => {
-                m === q.key && d(p);
+              onChange: (m) => c((b) => m(b.objectives[y])),
+              onRename: (m) => {
+                u === q.key && d(m);
               },
-              onRemove: () => c((p) => {
-                p.objectives.splice(f, 1);
+              onRemove: () => c((m) => {
+                m.objectives.splice(y, 1);
               })
             }
           );
@@ -1630,18 +1630,18 @@ function $t({
         variant: "ghost",
         className: "aq-add",
         onClick: () => {
-          const f = nt("block_break", v);
+          const y = nt("block_break", v);
           r((g) => {
             g.stages[n].objectives.push({
-              key: f,
+              key: y,
               type: "block_break",
               params: we("block_break")
             });
-          }), d(f);
+          }), d(y);
         },
         children: [
           "+ ",
-          o("addObjective")
+          l("addObjective")
         ]
       }
     )
@@ -1654,57 +1654,57 @@ function Ot({
   objective: n,
   open: a,
   onToggle: r,
-  keyTaken: o,
-  handle: m,
+  keyTaken: l,
+  handle: u,
   onChange: d,
   onRename: c,
-  onRemove: l
+  onRemove: o
 }) {
-  const u = L(n.type), v = u ? u.params : Object.keys(n.params).map((y) => ({ name: y, kind: "text" })), f = se(n.params), g = Ae(n.type, n.params), q = ht(n.type, n.params), p = o || q.length > 0, b = (y) => y.kind === "item" ? /* @__PURE__ */ s(
+  const p = L(n.type), v = p ? p.params : Object.keys(n.params).map((f) => ({ name: f, kind: "text" })), y = oe(n.params), g = Ee(n.type, n.params), q = ht(n.type, n.params), m = l || q.length > 0, b = (f) => f.kind === "item" ? /* @__PURE__ */ s(
     Lt,
     {
       t: e,
       projectId: t,
-      spec: y,
+      spec: f,
       params: n.params,
       onChange: (k) => d((x) => k(x.params))
     },
-    y.name
+    f.name
   ) : /* @__PURE__ */ s(
     It,
     {
       t: e,
-      spec: y,
-      value: n.params[y.name],
-      onChange: (k) => d((x) => _(x.params, y.name, k))
+      spec: f,
+      value: n.params[f.name],
+      onChange: (k) => d((x) => _(x.params, f.name, k))
     },
-    y.name
+    f.name
   );
-  return /* @__PURE__ */ h("div", { className: `aq-obj${a ? " is-open" : ""}${p ? " has-problem" : ""}`, children: [
+  return /* @__PURE__ */ h("div", { className: `aq-obj${a ? " is-open" : ""}${m ? " has-problem" : ""}`, children: [
     /* @__PURE__ */ h("div", { className: "aq-obj-line", children: [
-      m,
+      u,
       /* @__PURE__ */ h("button", { type: "button", className: "aq-obj-main", onClick: r, "aria-expanded": a, children: [
         /* @__PURE__ */ s("span", { className: "aq-obj-n", children: i }),
-        /* @__PURE__ */ s("span", { className: "aq-obj-icon", "aria-hidden": !0, children: u?.icon ?? "?" }),
+        /* @__PURE__ */ s("span", { className: "aq-obj-icon", "aria-hidden": !0, children: p?.icon ?? "?" }),
         /* @__PURE__ */ h("span", { className: "aq-obj-text", children: [
-          Ee(e, n.type),
-          f !== void 0 && /* @__PURE__ */ h("strong", { children: [
+          Ae(e, n.type),
+          y !== void 0 && /* @__PURE__ */ h("strong", { children: [
             " · ",
-            String(f)
+            String(y)
           ] }),
-          g ? ` × ${g}` : f !== void 0 ? ` × ${e("any")}` : ""
+          g ? ` × ${g}` : y !== void 0 ? ` × ${e("any")}` : ""
         ] }),
-        p && /* @__PURE__ */ s(
+        m && /* @__PURE__ */ s(
           "span",
           {
             className: "aq-obj-dot",
-            title: o ? e("objectiveKeyTaken") : e("missing", {
-              fields: q.map((y) => e(`param.${y}`)).join(", ")
+            title: l ? e("objectiveKeyTaken") : e("missing", {
+              fields: q.map((f) => e(`param.${f}`)).join(", ")
             })
           }
         )
       ] }),
-      /* @__PURE__ */ s(O, { label: e("remove"), onClick: l, children: "×" })
+      /* @__PURE__ */ s(O, { label: e("remove"), onClick: o, children: "×" })
     ] }),
     a && /* @__PURE__ */ h("div", { className: "aq-obj-form", children: [
       /* @__PURE__ */ s(w, { label: e("type"), children: /* @__PURE__ */ h(
@@ -1712,47 +1712,47 @@ function Ot({
         {
           className: "select",
           value: n.type,
-          onChange: (y) => d((k) => {
-            k.type = y.target.value, k.params = we(k.type);
+          onChange: (f) => d((k) => {
+            k.type = f.target.value, k.params = we(k.type);
           }),
           children: [
-            je.map((y) => /* @__PURE__ */ h("option", { value: y.type, children: [
-              y.icon,
+            je.map((f) => /* @__PURE__ */ h("option", { value: f.type, children: [
+              f.icon,
               " ",
-              e(`objective.${y.type}`)
-            ] }, y.type)),
-            !u && /* @__PURE__ */ s("option", { value: n.type, children: n.type })
+              e(`objective.${f.type}`)
+            ] }, f.type)),
+            !p && /* @__PURE__ */ s("option", { value: n.type, children: n.type })
           ]
         }
       ) }),
-      /* @__PURE__ */ s("div", { className: "aq-row aq-wrap", children: v.filter((y) => !y.advanced).map(b) }),
+      /* @__PURE__ */ s("div", { className: "aq-row aq-wrap", children: v.filter((f) => !f.advanced).map(b) }),
       q.length > 0 && /* @__PURE__ */ s("span", { className: "aq-warn", children: e("missing", {
-        fields: q.map((y) => e(`param.${y}`)).join(", ")
+        fields: q.map((f) => e(`param.${f}`)).join(", ")
       }) }),
-      /* @__PURE__ */ h("details", { className: "aq-fold", open: o || void 0, children: [
+      /* @__PURE__ */ h("details", { className: "aq-fold", open: l || void 0, children: [
         /* @__PURE__ */ s("summary", { children: e("more") }),
-        v.filter((y) => y.advanced).map(b),
+        v.filter((f) => f.advanced).map(b),
         /* @__PURE__ */ s(
           w,
           {
             label: e("key"),
-            hint: /* @__PURE__ */ s("span", { className: o ? "aq-err" : "aq-hint", children: e(o ? "objectiveKeyTaken" : "objectiveKeyHint") }),
+            hint: /* @__PURE__ */ s("span", { className: l ? "aq-err" : "aq-hint", children: e(l ? "objectiveKeyTaken" : "objectiveKeyHint") }),
             children: /* @__PURE__ */ s(
               "input",
               {
                 className: "input aq-mono",
                 value: n.key,
-                onChange: (y) => {
-                  const k = xe(y.target.value);
+                onChange: (f) => {
+                  const k = xe(f.target.value);
                   d((x) => {
                     x.key = k;
                   }), c(k);
                 },
                 onBlur: () => {
-                  const y = Y(n.key);
-                  y !== n.key && (d((k) => {
-                    k.key = y;
-                  }), c(y));
+                  const f = Y(n.key);
+                  f !== n.key && (d((k) => {
+                    k.key = f;
+                  }), c(f));
                 }
               }
             )
@@ -1769,7 +1769,7 @@ function Lt({
   params: n,
   onChange: a
 }) {
-  const r = oe(n, i), o = Array.isArray(n.match) ? n.match : void 0, m = (d, c) => a((l) => mt(l, i, d, c));
+  const r = le(n, i), l = Array.isArray(n.match) ? n.match : void 0, u = (d, c) => a((o) => mt(o, i, d, c));
   return /* @__PURE__ */ s(
     w,
     {
@@ -1780,9 +1780,9 @@ function Lt({
         {
           projectId: t,
           value: r,
-          match: o,
-          onChange: (d) => m(d, o),
-          onMatchChange: (d) => m(r, d)
+          match: l,
+          onChange: (d) => u(d, l),
+          onMatchChange: (d) => u(r, d)
         }
       )
     }
@@ -1794,49 +1794,49 @@ function It({
   value: i,
   onChange: n
 }) {
-  const a = e(`param.${t.name}`), r = t.required && (i === void 0 || i === ""), o = typeof i == "string" || typeof i == "number" ? String(i) : "";
+  const a = e(`param.${t.name}`), r = t.required && (i === void 0 || i === ""), l = typeof i == "string" || typeof i == "number" ? String(i) : "";
   if (t.kind === "int")
     return /* @__PURE__ */ s(R, { label: a, value: i, onChange: n });
-  const m = r ? /* @__PURE__ */ s("span", { className: "aq-warn", children: e("required") }) : t.name === "itemKey" ? /* @__PURE__ */ s("span", { className: "aq-hint", children: e("itemKeyHint") }) : void 0;
+  const u = r ? /* @__PURE__ */ s("span", { className: "aq-warn", children: e("required") }) : t.name === "itemKey" ? /* @__PURE__ */ s("span", { className: "aq-hint", children: e("itemKeyHint") }) : void 0;
   if (t.kind === "material")
-    return /* @__PURE__ */ s(w, { label: a, hint: m, children: /* @__PURE__ */ s(
-      Be,
+    return /* @__PURE__ */ s(w, { label: a, hint: u, children: /* @__PURE__ */ s(
+      Fe,
       {
-        value: o,
+        value: l,
         placeholder: e("any"),
         "aria-label": a,
         onChange: (c) => n(c.toUpperCase().replace(/\s+/g, "_"))
       }
     ) });
   const d = t.kind === "entity";
-  return /* @__PURE__ */ h(w, { label: a, hint: m, children: [
+  return /* @__PURE__ */ h(w, { label: a, hint: u, children: [
     /* @__PURE__ */ s(
       "input",
       {
         className: `input${d ? " aq-mono" : ""}`,
         list: d ? "aq-entities" : void 0,
-        value: o,
+        value: l,
         placeholder: d ? e("any") : "",
         onChange: (c) => n(d ? c.target.value.toUpperCase().replace(/\s+/g, "_") : c.target.value)
       }
     ),
-    d && /* @__PURE__ */ s("datalist", { id: "aq-entities", children: yt.map((c) => /* @__PURE__ */ s("option", { value: c }, c)) })
+    d && /* @__PURE__ */ s("datalist", { id: "aq-entities", children: ft.map((c) => /* @__PURE__ */ s("option", { value: c }, c)) })
   ] });
 }
 function Mt({ ctx: e, quest: t }) {
-  const { t: i, project: n, lang: a } = e, r = (o) => W(i, o);
+  const { t: i, project: n, lang: a } = e, r = (l) => W(i, l);
   return /* @__PURE__ */ h("div", { className: "aq-preview", children: [
-    /* @__PURE__ */ s("span", { className: "aq-preview-title", children: A(n, t.title.key, a) || t.key }),
-    A(n, t.description.key, a) && /* @__PURE__ */ s("span", { className: "aq-preview-line", children: A(n, t.description.key, a) }),
-    t.stages.map((o, m) => (
+    /* @__PURE__ */ s("span", { className: "aq-preview-title", children: E(n, t.title.key, a) || t.key }),
+    E(n, t.description.key, a) && /* @__PURE__ */ s("span", { className: "aq-preview-line", children: E(n, t.description.key, a) }),
+    t.stages.map((l, u) => (
       // biome-ignore lint/suspicious/noArrayIndexKey: stages are listed in order
       /* @__PURE__ */ h("span", { className: "aq-preview-stage", children: [
-        t.stages.length > 1 && /* @__PURE__ */ s("span", { className: "aq-preview-line", children: A(n, o.title.key, a) || i("stage", { n: m + 1 }) }),
-        o.objectives.map((d) => /* @__PURE__ */ h("span", { className: "aq-preview-line", children: [
+        t.stages.length > 1 && /* @__PURE__ */ s("span", { className: "aq-preview-line", children: E(n, l.title.key, a) || i("stage", { n: u + 1 }) }),
+        l.objectives.map((d) => /* @__PURE__ */ h("span", { className: "aq-preview-line", children: [
           "• ",
           r(d)
         ] }, d.key))
-      ] }, m)
+      ] }, u)
     ))
   ] });
 }
@@ -1862,20 +1862,20 @@ function Dt({ className: e }) {
     }
   );
 }
-const Ht = {
-  kind: ae,
+const Pt = {
+  kind: re,
   dir: ke,
-  schemaVersion: re,
+  schemaVersion: se,
   // Created in the module's folder only (SDK 1.8); a group already elsewhere still loads.
   projects: [tt],
   // Data with no links: one "Quests" entry and page instead of a node per group (SDK 1.9).
   collection: { labels: Je },
   // A group's id is its key on the server (`quest_group_key`): typed by hand, no prefix.
-  label: de.en,
-  labels: de,
+  label: ue.en,
+  labels: ue,
   icon: Dt,
-  component: At,
-  title: (e, { project: t, lang: i }) => A(t, e.title.key, i),
+  component: Et,
+  title: (e, { project: t, lang: i }) => E(t, e.title.key, i),
   create: ({ id: e, projectId: t }) => ({
     id: e,
     projectId: t,
@@ -1897,12 +1897,12 @@ const Ht = {
   ltextSites: (e) => lt(e),
   board: {
     size: { width: 300, height: 48 },
-    accent: ft,
+    accent: yt,
     // The group's quests, one selectable row each: the Properties panel opens the one clicked.
     items: (e, { project: t, lang: i }) => bt(e, t, i),
     summary: (e, { lang: t }) => kt(e, t)
   }
-}, me = "msquests:groups", he = "msquests:quests", Pt = "msquests:active", ye = {
+}, he = "msquests:groups", fe = "msquests:quests", Ht = "msquests:active", ye = {
   en: {
     block_break: "Mine %amount% %material%",
     breed_animal: "Breed %amount% %entity_type%",
@@ -1927,38 +1927,38 @@ const Ht = {
     placeholder: "Atteindre %value%",
     travel: "Parcourir %distance% blocs"
   }
-}, fe = { en: "Available", fr: "Disponible" };
+}, ge = { en: "Available", fr: "Disponible" };
 function Kt(e, t, i) {
-  if (t !== me && t !== he && t !== Pt) return null;
-  const n = e.documents?.[ae];
+  if (t !== he && t !== fe && t !== Ht) return null;
+  const n = e.documents?.[re];
   if (!n || n.length === 0) return null;
-  const a = e.defaultLang ?? "en", r = i?.serverRows, o = i?.params?.group || void 0, m = [...n].sort((c, l) => c.id < l.id ? -1 : c.id > l.id ? 1 : 0);
-  if (t === me) {
-    const c = Q(r, "key");
-    return m.map((l) => Gt(l, c.get(l.id), a));
-  }
+  const a = e.defaultLang ?? "en", r = i?.serverRows, l = i?.params?.group || void 0, u = [...n].sort((c, o) => c.id < o.id ? -1 : c.id > o.id ? 1 : 0);
   if (t === he) {
-    const c = Q(r, "id");
-    return m.filter((l) => !o || l.id === o).flatMap((l) => l.quests.map((u) => $e(l, u, c.get(`${l.id}:${u.key}`), a)));
+    const c = te(r, "key");
+    return u.map((o) => Gt(o, c.get(o.id), a));
+  }
+  if (t === fe) {
+    const c = te(r, "id");
+    return u.filter((o) => !l || o.id === l).flatMap((o) => o.quests.map((p) => $e(o, p, c.get(`${o.id}:${p.key}`), a)));
   }
   if (!r) return null;
   const d = new Map(n.map((c) => [c.id, c]));
   return r.flatMap((c) => {
-    const l = d.get(S(c.group));
-    if (!l) return [c];
-    const u = l.quests.find((v) => v.key === S(c.quest_key));
-    return u ? [Ut(u, c, a)] : [];
+    const o = d.get(A(c.group));
+    if (!o) return [c];
+    const p = o.quests.find((v) => v.key === A(c.quest_key));
+    return p ? [Ft(p, c, a)] : [];
   });
 }
 function Gt(e, t, i) {
-  const n = Q(X(t?.quests), "key");
+  const n = te(B(t?.quests), "key");
   return {
     key: e.id,
     name: e.title,
     description: e.description,
     actor_type: e.actorType,
-    max_active: be(e.limits.max_active, 1),
-    max_per_period: be(e.limits.max_per_period, 0),
+    max_active: ne(e.limits.max_active, 1),
+    max_per_period: ne(e.limits.max_per_period, 0),
     rotatable: e.rotation.enabled === !0,
     // The period follows the server's clock and zone: its value stands until a deploy.
     period_end: t?.period_end ?? 0,
@@ -1976,134 +1976,176 @@ function $e(e, t, i, n) {
     key: t.key,
     name: t.title,
     description: t.description,
-    duration: Ft(t.duration),
+    duration: Zt(t.duration),
     tier: t.tier,
     tier_name: a ? a.title : "",
     assigned: i?.assigned ?? !1,
     status_key: i?.status_key ?? "NOT_STARTED",
-    status: i?.status ?? fe[n.slice(0, 2)] ?? fe.en,
+    status: i?.status ?? ge[n.slice(0, 2)] ?? ge.en,
     can_start: i?.can_start ?? !1,
     start_blocker: i?.start_blocker ?? "",
     start_blocker_label: i?.start_blocker_label ?? "",
-    objective_name: i?.objective_name ?? "",
-    objective_progress: i?.objective_progress ?? 0,
-    objective_target: i?.objective_target ?? 0,
-    progress_ratio: i?.progress_ratio ?? 0,
-    stages: Oe(t, X(i?.stages), n)
+    // `reference` in `QuestRows.questRow`: the attempt the server holds for this player.
+    ...Oe(t, i?.assigned === !0 ? i : void 0, n)
   };
 }
 function Oe(e, t, i) {
-  const n = Q(t, "key");
-  return e.stages.map((a, r) => {
-    const o = n.get(a.key), m = Q(X(o?.objectives), "key");
-    return {
-      key: a.key,
-      name: a.title,
-      flow: Le(a),
-      index: r,
-      completed: o?.completed ?? !1,
-      active: o?.active ?? !1,
-      progress_ratio: o?.progress_ratio ?? 0,
-      objectives: a.objectives.map((d) => Qt(d, m.get(d.key), i))
-    };
-  });
-}
-function Qt(e, t, i) {
-  const n = Bt(e), a = t && t.type === e.type && t.target === n;
+  const n = t ? Qt(t) : void 0, a = Ut(e, n, i), r = a.find((u) => u.active === !0), l = r ? r.objectives.find((u) => u.done !== !0) : void 0;
   return {
-    key: e.key,
-    name: a ? t.name : zt(e, i),
-    type: e.type,
-    progress: t?.progress ?? 0,
-    target: n,
-    progress_ratio: t?.progress_ratio ?? 0,
-    completed: t?.completed ?? !1,
-    status_key: t?.status_key ?? "PENDING"
+    objective_name: l?.name ?? "",
+    objective_progress: l?.progress ?? 0,
+    objective_target: l?.target ?? 0,
+    progress_ratio: n ? Le(a.map((u) => u.progress_ratio)) : 0,
+    stage_index: a.filter((u) => u.completed === !0).length,
+    stage_name: r?.name ?? "",
+    stage_flow: r?.flow ?? "",
+    stages: a.map((u) => ({ ...u, objectives: u.objectives.map(({ done: d, ...c }) => c) }))
   };
 }
+function Qt(e) {
+  const t = /* @__PURE__ */ new Map(), i = [
+    ...B(e.objectives),
+    ...B(e.stages).flatMap((n) => B(n.objectives))
+  ];
+  for (const n of i) {
+    const a = A(n.status_key);
+    t.set(A(n.key), {
+      progress: ne(n.progress, 0),
+      flag: a === "COMPLETED" || a === "FAILED" ? a : "",
+      row: n
+    });
+  }
+  return t;
+}
 function Ut(e, t, i) {
-  const n = Oe(e, X(t.stages), i), a = n.find((o) => o.active === !0), r = a ? e.stages.find((o) => o.key === a.key) : void 0;
+  const n = e.stages.map((r, l) => {
+    const u = r.objectives.map((d) => zt(d, t?.get(d.key), i));
+    return {
+      key: r.key,
+      name: r.title,
+      flow: Wt(r),
+      index: l,
+      // `QuestStage.isCompleted`: all objectives done, so an empty stage is.
+      completed: t !== void 0 && u.every((d) => d.done),
+      active: !1,
+      progress_ratio: t ? Le(u.map((d) => d.progress_ratio)) : 0,
+      objectives: u
+    };
+  });
+  if (!t) return n;
+  const a = n.find((r) => r.completed !== !0);
+  if (a) {
+    a.active = !0;
+    const r = a.objectives, l = r.find((u) => u.done !== !0);
+    for (const u of r)
+      u.status_key === "PENDING" && (a.flow !== "SEQUENTIAL" || u === l) && (u.status_key = "IN_PROGRESS");
+  }
+  return n;
+}
+function zt(e, t, i) {
+  const n = Vt(e), a = t?.progress ?? 0, r = t?.row, l = r && r.type === e.type && r.target === n;
+  return {
+    key: e.key,
+    name: l && typeof r.name == "string" ? r.name : Bt(e, i),
+    type: e.type,
+    progress: a,
+    target: n,
+    // `AbstractQuestObjective`: done once the progress reaches the target, whatever the
+    // stored flag says; the ratio is clamped, so a lowered target reads 1, not 1.4.
+    progress_ratio: t ? n <= 0 ? 1 : Math.min(Math.max(a / n, 0), 1) : 0,
+    completed: t !== void 0 && a >= n,
+    status_key: t?.flag || "PENDING",
+    done: t !== void 0 && a >= n
+  };
+}
+function Ft(e, t, i) {
+  const n = Oe(e, t, i), a = n.stages;
   return {
     ...t,
     name: e.title,
     description: e.description,
+    stage_index: n.stage_index,
     stage_count: e.stages.length,
-    stage_name: r ? r.title : t.stage_name ?? "",
-    stage_flow: r ? Le(r) : t.stage_flow ?? "",
-    objectives: n.flatMap((o) => o.objectives),
-    stages: n
+    stage_name: n.stage_name,
+    stage_flow: n.stage_flow,
+    progress_ratio: n.progress_ratio,
+    objectives: a.flatMap((r) => r.objectives),
+    stages: a
   };
 }
-function zt(e, t) {
+function Bt(e, t) {
   const n = (ye[t.slice(0, 2)] ?? ye.en)[e.type];
   if (!n) return e.type;
   const a = e.params, r = {
     amount: String(a.amount ?? ""),
     distance: String(a.distance ?? ""),
-    command: S(a.command),
-    value: S(a.value),
+    command: A(a.command),
+    value: A(a.value),
     // Bukkit's translation keys, as the objective configs write them (`<lang:…>`).
     crop: F("block", a.crop),
     entity_type: F("entity", a.entity_type),
-    material: e.type === "block_break" ? F("block", a.material) : ge(e),
-    fish_type: ge(e)
+    material: e.type === "block_break" ? F("block", a.material) : be(e),
+    fish_type: be(e)
   };
-  return n.replace(/%([a-z_]+)%/g, (o, m) => r[m] ?? "");
+  return n.replace(/%([a-z_]+)%/g, (l, u) => r[u] ?? "");
 }
 function F(e, t) {
-  const i = S(t).toLowerCase().replace(/^minecraft:/, "");
+  const i = A(t).toLowerCase().replace(/^minecraft:/, "");
   return i === "" ? "" : `<lang:${e}.minecraft.${i}>`;
 }
-function ge(e) {
+function be(e) {
   const t = L(e.type)?.params.find((r) => r.kind === "item");
   if (!t) return "";
-  const i = oe(e.params, t), n = i.title;
+  const i = le(e.params, t), n = i.title;
   if (typeof n == "string" && n.trim() !== "") return n;
-  const a = S(i.material);
+  const a = A(i.material);
   return /^(minecraft:)?[a-z_0-9]+$/i.test(a) && !a.includes(":") ? F("item", a) : a || Ne(i);
 }
-function Bt(e) {
-  const t = se(e.params);
+function Vt(e) {
+  const t = oe(e.params);
   if (t === void 0) return 1;
   const i = Number(t);
   return Number.isFinite(i) ? i : 1;
 }
-function Le(e) {
+function Wt(e) {
   return e.flow === "" ? "PARALLEL" : e.flow.toUpperCase();
 }
-function Ft(e) {
+function Zt(e) {
   const t = e.trim().toLowerCase().replace(/ /g, "");
   if (t === "") return 0;
   if (/^\d+$/.test(t)) return Number(t);
   const i = /^(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(t);
   if (!i) return 0;
-  const [, n, a, r, o] = i;
-  return Number(n ?? 0) * 86400 + Number(a ?? 0) * 3600 + Number(r ?? 0) * 60 + Number(o ?? 0);
+  const [, n, a, r, l] = i;
+  return Number(n ?? 0) * 86400 + Number(a ?? 0) * 3600 + Number(r ?? 0) * 60 + Number(l ?? 0);
 }
-function Q(e, t) {
-  return new Map((e ?? []).map((i) => [S(i[t]), i]));
+function te(e, t) {
+  return new Map((e ?? []).map((i) => [A(i[t]), i]));
 }
-function X(e) {
+function B(e) {
   return Array.isArray(e) ? e.filter((t) => t && typeof t == "object") : [];
 }
-function be(e, t) {
+function Le(e) {
+  return e.length === 0 ? 0 : e.reduce((t, i) => t + i, 0) / e.length;
+}
+function ne(e, t) {
   return typeof e == "number" && Number.isFinite(e) ? e : t;
 }
-function S(e) {
+function A(e) {
   return typeof e == "string" ? e : "";
 }
-const Vt = {
+const Yt = {
   id: "msquests",
   displayName: "Quests",
   schemaVersion: "quest_group/v1",
-  sdk: Fe,
+  sdk: Be,
   sidebar: { icon: () => null, label: "Quests", to: "/m/msquests" },
   // Quests are Documents: they are edited from the project, no screen of their own.
   routes: [],
-  documents: [Ht],
+  documents: [Pt],
   // The quest sources previewed from the draft, joined to the player's state on the server.
   localPreviewRows: Kt
-}, Xt = { ...Vt, sdk: "1.10.0" };
+}, tn = { ...Yt, sdk: "1.10.0" };
 export {
-  Xt as default
+  tn as default
 };

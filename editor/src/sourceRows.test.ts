@@ -47,10 +47,19 @@ function pick(actual: unknown, expected: unknown): unknown {
   return actual;
 }
 
+interface Instance {
+  name: string;
+  quest: string;
+  status: string;
+  objectives: Record<string, { progress: number; status: string }>;
+  expected: Row;
+}
+
 interface Vector {
   lang: string;
   document: Row;
   expected: Record<string, Row[]>;
+  instances?: Instance[];
 }
 
 const VECTORS = import.meta.glob<Vector>("../../testdata/sources/*.json", {
@@ -64,6 +73,31 @@ describe("shared vectors (QuestSourceVectorsTest reads the same files)", () => {
       it(`${file}: ${ref} from the draft matches the plugin's rows`, () => {
         const { rows } = load(vector.document, vector.lang);
         expect(pick(rows(ref), expected)).toEqual(expected);
+      });
+    }
+    for (const instance of vector.instances ?? []) {
+      it(`${file}: ${ACTIVE}, ${instance.name}`, () => {
+        const { rows } = load(vector.document, vector.lang);
+        // The row the server sent for this attempt, built from the config before the draft:
+        // only the stored progress and status of each objective survive the merge.
+        const server = {
+          id: "uuid",
+          quest_key: instance.quest,
+          group: vector.document.id,
+          status_key: instance.status,
+          stages: [
+            {
+              key: "deployed",
+              objectives: Object.entries(instance.objectives).map(([key, o]) => ({
+                key,
+                progress: o.progress,
+                status_key: o.status,
+              })),
+            },
+          ],
+        };
+        const [row] = rows(ACTIVE, { serverRows: [server] });
+        expect(pick(row, instance.expected)).toEqual(instance.expected);
       });
     }
   }
@@ -140,7 +174,8 @@ describe("questsLocalRows", () => {
     expect(active.map((r) => r.id)).toEqual(["uuid-1", "uuid-3"]);
     expect(active[0]).toMatchObject({
       name: "Miner",
-      progress_ratio: 0.5,
+      // Recomputed from the draft's targets: (3/64 + 0/100) / 2.
+      progress_ratio: 0.0234375,
       stage_name: "Dig",
       stage_flow: "SEQUENTIAL",
       stage_count: 1,

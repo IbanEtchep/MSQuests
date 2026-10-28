@@ -260,12 +260,17 @@ menu previews the draft before any deploy. The definition fields (titles, limits
 objectives and their targets) come from the draft; the player's fields (status, progress,
 counters, `period_end`) from the server's rows, matched by key (`ctx.serverRows`, Artisan editor
 SDK 1.12). A quest the draft adds shows the neutral state, one it removes disappears; an
-instance of `msquests:active` whose quest is gone from the draft is dropped. An objective keeps
+instance of `msquests:active` whose quest is gone from the draft is dropped. Of an attempt, only
+what the server stores is taken (each objective's progress and COMPLETED/FAILED status, by
+objective key): completion, ratios, the current stage and objective are derived again over the
+draft with the domain's rules, so a lowered target or a removed stage previews as the server will
+show it after the deploy. An objective keeps
 the server's name while its type and target are unchanged, otherwise it is named from the
 default `objective.<type>` texts (an admin's own wording in `lang/` shows after a deploy). The
 `group` parameter narrows the rows like the fetcher (`ctx.params`). An older editor passes no
 context: groups and quests show the draft at neutral state, `msquests:active` the server.
-`testdata/sources/*.json` pins the definition fields both sides must produce:
+`testdata/sources/*.json` pins the definition fields both sides must produce, and stored
+attempts laid over the document:
 `QuestSourceVectorsTest` (plugin) and `sourceRows.test.ts` (editor) read the same files.
 The bundle still declares SDK 1.10, so it loads on an older Artisan.
 

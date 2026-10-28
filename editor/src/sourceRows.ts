@@ -8,12 +8,14 @@ import { itemLabel, itemValue, objectiveSpec, objectiveTarget } from "./objectiv
  * The three sources are mixed: their definition fields (titles, objectives, limits) come
  * from the quest groups of the project, their per-player fields (status, progress) from the
  * server. `ctx.serverRows` (Artisan editor SDK 1.12) carries the server's rows: they are
- * matched by key and keep their player fields, the draft replaces the rest. A quest the
+ * matched by key and keep their player fields, the draft replaces the rest. Of an attempt
+ * only the stored state is kept, everything derived from it is recomputed over the draft
+ * (`instanceFields`). A quest the
  * draft adds gets the neutral state the server gives a quest nobody started; a quest it
  * removes disappears. An older editor passes no `ctx`: groups and quests then show the
  * draft with that neutral state, and `msquests:active` keeps the server's rows.
  *
- * Row shapes mirror `QuestRows` in the plugin; `sourceRows.test.ts` and `QuestRowsTest`
+ * Row shapes mirror `QuestRows` in the plugin; `sourceRows.test.ts` and `QuestSourceVectorsTest`
  * read the same vectors (`testdata/sources/`), so the two cannot drift apart unnoticed.
  */
 
@@ -136,62 +138,130 @@ function questRow(group: QuestGroup, quest: Quest, server: Row | undefined, lang
     can_start: server?.can_start ?? false,
     start_blocker: server?.start_blocker ?? "",
     start_blocker_label: server?.start_blocker_label ?? "",
-    objective_name: server?.objective_name ?? "",
-    objective_progress: server?.objective_progress ?? 0,
-    objective_target: server?.objective_target ?? 0,
-    progress_ratio: server?.progress_ratio ?? 0,
-    stages: stageRows(quest, asRows(server?.stages), lang),
+    // `reference` in `QuestRows.questRow`: the attempt the server holds for this player.
+    ...instanceFields(quest, server?.assigned === true ? server : undefined, lang),
   };
 }
 
-function stageRows(quest: Quest, server: Row[], lang: string): Row[] {
-  const byKey = indexBy(server, "key");
-  return quest.stages.map((stage, index) => {
-    const s = byKey.get(stage.key);
-    const objectives = indexBy(asRows(s?.objectives), "key");
+/**
+ * The fields an attempt derives from its config. The server stores only each objective's
+ * progress and its COMPLETED/FAILED flag, keyed by objective key within the quest
+ * (`QuestFactory.buildQuest`), and derives the rest on every read: an objective is done once
+ * its progress reaches the target, a stage once all its objectives are, the current stage is
+ * the first one not done. The same derivation over the draft gives exactly the rows the server
+ * will send once the draft is deployed, a lowered target or a removed stage included.
+ */
+function instanceFields(quest: Quest, server: Row | undefined, lang: string): Row {
+  const stored = server ? storedObjectives(server) : undefined;
+  const stages = stageRows(quest, stored, lang);
+  const current = stages.find((s) => s.active === true);
+  const next = current ? (current.objectives as Row[]).find((o) => o.done !== true) : undefined;
+  return {
+    objective_name: next?.name ?? "",
+    objective_progress: next?.progress ?? 0,
+    objective_target: next?.target ?? 0,
+    progress_ratio: stored ? mean(stages.map((s) => s.progress_ratio as number)) : 0,
+    stage_index: stages.filter((s) => s.completed === true).length,
+    stage_name: current?.name ?? "",
+    stage_flow: current?.flow ?? "",
+    stages: stages.map((s) => ({ ...s, objectives: (s.objectives as Row[]).map(({ done: _d, ...o }) => o) })),
+  };
+}
+
+interface StoredObjective {
+  progress: number;
+  /** COMPLETED or FAILED: the only statuses the server keeps rather than derives. */
+  flag: string;
+  /** The row the server sent, for its exact name. */
+  row: Row;
+}
+
+/** The server's objectives by key, whatever stage they sat in: progress follows the key. */
+function storedObjectives(server: Row): Map<string, StoredObjective> {
+  const stored = new Map<string, StoredObjective>();
+  const objectives = [
+    ...asRows(server.objectives),
+    ...asRows(server.stages).flatMap((s) => asRows(s.objectives)),
+  ];
+  for (const o of objectives) {
+    const status = str(o.status_key);
+    stored.set(str(o.key), {
+      progress: int(o.progress, 0),
+      flag: status === "COMPLETED" || status === "FAILED" ? status : "",
+      row: o,
+    });
+  }
+  return stored;
+}
+
+/** `undefined` stored state: no attempt, every stage and objective in its neutral state. */
+function stageRows(quest: Quest, stored: Map<string, StoredObjective> | undefined, lang: string): Row[] {
+  const stages = quest.stages.map((stage, index) => {
+    const objectives = stage.objectives.map((o) => objectiveRow(o, stored?.get(o.key), lang));
     return {
       key: stage.key,
       name: stage.title,
       flow: flow(stage),
       index,
-      completed: s?.completed ?? false,
-      active: s?.active ?? false,
-      progress_ratio: s?.progress_ratio ?? 0,
-      objectives: stage.objectives.map((o) => objectiveRow(o, objectives.get(o.key), lang)),
-    };
+      // `QuestStage.isCompleted`: all objectives done, so an empty stage is.
+      completed: stored !== undefined && objectives.every((o) => o.done),
+      active: false,
+      progress_ratio: stored ? mean(objectives.map((o) => o.progress_ratio as number)) : 0,
+      objectives,
+    } as Row;
   });
+  if (!stored) return stages;
+  const current = stages.find((s) => s.completed !== true);
+  if (current) {
+    current.active = true;
+    // `AbstractQuestObjective.getStatus`: only the current stage's objectives are under way,
+    // and a sequential stage's only from the first one not done.
+    const objectives = current.objectives as Row[];
+    const first = objectives.find((o) => o.done !== true);
+    for (const o of objectives) {
+      if (o.status_key !== "PENDING") continue;
+      if (current.flow !== "SEQUENTIAL" || o === first) o.status_key = "IN_PROGRESS";
+    }
+  }
+  return stages;
 }
 
-function objectiveRow(objective: Objective, server: Row | undefined, lang: string): Row {
+function objectiveRow(objective: Objective, stored: StoredObjective | undefined, lang: string): Row {
   const target = targetOf(objective);
+  const progress = stored?.progress ?? 0;
+  const server = stored?.row;
   // The server's name is exact (its lang file, the item's translated name): kept while the
   // objective asks the same thing, else rebuilt from the default names.
   const same = server && server.type === objective.type && server.target === target;
   return {
     key: objective.key,
-    name: same ? server.name : objectiveName(objective, lang),
+    name: same && typeof server.name === "string" ? server.name : objectiveName(objective, lang),
     type: objective.type,
-    progress: server?.progress ?? 0,
+    progress,
     target,
-    progress_ratio: server?.progress_ratio ?? 0,
-    completed: server?.completed ?? false,
-    status_key: server?.status_key ?? "PENDING",
+    // `AbstractQuestObjective`: done once the progress reaches the target, whatever the
+    // stored flag says; the ratio is clamped, so a lowered target reads 1, not 1.4.
+    progress_ratio: stored ? (target <= 0 ? 1 : Math.min(Math.max(progress / target, 0), 1)) : 0,
+    completed: stored !== undefined && progress >= target,
+    status_key: stored?.flag || "PENDING",
+    done: stored !== undefined && progress >= target,
   };
 }
 
 // ----------------------------------------------------------------- actives
 
 function activeRow(quest: Quest, server: Row, lang: string): Row {
-  const stages = stageRows(quest, asRows(server.stages), lang);
-  const current = stages.find((s) => s.active === true);
-  const currentStage = current ? quest.stages.find((s) => s.key === current.key) : undefined;
+  const fields = instanceFields(quest, server, lang);
+  const stages = fields.stages as Row[];
   return {
     ...server,
     name: quest.title,
     description: quest.description,
+    stage_index: fields.stage_index,
     stage_count: quest.stages.length,
-    stage_name: currentStage ? currentStage.title : (server.stage_name ?? ""),
-    stage_flow: currentStage ? flow(currentStage) : (server.stage_flow ?? ""),
+    stage_name: fields.stage_name,
+    stage_flow: fields.stage_flow,
+    progress_ratio: fields.progress_ratio,
     objectives: stages.flatMap((s) => s.objectives as Row[]),
     stages,
   };
@@ -272,6 +342,10 @@ function indexBy(rows: Row[] | undefined, field: string): Map<string, Row> {
 
 function asRows(value: unknown): Row[] {
   return Array.isArray(value) ? (value.filter((v) => v && typeof v === "object") as Row[]) : [];
+}
+
+function mean(values: number[]): number {
+  return values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 function int(value: unknown, fallback: number): number {
