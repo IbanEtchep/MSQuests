@@ -1,5 +1,6 @@
 import { type FrontendModule, SDK_VERSION } from "@artisan/editor-sdk";
 import { questGroupKind } from "./questGroupKind";
+import { questsLocalRows } from "./sourceRows";
 
 /**
  * The editor view of ArtisanQuests (presence id `msquests`): the `quest_group` kind.
@@ -15,6 +16,8 @@ const questsModule: FrontendModule = {
   // Quests are Documents: they are edited from the project, no screen of their own.
   routes: [],
   documents: [questGroupKind],
+  // The quest sources previewed from the draft, joined to the player's state on the server.
+  localPreviewRows: questsLocalRows,
 };
 
 export default questsModule;
