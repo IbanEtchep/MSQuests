@@ -1,0 +1,109 @@
+{
+  "comment": "One quest group read by both sides: QuestGroupDocumentReader + QuestRows (bukkit, QuestSourceVectorsTest) and questsLocalRows (editor, sourceRows.test.ts). `expected` holds the definition fields of the neutral rows (no player); both sides must produce exactly these.",
+  "lang": "en",
+  "document": {
+    "id": "daily",
+    "schema": "quest_group/v1",
+    "uid": "01JQ8AAAAAAAAAAAAAAAAAAAAA",
+    "title": "Daily quests",
+    "description": "Back every morning",
+    "actor_type": "player",
+    "limits": { "max_active": 3, "max_per_period": 6 },
+    "rotation": { "enabled": true },
+    "tiers": { "easy": { "title": "Easy" } },
+    "quests": [
+      {
+        "key": "miner",
+        "uid": "01JQ8BBBBBBBBBBBBBBBBBBBBB",
+        "tier": "easy",
+        "title": "Miner",
+        "description": "Dig deep",
+        "duration": "1h30m",
+        "stages": [
+          {
+            "key": "dig",
+            "title": "Dig",
+            "flow": "sequential",
+            "objectives": [
+              { "key": "stone", "type": "block_break", "material": "STONE", "amount": 64 },
+              { "key": "walk", "type": "travel", "distance": 100 }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "talker",
+        "uid": "01JQ8CCCCCCCCCCCCCCCCCCCCC",
+        "title": "Talker",
+        "stages": [
+          {
+            "key": "talk",
+            "title": "Talk",
+            "flow": "parallel",
+            "objectives": [{ "key": "say", "type": "execute_command", "command": "hello" }]
+          }
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "msquests:groups": [
+      {
+        "key": "daily",
+        "name": "Daily quests",
+        "description": "Back every morning",
+        "actor_type": "player",
+        "max_active": 3,
+        "max_per_period": 6,
+        "rotatable": true
+      }
+    ],
+    "msquests:quests": [
+      {
+        "id": "daily:miner",
+        "group": "daily",
+        "key": "miner",
+        "name": "Miner",
+        "description": "Dig deep",
+        "duration": 5400,
+        "tier": "easy",
+        "tier_name": "Easy",
+        "status_key": "NOT_STARTED",
+        "stages": [
+          {
+            "key": "dig",
+            "name": "Dig",
+            "flow": "SEQUENTIAL",
+            "index": 0,
+            "objectives": [
+              { "key": "stone", "type": "block_break", "target": 64, "progress": 0, "status_key": "PENDING" },
+              { "key": "walk", "type": "travel", "target": 100, "progress": 0, "status_key": "PENDING" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "daily:talker",
+        "group": "daily",
+        "key": "talker",
+        "name": "Talker",
+        "description": "",
+        "duration": 0,
+        "tier": "",
+        "tier_name": "",
+        "status_key": "NOT_STARTED",
+        "stages": [
+          {
+            "key": "talk",
+            "name": "Talk",
+            "flow": "PARALLEL",
+            "index": 0,
+            "objectives": [
+              { "key": "say", "type": "execute_command", "target": 1, "progress": 0, "status_key": "PENDING" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
