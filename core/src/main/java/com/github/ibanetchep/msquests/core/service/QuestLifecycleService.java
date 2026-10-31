@@ -113,6 +113,9 @@ public class QuestLifecycleService {
             objective.complete();
             var objectiveCompletedEvent = new CoreQuestObjectiveCompletedEvent(objective, profile);
             dispatcher.dispatch(objectiveCompletedEvent);
+            if (objective.getStage().isCompleted()) {
+                dispatcher.dispatch(new CoreQuestStageCompletedEvent(objective.getStage(), profile));
+            }
 
             chains.run(quest.getQuestGroup().getObjectiveCompleteActions(), ChainContext.of(objective));
             chains.run(quest.getQuestConfig().getObjectiveCompleteActions(), ChainContext.of(objective));
@@ -147,6 +150,7 @@ public class QuestLifecycleService {
         executor.execute(quest.getId(), updatedQuest -> {
             if (!updatedQuest.isActive()) return;
             updatedQuest.setStatus(QuestStatus.FAILED);
+            dispatcher.dispatch(new CoreQuestAbandonedEvent(updatedQuest));
             persistenceService.saveQuest(updatedQuest).join();
         });
     }
@@ -182,6 +186,7 @@ public class QuestLifecycleService {
 
         toExpire.forEach(quest -> {
             quest.setStatus(QuestStatus.EXPIRED);
+            dispatcher.dispatch(new CoreQuestExpiredEvent(quest));
             persistenceService.saveQuest(quest);
         });
 

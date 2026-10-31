@@ -4,6 +4,7 @@ import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
 import com.github.ibanetchep.msquests.core.event.*;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.player.PlayerProfile;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,8 @@ public class BukkitEventDispatcher implements EventDispatcher {
 
     private final BukkitQuestsPlugin plugin;
     private final Map<Class<? extends CoreEvent>, Consumer<CoreEvent>> handlers = new HashMap<>();
+    /** Sees every core event after its Bukkit event: the Artisan Game events of the quests. */
+    private volatile @Nullable Consumer<CoreEvent> observer;
 
     public BukkitEventDispatcher(BukkitQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -31,6 +34,15 @@ public class BukkitEventDispatcher implements EventDispatcher {
         if (handler != null) {
             handler.accept(event);
         }
+        Consumer<CoreEvent> observer = this.observer;
+        if (observer != null && !(event instanceof CancellableCoreEvent cancellable && cancellable.isCancelled())) {
+            observer.accept(event);
+        }
+    }
+
+    /** Sets, or clears with null, the observer of every dispatched core event. */
+    public void setObserver(@Nullable Consumer<CoreEvent> observer) {
+        this.observer = observer;
     }
 
     private void callQuestStart(CoreQuestStartEvent event) {

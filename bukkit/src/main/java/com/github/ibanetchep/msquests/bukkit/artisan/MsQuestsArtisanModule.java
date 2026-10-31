@@ -1,6 +1,7 @@
 package com.github.ibanetchep.msquests.bukkit.artisan;
 
 import com.github.ibanetchep.msquests.bukkit.BukkitQuestsPlugin;
+import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
 import com.github.ibanetchep.msquests.bukkit.quest.objective.ContributableObjective;
 import com.github.ibanetchep.msquests.bukkit.text.MessageBuilder;
@@ -29,6 +30,7 @@ import net.artisanmc.modules.api.datasource.PlayerRequiredException;
 import net.artisanmc.modules.api.datasource.Stability;
 import net.artisanmc.modules.api.document.DocumentKindDeclaration;
 import net.artisanmc.modules.api.editor.EditorBundleDeclaration;
+import net.artisanmc.modules.api.gameevent.GameEventDeclaration;
 import net.artisanmc.modules.api.template.TemplateDeclaration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -126,6 +128,7 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         }
 
         registerPlaceholders(api);
+        registerGameEvents(api);
 
         // STATIC: the key-set is the loaded configuration, enumerable without a player,
         // so a menu can place "the daily group" on a specific slot. Only the per-actor
@@ -266,6 +269,34 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         }
     }
 
+    /**
+     * Declares the quests' Game events ({@link QuestGameEvents}) and starts firing them. Artisan
+     * before {@value QuestGameEvents#MIN_API_VERSION} has no Game events: the quests then run
+     * without them, as before.
+     */
+    private void registerGameEvents(ArtisanAPI api) {
+        if (!api.isCompatibleWith(QuestGameEvents.MIN_API_VERSION)) {
+            plugin.getLogger().info("Artisan " + api.getApiVersion() + " has no Game events; Triggers cannot react to"
+                    + " quests until Artisan API " + QuestGameEvents.MIN_API_VERSION + " or later.");
+            return;
+        }
+        if (!(plugin.getEventDispatcher() instanceof BukkitEventDispatcher dispatcher)) return;
+        try {
+            for (GameEventDeclaration declaration : QuestGameEvents.declarations()) {
+                api.getGameEvents().register(declaration);
+            }
+        } catch (IllegalStateException e) {
+            plugin.getLogger().warning("The quests' Game events are not available: " + e.getMessage());
+            return;
+        }
+        dispatcher.setObserver(new QuestGameEvents(
+                api.getGameEvents(),
+                api.getScheduler().forPlugin(plugin),
+                Bukkit::getPlayer,
+                Bukkit::isPrimaryThread,
+                plugin::runSync));
+    }
+
     private void registerPlaceholders(ArtisanAPI api) {
         QuestPlaceholders placeholders = plugin.getQuestPlaceholders();
         try {
@@ -279,6 +310,9 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
 
     @Override
     public void onDisable() {
+        if (plugin.getEventDispatcher() instanceof BukkitEventDispatcher dispatcher) {
+            dispatcher.setObserver(null);
+        }
         if (api != null) {
             api.getPlaceholders().unregister(QuestPlaceholders.NAMESPACE);
         }
