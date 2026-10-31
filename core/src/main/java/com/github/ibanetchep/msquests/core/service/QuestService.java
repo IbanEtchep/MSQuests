@@ -1,10 +1,10 @@
 package com.github.ibanetchep.msquests.core.service;
 
-import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.registry.QuestRegistry;
 import com.github.ibanetchep.msquests.core.dto.QuestDTO;
 import com.github.ibanetchep.msquests.core.factory.QuestFactory;
 import com.github.ibanetchep.msquests.core.mapper.QuestMapper;
+import com.github.ibanetchep.msquests.core.quest.actor.ActorQuestGroup;
 import com.github.ibanetchep.msquests.core.quest.actor.Quest;
 import com.github.ibanetchep.msquests.core.quest.actor.QuestActor;
 import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
@@ -15,7 +15,9 @@ import com.github.ibanetchep.msquests.core.repository.RotationRepository;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,9 +60,20 @@ public class QuestService {
         this.questMapper = questMapper;
     }
 
+    /**
+     * Loads, or reloads, every stored quest of the actor. The actor's quests are replaced in one
+     * step once everything has been read, so a reload neither empties the actor meanwhile nor
+     * leaves the previous instances (and their stale group config) next to the new ones.
+     */
     public CompletableFuture<Void> loadQuests(QuestActor actor) {
+        Instant loadStartedAt = Instant.now();
+
+        CompletableFuture<Map<QuestGroupConfig, Integer>> rotations = loadRotationCounts(actor);
+
         return questRepository.getAllByActor(actor.getId())
-                .thenCompose(questEntryDtos -> {
+                .thenCombine(rotations, (questEntryDtos, rotationCounts) -> {
+                    List<Quest> loaded = new ArrayList<>();
+
                     for (QuestDTO questDTO : questEntryDtos.values()) {
                         QuestGroupConfig questGroupConfig = questConfigRegistry.getQuestGroupConfigs().get(questDTO.groupKey());
 
@@ -83,11 +96,22 @@ public class QuestService {
                             continue;
                         }
 
-                        Quest quest = questFactory.createQuest(questConfig, actor, questDTO);
-                        questRegistry.add(quest);
+                        loaded.add(questFactory.buildQuest(questConfig, actor, questDTO));
                     }
 
-                    return loadRotationCounts(actor);
+                    Collection<Quest> previous = actor.replaceLoadedQuests(loaded, rotationCounts, loadStartedAt);
+
+                    // Register the new instances before dropping the old ones: pending progress is
+                    // resolved by quest id, and must never find the id missing in between.
+                    for (Quest quest : actor.getQuests().values()) {
+                        questRegistry.add(quest);
+                    }
+                    for (Quest old : previous) {
+                        if (!actor.getQuests().containsKey(old.getId())) {
+                            questRegistry.remove(old);
+                        }
+                    }
+                    return (Void) null;
                 })
                 .exceptionally(e -> {
                     logger.log(Level.SEVERE, "Failed to load quests", e);
@@ -119,33 +143,34 @@ public class QuestService {
         });
     }
 
-    private CompletableFuture<Void> loadRotationCounts(QuestActor actor) {
+    /** Rotations already used this period, per rotatable group the actor can hold. */
+    private CompletableFuture<Map<QuestGroupConfig, Integer>> loadRotationCounts(QuestActor actor) {
+        Map<QuestGroupConfig, Integer> counts = new ConcurrentHashMap<>();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (QuestGroupConfig groupConfig : questConfigRegistry.getQuestGroupConfigs().values()) {
             if (!groupConfig.isRotatable()) continue;
-
-            ActorQuestGroup actorGroup = actor.getActorQuestGroup(groupConfig);
-            if (actorGroup == null) continue;
+            if (!groupConfig.getActorType().equalsIgnoreCase(actor.getActorType())) continue;
 
             Instant periodStart = groupConfig.getPeriodStart();
             Instant periodEnd = groupConfig.getPeriodEnd();
 
             CompletableFuture<Void> future = rotationRepository.countInPeriod(actor.getId(), groupConfig.getKey(), periodStart, periodEnd)
-                    .thenAccept(count -> {
-                        for (int i = 0; i < count; i++) {
-                            actorGroup.incrementRotations();
-                        }
-                    })
+                    .thenAccept(count -> counts.put(groupConfig, count))
                     .exceptionally(e -> {
-                        logger.log(Level.WARNING, "Failed to load rotation count for group " + groupConfig.getKey(), e);
+                        // Keep the count already in memory: falling back to 0 would hand out
+                        // rotations the actor has already used this period.
+                        logger.log(Level.WARNING, "Failed to load rotation count for group " + groupConfig.getKey()
+                                + ", keeping the current count", e);
+                        ActorQuestGroup current = actor.getActorQuestGroup(groupConfig);
+                        counts.put(groupConfig, current != null ? current.getRotationsInPeriod() : 0);
                         return null;
                     });
 
             futures.add(future);
         }
 
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply(v -> counts);
     }
 
     private boolean isInCurrentPeriod(QuestGroupConfig groupConfig, QuestDTO questDTO) {

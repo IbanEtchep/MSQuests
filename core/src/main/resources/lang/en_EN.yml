@@ -1,0 +1,160 @@
+# MSQuests - English messages (MiniMessage format).
+# %placeholders% are replaced before MiniMessage parsing.
+file_version: 1
+
+quest_admin:
+  # /msquests reload (no placeholders)
+  reload: '<green>MSQuests configuration, languages and quests reloaded.</green>'
+  quest:
+    # Not referenced by code yet (no placeholders guaranteed)
+    started: '<green>Quest started.</green>'
+    could_not_start: '<red>The quest could not be started.</red>'
+    rotated: '<green>Quest rotated.</green>'
+    # Quest placeholders: %quest_name%, %quest_key%, %quest_id%, %actor_name%, %quest_actor_type%...
+    force_completed: '<green>Quest <white>%quest_name%</white> <gray>(%quest_key%)</gray> force-completed for <white>%actor_name%</white>.</green>'
+  list:
+    # %page%, %last_page%
+    page_out_of_bounds: '<red>Page <white>%page%</white> does not exist. Last page: <white>%last_page%</white>.</red>'
+    # %quests%, %group_key%, %group_name%, %group_description%, %page%, %next_page%,
+    # %previous_page%, %last_page%, %actor_type%, %actor%
+    body: |-
+      <gold><bold>%group_name%</bold></gold> <gray>(%group_key%) - %actor%</gray>
+      <gray>Page %page%/%last_page%</gray>%quests%
+      <click:run_command:'/msquests actor %actor_type% %actor% list %group_key% %previous_page%'><hover:show_text:'Previous page'><yellow>« Previous</yellow></hover></click> <gray>|</gray> <click:run_command:'/msquests actor %actor_type% %actor% list %group_key% %next_page%'><hover:show_text:'Next page'><yellow>Next »</yellow></hover></click>
+    # Quest placeholders + %objectives%
+    quest_template: '<newline>%quest_status_prefix%%quest_name%%quest_status_suffix% <dark_gray>%quest_key% · %quest_status% · stage %quest_stage_index%/%quest_stage_count%</dark_gray>%objectives%'
+    # Objective placeholders
+    objective_template: '<newline>  %objective_status_prefix%%objective_name%%objective_status_suffix% <gray>%objective_progress%/%objective_target% (%objective_progress_percent%%)</gray>'
+  group:
+    # Group placeholders + %actor_name%, %actor_id%, %amount%
+    distributed_quests: '<green><white>%amount%</white> quest(s) from <white>%group_name%</white> started for <white>%actor_name%</white>.</green>'
+
+quest:
+  command:
+    # Quest placeholders
+    tracked: '<green>You are now tracking <white>%quest_name%</white>.</green>'
+    untracked: '<yellow>You are no longer tracking a quest.</yellow>'
+    # Not referenced by code yet (no placeholders guaranteed)
+    rotated: '<green>Your quest has been replaced by a new one.</green>'
+  status:
+    in_progress: 'In progress'
+    completed: 'Completed'
+    expired: 'Expired'
+    failed: 'Failed'
+  status_prefix:
+    in_progress: '<yellow>⌛ '
+    completed: '<green>✔ '
+    expired: '<gray>⌚ '
+    failed: '<red>✘ '
+  status_suffix:
+    in_progress: '</yellow>'
+    completed: '</green>'
+    expired: '</gray>'
+    failed: '</red>'
+  start:
+    result:
+      success: '<green>Quest started.</green>'
+      invalid_actor_type: '<red>This quest cannot be started for this type of actor.</red>'
+      group_not_found: '<red>This quest group does not exist.</red>'
+      group_inactive: '<red>This quest group is not active right now.</red>'
+      already_active: '<red>This quest is already in progress.</red>'
+      already_completed: '<red>This quest has already been completed.</red>'
+      max_active_reached: '<red>Maximum number of active quests reached.</red>'
+      period_limit_reached: '<red>Quest limit reached for this period.</red>'
+      conditions_not_met: '<red>The conditions to start this quest are not met.</red>'
+      cancelled_by_event: '<red>Starting this quest was cancelled.</red>'
+  rotate:
+    result:
+      success: '<green>Quest replaced by a new one.</green>'
+      not_rotatable: '<red>This quest cannot be replaced.</red>'
+      max_rotations_reached: '<red>You cannot replace any more quests.</red>'
+      quest_not_active: '<red>Only an active quest can be replaced.</red>'
+      no_alternative_available: '<red>No other quest is available to replace this one.</red>'
+      group_not_found: '<red>This quest group does not exist.</red>'
+
+objective:
+  status:
+    pending: 'Pending'
+    in_progress: 'In progress'
+    completed: 'Completed'
+    failed: 'Failed'
+  status_prefix:
+    pending: '<gray>○ '
+    in_progress: '<yellow>◐ '
+    completed: '<green>✔ '
+    failed: '<red>✘ '
+  status_suffix:
+    pending: '</gray>'
+    in_progress: '</yellow>'
+    completed: '</green>'
+    failed: '</red>'
+  progress:
+    # Objective placeholders
+    default: '%objective_progress%/%objective_target%'
+  # Objective names - placeholders come from each objective config
+  block_break: 'Mine %amount% %material%'
+  breed_animal: 'Breed %amount% %entity_type%'
+  craft_item: 'Craft %amount% %material%'
+  harvest_crop: 'Harvest %amount% %crop%'
+  deliver_item: 'Deliver %amount% %material%'
+  kill_entity: 'Kill %amount% %entity_type%'
+  execute_command: 'Run the command %command%'
+  fishing: 'Catch %amount% %fish_type%'
+  placeholder: 'Reach %value%'
+  travel: 'Travel %distance% blocks'
+
+zmenu:
+  quest:
+    status:
+      available: 'Available'
+    progress:
+      completed: 'Objectives completed!'
+
+placeholder:
+  # Quest placeholders
+  quest: '%quest_status_prefix%%quest_name%%quest_status_suffix%'
+  # %stage_name%, %stage_key%
+  stage: '%stage_name%'
+  # Objective placeholders
+  objective: '%objective_status_prefix%%objective_name%%objective_status_suffix% <gray>%objective_progress%/%objective_target%</gray>'
+
+# Keys referenced by config.yml actor_type hooks.
+# Quest-level actions: quest placeholders (+ %player% for message / action_bar).
+player_quest:
+  started:
+    message:
+      # + %objectives% (built from the objective template)
+      body: '<gold>✦</gold> <white>New quest: <gold>%quest_name%</gold></white><newline><gray>%quest_description%</gray>%objectives%'
+      # Objective placeholders
+      objective: '<newline> <gray>-</gray> %objective_name%'
+    title:
+      title: '<gold>New quest</gold>'
+      subtitle: '<white>%quest_name%</white>'
+    action_bar: '<gold>Quest started: <white>%quest_name%</white></gold>'
+  progress:
+    # Executed with the objective but resolved against the quest: quest placeholders only
+    action_bar: '<yellow>%quest_name%</yellow> <gray>- stage %quest_stage_index%/%quest_stage_count%</gray>'
+  complete:
+    message:
+      body: '<green>✔</green> <white>Quest completed: <green>%quest_name%</green></white>'
+    title:
+      title: '<green>Quest completed!</green>'
+      subtitle: '<white>%quest_name%</white>'
+
+global_quest:
+  started:
+    message:
+      body: '<aqua>✦</aqua> <white>New server quest: <aqua>%quest_name%</aqua></white><newline><gray>%quest_description%</gray>%objectives%'
+      objective: '<newline> <gray>-</gray> %objective_name%'
+    title:
+      title: '<aqua>New server quest</aqua>'
+      subtitle: '<white>%quest_name%</white>'
+    action_bar: '<aqua>Server quest started: <white>%quest_name%</white></aqua>'
+  progress:
+    action_bar: '<aqua>%quest_name%</aqua> <gray>- stage %quest_stage_index%/%quest_stage_count%</gray>'
+  complete:
+    message:
+      body: '<green>✔</green> <white>Server quest completed: <green>%quest_name%</green></white>'
+    title:
+      title: '<green>Server quest completed!</green>'
+      subtitle: '<white>%quest_name%</white>'

@@ -62,6 +62,16 @@ public class QuestFactory {
     }
 
     public Quest createQuest(QuestConfig config, QuestActor actor, QuestDTO dto) {
+        Quest quest = buildQuest(config, actor, dto);
+        actor.addQuest(quest);
+        return quest;
+    }
+
+    /**
+     * Rebuilds a stored quest without attaching it to its actor, so a full actor load can swap
+     * every quest in at once ({@link QuestActor#replaceLoadedQuests}).
+     */
+    public Quest buildQuest(QuestConfig config, QuestActor actor, QuestDTO dto) {
         Quest quest = new Quest(
                 dto.id(),
                 config,
@@ -92,7 +102,6 @@ public class QuestFactory {
             quest.addStage(stage);
         }
 
-        actor.addQuest(quest);
         return quest;
     }
 }

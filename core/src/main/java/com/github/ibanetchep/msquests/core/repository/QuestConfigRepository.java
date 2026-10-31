@@ -7,6 +7,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface QuestConfigRepository {
 
-    CompletableFuture<Map<String, QuestGroupConfigDTO>> getAllGroups();
+    /** Reads every group, reporting the files that failed instead of dropping them silently. */
+    CompletableFuture<QuestConfigLoad> loadAllGroups();
+
+    default CompletableFuture<Map<String, QuestGroupConfigDTO>> getAllGroups() {
+        return loadAllGroups().thenApply(QuestConfigLoad::groups);
+    }
 
 }

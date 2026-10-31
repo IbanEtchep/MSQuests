@@ -126,8 +126,14 @@ public class QuestLifecycleService {
         });
     }
 
+    /**
+     * Force-completes a quest, rewards included. A no-op once the quest is no longer in progress:
+     * two requests queued for the same quest (a double click, a chain calling it twice) would
+     * otherwise both pass and pay the rewards twice.
+     */
     public void completeQuest(Quest quest) {
         executor.execute(quest.getId(), updatedQuest -> {
+            if (!updatedQuest.isActive()) return;
             finalizeQuestCompletion(updatedQuest);
             persistenceService.saveQuest(updatedQuest).join();
         });
@@ -209,11 +215,16 @@ public class QuestLifecycleService {
             return QuestRotateResult.NO_ALTERNATIVE_AVAILABLE;
         }
 
-        // Delete old quest
+        // Delete old quest. The row goes away in the background: the quest is already out
+        // of memory, and a rotation is a click on the player's thread, so it never waits
+        // on the connection pool.
         actorGroup.removeQuest(quest);
         actor.removeQuest(quest);
         questRegistry.remove(quest);
-        persistenceService.deleteQuest(quest).join();
+        persistenceService.deleteQuest(quest).exceptionally(e -> {
+            logger.log(Level.WARNING, "Failed to delete rotated quest " + quest.getId(), e);
+            return null;
+        });
 
         // Start new quest
         for (QuestConfig candidate : candidates) {

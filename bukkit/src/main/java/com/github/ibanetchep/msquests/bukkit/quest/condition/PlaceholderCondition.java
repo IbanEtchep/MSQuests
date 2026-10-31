@@ -7,8 +7,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlaceholderCondition implements Condition {
+
+    /**
+     * How long a resolved placeholder is reused for the same player. A menu render tests
+     * the same condition once per row, within a few milliseconds, and third-party
+     * expansions may query a database on each resolution; a second of staleness on a
+     * condition is invisible to the player.
+     */
+    static final long CACHE_TTL_MILLIS = 1000;
+    private static final int CACHE_SWEEP_SIZE = 4096;
+
+    private static final Map<CacheKey, Resolved> CACHE = new ConcurrentHashMap<>();
 
     private final String placeholder;
     private final String action;
@@ -33,8 +46,8 @@ public class PlaceholderCondition implements Condition {
         String resolvedPlaceholder = applyContext(placeholder, contextPlaceholders);
         String resolvedValue = applyContext(value, contextPlaceholders);
 
-        String resolved = PlaceholderAPI.setPlaceholders(player, resolvedPlaceholder);
-        resolvedValue = PlaceholderAPI.setPlaceholders(player, resolvedValue);
+        String resolved = resolve(player, resolvedPlaceholder);
+        resolvedValue = resolve(player, resolvedValue);
 
         return switch (action) {
             case "EQUALS_STRING" -> resolved.equals(resolvedValue);
@@ -43,6 +56,30 @@ public class PlaceholderCondition implements Condition {
             case "DIFFERENT_STRING" -> !resolved.equals(resolvedValue);
             default -> compareNumeric(resolved, resolvedValue);
         };
+    }
+
+    private static String resolve(Player player, String text) {
+        if (text.indexOf('%') < 0) {
+            // Nothing to resolve: a literal value never reaches PlaceholderAPI.
+            return text;
+        }
+        long now = System.currentTimeMillis();
+        CacheKey key = new CacheKey(player.getUniqueId(), text);
+        Resolved cached = CACHE.get(key);
+        if (cached != null && now - cached.at() < CACHE_TTL_MILLIS) {
+            return cached.text();
+        }
+        String resolved = PlaceholderAPI.setPlaceholders(player, text);
+        if (CACHE.size() >= CACHE_SWEEP_SIZE) {
+            CACHE.entrySet().removeIf(entry -> now - entry.getValue().at() >= CACHE_TTL_MILLIS);
+        }
+        CACHE.put(key, new Resolved(resolved, now));
+        return resolved;
+    }
+
+    /** Drops every cached resolution, for a player leaving or a test. */
+    public static void invalidate(UUID playerId) {
+        CACHE.keySet().removeIf(key -> key.playerId().equals(playerId));
     }
 
     private String applyContext(String text, Map<String, String> context) {
@@ -69,4 +106,8 @@ public class PlaceholderCondition implements Condition {
             return false;
         }
     }
+
+    private record CacheKey(UUID playerId, String text) {}
+
+    private record Resolved(String text, long at) {}
 }

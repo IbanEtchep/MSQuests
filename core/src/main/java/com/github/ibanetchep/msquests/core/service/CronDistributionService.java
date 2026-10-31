@@ -5,7 +5,6 @@ import com.github.ibanetchep.msquests.core.quest.config.group.DistributionTrigge
 import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.registry.QuestActorRegistry;
 import com.github.ibanetchep.msquests.core.registry.QuestConfigRegistry;
-import com.github.ibanetchep.msquests.core.util.CronUtils;
 
 import java.time.Instant;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class CronDistributionService {
             if (groupConfig.getResetCron() == null) continue;
             if (!groupConfig.hasDistributionTrigger(DistributionTrigger.PERIOD_RESET)) continue;
 
-            Instant previousReset = CronUtils.getPreviousExecution(groupConfig.getResetCron(), now);
+            Instant previousReset = groupConfig.getPreviousResetBefore(now);
             if (previousReset == null) continue;
 
             Instant lastKnown = lastResetTimes.get(groupConfig.getKey());

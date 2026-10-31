@@ -12,6 +12,7 @@ import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.result.QuestRotateResult;
 import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -37,17 +38,22 @@ public class QuestAdminCommand {
 
         plugin.getQuestService().clearMissingConfigReports();
 
-        plugin.getQuestConfigService()
-                .loadQuestGroups()
+        // Write batched progress first: actors are rebuilt from the database just after.
+        plugin.getQuestProgressService().flushPendingProgress()
+                .thenCompose(v -> plugin.getQuestConfigService().reloadQuestGroups())
                 .thenCompose(v -> plugin.getQuestActorService().reloadActors())
-                .thenRun(() -> {
+                // The futures complete on the database threads: back to the main thread before
+                // publishing the data reload event (Artisan menus re-read on it) and answering.
+                .thenRun(() -> plugin.runSync(() -> {
                     // Tell Artisan menus their rows are stale (no-op without Artisan).
                     plugin.getArtisanIntegration().signalDataReload();
                     sender.sendMessage(MessageBuilder.translatable(TranslationKey.QUEST_ADMIN_RELOAD).toComponent());
-                })
+                }))
                 .exceptionally(e -> {
-                    sender.sendMessage("<red>Failed to reload quests. Check console for details.</red>");
+                    // The previous configs stay active: a refused reload changes nothing.
                     plugin.getLogger().log(Level.SEVERE, "Failed during quest reload", e);
+                    plugin.runSync(() -> sender.sendMessage(MiniMessage.miniMessage().deserialize(
+                            "<red>Quest reload refused, the previous configs are still active. Check console for details.</red>")));
                     return null;
                 });
     }
