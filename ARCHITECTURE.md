@@ -180,6 +180,28 @@ so the `{key}` of an iterated line is interpolated. The targeted actor is the on
 of the group that the player belongs to; unknown data logs a warning and the chain
 continues.
 
+### Game events: Triggers react to quests
+
+With Artisan API 2.16.0 or later, the module declares six Game events (`QuestGameEvents`),
+so a Trigger (`triggers/<id>.yml`, `on: quests:completed`), a conversation or another module
+reacts to a quest without a hook in its group. Older Artisan: nothing is declared, the quests
+run as before.
+
+| Game event | Context (`{event.…}`) | Fired when |
+|---|---|---|
+| `quests:started` | `group`, `quest`, `actor_type` | an instance starts |
+| `quests:objective_completed` | + `stage`, `objective`, `objective_type` | an objective reaches its target |
+| `quests:stage_completed` | + `stage` | every objective of a stage is done (before `completed` for the last one) |
+| `quests:completed` | `group`, `quest`, `actor_type` | the quest completes (forced completion included) |
+| `quests:expired` | same | its duration or its period ran out |
+| `quests:abandoned` | same | `quests:abandon` (status `FAILED`) |
+
+`group`, `quest`, `stage` and `objective` are the keys an author writes, never the uids.
+A quest belongs to an actor: the event fires once for each online member, on the thread
+that owns that player (the lifecycle hops to the server thread to read the members first).
+Nothing is read or scheduled while no listener observes the event. A cancelled core event
+fires nothing. `BukkitEventDispatcher.setObserver` is the hook; the module clears it on disable.
+
 ### Rewards, hooks and requirements: Artisan chains
 
 A quest's hooks (`actions.start`, `objective_progress`, `objective_complete`, `complete`,
@@ -398,7 +420,10 @@ Bukkit PluginManager (ObjectiveProgressEvent, QuestCompleteEvent, etc.)
 - `CoreQuestObjectiveProgressEvent` / `CoreQuestObjectiveProgressedEvent`
 - `CoreQuestObjectiveCompletedEvent`
 
-Each core event has its Bukkit mirror in `bukkit/event/`.
+**Core events (notifications only, no Bukkit mirror):** `CoreQuestStageCompletedEvent`,
+`CoreQuestExpiredEvent`, `CoreQuestAbandonedEvent`; they feed the Game events above.
+
+The other core events have their Bukkit mirror in `bukkit/event/`.
 
 ---
 
