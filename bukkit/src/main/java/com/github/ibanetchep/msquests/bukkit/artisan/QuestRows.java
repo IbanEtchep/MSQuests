@@ -14,7 +14,6 @@ import com.github.ibanetchep.msquests.core.quest.config.group.QuestGroupConfig;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjective;
 import com.github.ibanetchep.msquests.core.quest.objective.QuestObjectiveStatus;
 import com.github.ibanetchep.msquests.core.quest.result.QuestStartResult;
-import com.github.ibanetchep.msquests.core.util.CronUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -76,7 +75,8 @@ public final class QuestRows {
         row.put("max_per_period", group.getMaxPerPeriod() != null ? group.getMaxPerPeriod() : 0);
         row.put("rotatable", group.isRotatable());
 
-        Instant periodEnd = group.getNextReset() != null ? group.getNextReset() : group.getPeriodEnd();
+        Instant nextReset = group.getNextReset();
+        Instant periodEnd = nextReset != null ? nextReset : group.getPeriodEnd();
         row.put("period_end", periodEnd != null ? periodEnd.toEpochMilli() : 0L);
 
         row.put("active_count", actorGroup != null ? actorGroup.getInProgressCount() : 0);
@@ -268,9 +268,8 @@ public final class QuestRows {
     private static @Nullable Instant expiryOf(Quest quest) {
         QuestGroupConfig group = quest.getQuestGroup();
         if (group == null) return null;
-        String cron = group.getResetCron();
-        if (cron != null) {
-            Instant next = CronUtils.getNextExecution(cron, quest.getCreatedAt().toInstant(), group.getResetZone());
+        if (group.getResetCron() != null && quest.getCreatedAt() != null) {
+            Instant next = group.getNextResetAfter(quest.getCreatedAt().toInstant());
             if (next != null) return next;
         }
         return group.getEndAt();

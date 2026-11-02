@@ -1,4 +1,4 @@
-# Architecture - MSQuests
+# Architecture - ArtisanQuests (ex-MSQuests)
 
 This document describes the architecture of MSQuests, a Minecraft quest plugin for Paper, Folia and Spigot 1.21+ (Paper-only code is isolated in `bukkit/platform/`).
 
@@ -28,6 +28,27 @@ MSQuests is a modular quest system built on a layered architecture with a strict
 - `core` has no dependency on the other modules
 
 ---
+
+## Plugin name and MSQuests compatibility
+
+The plugin is called `ArtisanQuests` (`name:` in `plugin.yml`). The code keeps the
+`com.github.ibanetchep.msquests` package and the Maven coordinates, which users never see.
+
+| Item | New | Old, still accepted |
+|---|---|---|
+| Plugin name | `ArtisanQuests` | `MSQuests` through `provides:` (`depend: [MSQuests]` still resolves) |
+| Data folder | `plugins/ArtisanQuests/` | `plugins/MSQuests/` copied on first start (`LegacyDataFolderMigration`); the original is kept for a rollback |
+| Admin command | `/artisanquests` | `/msquests` |
+| Permissions | `artisanquests.player`, `.rotate`, `.admin` | `msquests.player`, `.rotate`, `.admin`, `msquests.*`: declared in `plugin.yml` with the new node as a child, so a LuckPerms group that grants them keeps its rights |
+| Jar | `artisanquests-<version>.jar` | |
+
+Unchanged on purpose: the Artisan module id and Presence `msquests`, its data sources
+`msquests:groups`, `:quests`, `:active` and commands `msquests:track`, `:rotate`, `:contribute`
+(menus and chains on servers reference them), the `%msquests_*%` PAPI alias, the zMenu button
+type `MSQUESTS_QUEST_GROUP` and the `msquests_*` tables (a table name is never visible).
+
+Both jars must not sit in `plugins/` together: `provides: [MSQuests]` would clash with the old
+plugin.
 
 ## Modules
 
@@ -666,3 +687,13 @@ conditions are Artisan's.
 14. **Check the full build**: `./gradlew clean build` before committing. The shadow JAR is copied automatically to `docker/plugins/`.
 
 15. **SQL migrations**: For any schema change, create a new `Migration` class with an incremented version number, and register it in `MigrationManager`.
+
+## CI and releases
+
+`.github/workflows/build.yml` builds and tests on every push to `master` and on every PR, and
+uploads the JAR as a run artifact. A `vX.Y.Z` tag creates a GitHub release with
+`artisanquests-X.Y.Z.jar` (version injected with `-PpluginVersion`, expanded into `plugin.yml`).
+A tag with a dash (`v1.2.0-beta.1`) gives a pre-release.
+
+`artisan-core-api` (version `artisanApiVersion` in `gradle.properties`) comes from
+`https://repo.artisanmc.net/releases` (Artisan's Reposilite), without a token.

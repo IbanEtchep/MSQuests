@@ -11,6 +11,7 @@ import com.github.ibanetchep.msquests.bukkit.config.GlobalConfig;
 import com.github.ibanetchep.msquests.bukkit.event.BukkitEventDispatcher;
 import com.github.ibanetchep.msquests.bukkit.lang.BukkitTranslator;
 import com.github.ibanetchep.msquests.bukkit.listener.*;
+import com.github.ibanetchep.msquests.bukkit.migration.LegacyDataFolderMigration;
 import com.github.ibanetchep.msquests.bukkit.placeholderapi.QuestsPlaceholderExpansion;
 import com.github.ibanetchep.msquests.bukkit.placeholder.QuestPlaceholders;
 import com.github.ibanetchep.msquests.bukkit.artisan.ArtisanChainRunner;
@@ -108,7 +109,9 @@ import revxrsal.commands.bukkit.BukkitLampConfig;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -160,6 +163,10 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
 
     @Override
     public void onEnable() {
+        if (!migrateLegacyDataFolder()) {
+            return;
+        }
+
         artisanIntegration = ArtisanIntegration.resolve(this);
         if (artisanIntegration == null) {
             getServer().getPluginManager().disablePlugin(this);
@@ -439,6 +446,25 @@ public class BukkitQuestsPlugin extends JavaPlugin implements MSQuestsPlatform {
         questObjectiveFactory.register(FishingObjectiveConfig.class, FishingObjective.class, new FishingObjectiveHandler(this));
         questObjectiveFactory.register(PlaceholderObjectiveConfig.class, PlaceholderObjective.class, new PlaceholderObjectiveHandler(this));
         questObjectiveFactory.register(TravelObjectiveConfig.class, TravelObjective.class, new TravelObjectiveHandler(this));
+    }
+
+    /**
+     * The plugin was called MSQuests; its data folder follows the descriptor name. Returns false
+     * (plugin disabled) when the copy fails, rather than starting on an empty folder that the next
+     * start would take for a finished migration.
+     */
+    private boolean migrateLegacyDataFolder() {
+        Path target = getDataFolder().toPath();
+        Path legacy = target.resolveSibling(LegacyDataFolderMigration.LEGACY_NAME);
+        try {
+            LegacyDataFolderMigration.migrate(legacy, target, getLogger());
+            return true;
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not copy " + legacy + " to " + target
+                    + "; copy it by hand, then restart.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return false;
+        }
     }
 
     public void registerActorTypes() {
