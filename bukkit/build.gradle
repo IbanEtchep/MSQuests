@@ -62,7 +62,7 @@ processResources {
 }
 
 shadowJar {
-    archiveFileName = "msquests-bukkit-${version}.jar"
+    archiveFileName = "artisanquests-${version}.jar"
     archiveClassifier.set('')
     relocate 'com.tcoded.folialib', 'com.github.ibanetchep.msquests.libs.folialib'
 }
@@ -77,7 +77,7 @@ tasks.register('copyPlugin', Copy) {
     into "../docker/plugins"
 
     from('src/main/resources/config.yml') {
-        into "./MSQuests"
+        into "./ArtisanQuests"
     }
 }
 

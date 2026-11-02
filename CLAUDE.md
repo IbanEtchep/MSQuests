@@ -25,6 +25,8 @@ This is a Gradle multi-module project targeting Paper, Folia and Spigot 1.21+ (M
 
 Root package: `com.github.ibanetchep.msquests`
 
+The plugin is published as **ArtisanQuests** (formerly MSQuests). Only the plugin name, data folder, admin command and permissions changed; legacy names stay accepted (`provides: [MSQuests]`, data folder copied on first start, `/msquests` alias, old `msquests.*` nodes declared as parents of `artisanquests.*`). The Artisan module id `msquests`, its `msquests:*` data sources and commands, the zMenu button type and table names keep the `msquests` prefix on purpose. See ARCHITECTURE.md, section "Plugin name".
+
 ## Architecture
 
 ### Layered Design

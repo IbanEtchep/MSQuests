@@ -6,6 +6,7 @@ import com.github.ibanetchep.msquests.core.quest.config.QuestConfig;
 import com.github.ibanetchep.msquests.core.quest.config.QuestTierConfig;
 import com.github.ibanetchep.msquests.core.quest.config.action.ActionChain;
 import com.github.ibanetchep.msquests.core.util.CronUtils;
+import com.cronutils.model.time.ExecutionTime;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -37,6 +38,10 @@ public class QuestGroupConfig implements PlaceholderProvider {
 
     private final @Nullable String resetCron;
     private final @Nullable ZoneId resetZone;
+    /** The parsed reset schedule, built once with the group: see {@link CronUtils}. */
+    private final @Nullable ExecutionTime resetSchedule;
+    /** The reset window around the last computation; valid as long as "now" stays inside it. */
+    private volatile @Nullable ResetWindow resetWindow;
     private final @Nullable Integer maxPerPeriod;
     private final int maxActive;
 
@@ -68,6 +73,7 @@ public class QuestGroupConfig implements PlaceholderProvider {
         this.endAt = builder.endAt;
         this.resetCron = builder.resetCron;
         this.resetZone = builder.resetZone;
+        this.resetSchedule = builder.resetCron != null ? CronUtils.schedule(builder.resetCron) : null;
         this.maxPerPeriod = builder.maxPerPeriod;
         this.maxActive = builder.maxActive;
         this.actorType = builder.actorType;
@@ -259,19 +265,23 @@ public class QuestGroupConfig implements PlaceholderProvider {
     }
 
     public @Nullable Instant getNextReset() {
-        if(resetCron == null) {
-            return null;
-        }
-
-        return CronUtils.getNextExecution(resetCron, Instant.now(), getResetZone());
+        ResetWindow window = currentResetWindow();
+        return window != null ? window.next() : null;
     }
 
     public @Nullable Instant getPreviousReset() {
-        if (resetCron == null) {
-            return  null;
-        }
+        ResetWindow window = currentResetWindow();
+        return window != null ? window.previous() : null;
+    }
 
-        return CronUtils.getPreviousExecution(resetCron, Instant.now(), getResetZone());
+    /** The first reset strictly after {@code from}, {@code null} without a reset cron. */
+    public @Nullable Instant getNextResetAfter(Instant from) {
+        return resetSchedule != null ? CronUtils.getNextExecution(resetSchedule, from, getResetZone()) : null;
+    }
+
+    /** The last reset strictly before {@code from}, {@code null} without a reset cron. */
+    public @Nullable Instant getPreviousResetBefore(Instant from) {
+        return resetSchedule != null ? CronUtils.getPreviousExecution(resetSchedule, from, getResetZone()) : null;
     }
 
     public @Nullable Instant getPeriodEnd() {
@@ -283,11 +293,58 @@ public class QuestGroupConfig implements PlaceholderProvider {
     }
 
     public @Nullable Instant getPeriodStart() {
-        if (getPreviousReset() != null) {
-            return  getPreviousReset();
+        Instant previousReset = getPreviousReset();
+        if (previousReset != null) {
+            return previousReset;
         }
 
         return startAt;
+    }
+
+    /**
+     * The current period, both bounds taken at the same instant: a caller that classifies
+     * many quests reads it once instead of asking for each bound per quest.
+     */
+    public Period getCurrentPeriod() {
+        ResetWindow window = currentResetWindow();
+        Instant start = window != null ? window.previous() : startAt;
+        Instant end = endAt != null ? endAt : (window != null ? window.next() : null);
+        return new Period(start, end);
+    }
+
+    /**
+     * The reset before and after now. The pair only changes when a reset passes, so it is
+     * recomputed when now leaves the cached window (or the clock went backwards), and the
+     * cron is otherwise not evaluated at all.
+     */
+    private @Nullable ResetWindow currentResetWindow() {
+        if (resetSchedule == null) {
+            return null;
+        }
+        Instant now = Instant.now();
+        ResetWindow window = resetWindow;
+        if (window != null && window.contains(now)) {
+            return window;
+        }
+        window = new ResetWindow(
+                CronUtils.getPreviousExecution(resetSchedule, now, getResetZone()),
+                CronUtils.getNextExecution(resetSchedule, now, getResetZone())
+        );
+        resetWindow = window;
+        return window;
+    }
+
+    /** A period's bounds; either may be {@code null} when the group has no such bound. */
+    public record Period(@Nullable Instant start, @Nullable Instant end) {
+        public boolean contains(Instant instant) {
+            return (start == null || !instant.isBefore(start)) && (end == null || instant.isBefore(end));
+        }
+    }
+
+    private record ResetWindow(@Nullable Instant previous, @Nullable Instant next) {
+        boolean contains(Instant now) {
+            return previous != null && next != null && !now.isBefore(previous) && now.isBefore(next);
+        }
     }
 
     @Override

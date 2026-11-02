@@ -26,8 +26,8 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-@Command("msquests")
-@CommandPermission("msquests.admin")
+@Command({"artisanquests", "msquests"})
+@CommandPermission("artisanquests.admin")
 public class QuestAdminCommand {
 
     private final BukkitQuestsPlugin plugin;
