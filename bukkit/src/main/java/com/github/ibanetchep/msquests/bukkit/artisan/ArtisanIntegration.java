@@ -18,14 +18,12 @@ public final class ArtisanIntegration {
 
     /**
      * Lowest Artisan API this plugin compiles against: text without Adventure
-     * ({@code TextApi}, 2.10.0, so it runs on Spigot), the example template
-     * ({@code TemplateRegistry}, 2.6.0), its messages served by {@code TranslationsApi}
-     * (2.5.0), item specs built and compared by
-     * {@code ItemStackApi.matches} (2.4.0), {@code ConditionsApi} and the structured
-     * {@code ModuleActionsApi.run} (2.2.0), {@code DocumentKindRegistry} (2.1.0) and
-     * the split {@code net.artisanmc.modules.api.*} packages (2.0.0).
+     * ({@code TextApi}, so it runs on Spigot), the example template ({@code TemplateRegistry}),
+     * its messages served by {@code TranslationsApi}, item specs built and compared by
+     * {@code ItemStackApi.matches}, {@code ConditionsApi} and the structured
+     * {@code ModuleActionsApi.run}, {@code DocumentKindRegistry}, editor bundles and Game events.
      */
-    public static final String MIN_API_VERSION = "2.10.0";
+    public static final String MIN_API_VERSION = "1.0.0";
 
     private final BukkitQuestsPlugin plugin;
     private final ArtisanAPI api;

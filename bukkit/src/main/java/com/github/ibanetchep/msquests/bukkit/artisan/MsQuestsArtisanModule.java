@@ -251,16 +251,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         }
     }
 
-    /**
-     * Hands the editor view to Artisan, which serves it to the editor. Artisan before 2.3.0
-     * has no editor bundles: the quests then run without a view in the editor.
-     */
+    /** Hands the editor view to Artisan, which serves it to the editor. */
     private void registerEditorBundle(ArtisanAPI api) {
-        if (!api.isCompatibleWith("2.3.0")) {
-            plugin.getLogger().warning("Artisan " + api.getApiVersion()
-                    + " cannot serve the quest editor view; it needs Artisan API 2.3.0 or later.");
-            return;
-        }
         try {
             api.getEditorBundles().register(
                     EditorBundleDeclaration.fromResource(getClass().getClassLoader(), EDITOR_BUNDLE, EDITOR_SDK));
@@ -269,17 +261,8 @@ public final class MsQuestsArtisanModule implements ArtisanModule {
         }
     }
 
-    /**
-     * Declares the quests' Game events ({@link QuestGameEvents}) and starts firing them. Artisan
-     * before {@value QuestGameEvents#MIN_API_VERSION} has no Game events: the quests then run
-     * without them, as before.
-     */
+    /** Declares the quests' Game events ({@link QuestGameEvents}) and starts firing them. */
     private void registerGameEvents(ArtisanAPI api) {
-        if (!api.isCompatibleWith(QuestGameEvents.MIN_API_VERSION)) {
-            plugin.getLogger().info("Artisan " + api.getApiVersion() + " has no Game events; Triggers cannot react to"
-                    + " quests until Artisan API " + QuestGameEvents.MIN_API_VERSION + " or later.");
-            return;
-        }
         if (!(plugin.getEventDispatcher() instanceof BukkitEventDispatcher dispatcher)) return;
         try {
             for (GameEventDeclaration declaration : QuestGameEvents.declarations()) {

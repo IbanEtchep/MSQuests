@@ -49,9 +49,6 @@ public final class QuestGameEvents implements Consumer<CoreEvent> {
     public static final String EXPIRED = "quests:expired";
     public static final String ABANDONED = "quests:abandoned";
 
-    /** The Artisan API that brings Game events. */
-    public static final String MIN_API_VERSION = "2.16.0";
-
     private static final String GROUP = "quests";
 
     private final GameEventRegistry registry;
