@@ -65,6 +65,9 @@ shadowJar {
     archiveFileName = "artisanquests-${version}.jar"
     archiveClassifier.set('')
     relocate 'com.tcoded.folialib', 'com.github.ibanetchep.msquests.libs.folialib'
+    // Lamp is shaded by other plugins of the server too (Core): unrelocated, a plugin that loads
+    // after this one can link half of Lamp from this jar and half from its own (LinkageError).
+    relocate 'revxrsal.commands', 'com.github.ibanetchep.msquests.libs.lamp'
 }
 
 // The shaded jar shares its coordinates with the plain jar; publish only the latter, which is
