@@ -30,14 +30,27 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    // Published so integration plugins (e.g. MSGuildQuests) can compile against MSQuests:
-    //   ./gradlew publishToMavenLocal
+    // Published so integration plugins (e.g. ArtisanGuildQuests) can compile against ArtisanQuests:
+    // CI publishes tags to repo.artisanmc.net/releases and the artisanquests branch to /snapshots
+    // (ARTISAN_REPO_USERNAME / ARTISAN_REPO_PASSWORD); locally, ./gradlew publishToMavenLocal.
     apply plugin: 'maven-publish'
 
     publishing {
         publications {
             maven(MavenPublication) {
                 from components.java
+            }
+        }
+        repositories {
+            maven {
+                name = 'artisan'
+                url = version.toString().endsWith('-SNAPSHOT')
+                        ? 'https://repo.artisanmc.net/snapshots'
+                        : 'https://repo.artisanmc.net/releases'
+                credentials {
+                    username = System.getenv('ARTISAN_REPO_USERNAME')
+                    password = System.getenv('ARTISAN_REPO_PASSWORD')
+                }
             }
         }
     }

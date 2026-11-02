@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [master, artisanquests]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -40,6 +40,15 @@ jobs:
       # Repository tests use Testcontainers (MySQL); the runner provides Docker.
       - name: Build and test
         run: bash ./gradlew --no-daemon build -PpluginVersion=${{ steps.version.outputs.value }}
+
+      # Integration plugins (ArtisanGuildQuests) compile against these jars: tags go to
+      # repo.artisanmc.net/releases, the artisanquests branch to /snapshots.
+      - name: Publish to repo.artisanmc.net
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/artisanquests')
+        env:
+          ARTISAN_REPO_USERNAME: ${{ secrets.ARTISAN_REPO_USERNAME }}
+          ARTISAN_REPO_PASSWORD: ${{ secrets.ARTISAN_REPO_PASSWORD }}
+        run: bash ./gradlew --no-daemon publishAllPublicationsToArtisanRepository -PpluginVersion=${{ steps.version.outputs.value }}
 
       - name: Upload test reports
         if: failure()
