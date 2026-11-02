@@ -13,8 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
- * Quest requirements and objective conditions, evaluated by Artisan ({@code api.getConditions()},
- * API 2.2.0): the vocabulary of an {@code if:} in a chain, read strictly (an unknown or malformed
+ * Quest requirements and objective conditions, evaluated by Artisan ({@code api.getConditions()}): the vocabulary of an {@code if:} in a chain, read strictly (an unknown or malformed
  * condition fails). The bindings only reach {@code expression} conditions.
  *
  * <p>Artisan reads the player's state on the thread that owns the player; called from elsewhere

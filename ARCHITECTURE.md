@@ -143,20 +143,20 @@ Root package: `com.github.ibanetchep.msquests.bukkit`
 
 ## Artisan integration
 
-**Required** (`depend: [Artisan]` in `plugin.yml`, Artisan API 2.10.0+). At the very
+**Required** (`depend: [Artisan]` in `plugin.yml`, Artisan API 1.0.0+). At the very
 start of `onEnable`, `ArtisanIntegration.resolve` loads `ArtisanAPI` from the
 `ServicesManager`; if it is missing or too old, the plugin disables itself with a
 SEVERE message, before opening the database. Once the services are wired, `MsQuestsArtisanModule`
 is registered and declares:
 
-- **an example template** `daily` (Artisan 2.6.0, `api.getTemplates()`, files in
+- **an example template** `daily` (`api.getTemplates()`, files in
   `bukkit/src/main/resources/artisan-templates/daily/`): an `example_daily` group of three
   daily quests, which the editor offers to copy into any project (**+ → From
   a module…**). On first start, Artisan copies it once into the `quests` module folder
   (`plugins/Artisan/modules/quests/`, `EditorProject`); if deleted, it does not come back.
   Bump `TEMPLATE_VERSION` on every change to these files: the editor then offers the
   update to unmodified copies;
-- **the module folder** `quests` (Artisan 2.8.0, `api.getProjectRoots().moduleFolder`):
+- **the module folder** `quests` (`api.getProjectRoots().moduleFolder`):
   the editor files it under the installed Quests module, not among the admin's modules. It
   has the name of the former ordinary project `quests`, which therefore becomes the module
   folder as is, without a move. The module's former project, `plugins/MSQuests/editor/`, is moved there
@@ -171,8 +171,7 @@ is registered and declares:
   `content_source: artisan` (see *Content source*); otherwise from `quests/*.yml`.
   `onReload` (publish, `/artisan reload`) reloads the quests when these Documents have
   changed (SHA-256 fingerprint), and does nothing otherwise;
-- **its editor view** `artisan-editor/ui.js` (Artisan 2.3.0+, otherwise a warning and no
-  view): the repository's `editor/` folder (TypeScript + React, against `@artisan/editor-sdk`, taken
+- **its editor view** `artisan-editor/ui.js`: the repository's `editor/` folder (TypeScript + React, against `@artisan/editor-sdk`, taken
   from `editor/vendor/` until the SDK is published) builds it into
   `bukkit/src/main/resources/artisan-editor/` (`cd editor && npm ci && npm run build`, output
   committed: the Gradle build does not need Node). Artisan serves it to the editor, which
@@ -203,10 +202,9 @@ continues.
 
 ### Game events: Triggers react to quests
 
-With Artisan API 2.16.0 or later, the module declares six Game events (`QuestGameEvents`),
+The module declares six Game events (`QuestGameEvents`),
 so a Trigger (`triggers/<id>.yml`, `on: quests:completed`), a conversation or another module
-reacts to a quest without a hook in its group. Older Artisan: nothing is declared, the quests
-run as before.
+reacts to a quest without a hook in its group.
 
 | Game event | Context (`{event.…}`) | Fired when |
 |---|---|---|
@@ -345,10 +343,7 @@ the in-memory registries — never a repository, never I/O. An unloaded
 actor (offline player) gives neutral values, not a wait.
 
 Build: `artisan-core-api` is `compileOnly` (provided by the Artisan plugin, never shaded),
-version `artisanApiVersion` in `gradle.properties`. Until 2.2.0 (conditions API,
-artisanmc/artisan#88) is published on repo.artisanmc.net, produce it from `v2`
-once #88 is merged, or from its branch:
-`cd <artisan>/plugin && ./gradlew :artisan-api:publishToMavenLocal -PapiVersion=2.2.0`.
+version `artisanApiVersion` in `gradle.properties`, from repo.artisanmc.net/releases.
 
 ---
 
@@ -513,7 +508,7 @@ Each objective type follows a 3-class pattern + registration:
 | `deliver_item` | `msquests:contribute` (menu) | item (`item` + `match`, legacy `material`), amount — inventory then carried shulkers (`deliver_item.include_shulker_boxes` in config.yml) |
 | `harvest_crop` | `BlockBreakEvent` | crop type |
 
-An objective's **item** (`ItemTarget`) is an Artisan item spec: the fields of a menu button's appearance (`material`: vanilla, `item:<captured id>` or `nexo:<id>`…; `title`, `lore`, `enchants`, `custom_model_data`), built and compared by `api.getItems()` (Artisan API 2.4.0). `match` lists the criteria (`material`, `custom_item`, `name`, `lore`, `enchants`, `custom_model_data`, `damage`, `exact`); absent, those the item carries. A legacy bare material is compared on the material alone, and is rewritten as `item` + `match: [material]` on save. No item: any item.
+An objective's **item** (`ItemTarget`) is an Artisan item spec: the fields of a menu button's appearance (`material`: vanilla, `item:<captured id>` or `nexo:<id>`…; `title`, `lore`, `enchants`, `custom_model_data`), built and compared by `api.getItems()`. `match` lists the criteria (`material`, `custom_item`, `name`, `lore`, `enchants`, `custom_model_data`, `damage`, `exact`); absent, those the item carries. A legacy bare material is compared on the material alone, and is rewritten as `item` + `match: [material]` on save. No item: any item.
 | `placeholder` | Polling scheduler | placeholder, interval, condition |
 | `travel` | `PlayerMoveEvent` | distance |
 
